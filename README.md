@@ -2,6 +2,7 @@
 
 ---
 # ERD
+```mermaid
 erDiagram
     Department {
         serial id PK
@@ -177,5 +178,5 @@ erDiagram
     UsageLog ||--o{ AnalysisJob : "분석요청"
     AnalysisJob ||--o{ AgentLog : "AI Agent 실행로그"
     UsageLog ||--|| PromptStorage : "프롬프트 보관"
-
+```
 ---
