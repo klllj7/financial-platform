@@ -418,3 +418,23 @@
     flex-direction: column;
   }
 }
+
+/* 백엔드 연결 테스트용 임시 버튼 */
+.backend-check-button {
+  width: 100%;
+  height: 46px;
+  margin-top: 10px;
+  border: 1px solid #d9e1ef;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #2f6fed;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.backend-check-button:hover {
+  background: #f3f7ff;
+  border-color: #2f6fed;
+}

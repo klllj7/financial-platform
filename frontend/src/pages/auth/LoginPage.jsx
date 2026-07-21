@@ -1,7 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getHealthCheck } from "../../api/healthApi"; // backend server test
 import "./LoginPage.css";
 
 function LoginPage() {
+
+  // 네비게이터
+  const navigate = useNavigate();
+
   // 사용자가 입력한 아이디와 비밀번호를 저장하는 상태
   const [loginForm, setLoginForm] = useState({
     userId: "",
@@ -12,7 +18,20 @@ function LoginPage() {
   const [keepLogin, setKeepLogin] = useState(false);
 
   // 아이디 저장 체크박스 상태
-  const [saveId, setSaveId] = useState(false);
+  const [saveId, setSaveId] = useState(false);  
+
+  // backend server test
+  const handleBackendCheck = async () => {
+    try {
+      const result = await getHealthCheck();
+
+      console.log("백엔드 연결 성공: ", result);
+      alert("백엔드 연결 성공!");
+    } catch(error) {
+      console.error("백엔드 연결 실패: ", error);
+      alert("백엔드 연결 실패! backend 서버가 켜져 있는지 확인해주세요.");
+    }
+  };
 
   // input에 입력할 때마다 loginForm 값을 업데이트하는 함수
   const handleInputChange = (e) => {
@@ -39,7 +58,7 @@ function LoginPage() {
 
   // 회원가입 버튼 클릭 시 실행
   const handleSignupClick = () => {
-    alert("회원가입 화면은 다음 단계에서 연결할 예정입니다.");
+    navigate("/signup");
   };
 
   // 아이디 찾기 버튼 클릭 시 실행
@@ -159,6 +178,11 @@ function LoginPage() {
               {/* 로그인 버튼 */}
               <button className="login-button" type="submit">
                 로그인
+              </button>
+
+              {/* 백엔드 서버 연결 테스트 */}
+              <button className="backend-check-button" type="button" onClick={handleBackendCheck}>
+                백엔드 연결 테스트
               </button>
             </form>
 
