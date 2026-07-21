@@ -1,0 +1,420 @@
+/* 로그인 페이지 전체 영역 */
+.login-page {
+  min-height: 100vh;
+  background: #eef3fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* 좌측 소개 영역 + 우측 로그인 영역을 감싸는 큰 박스 */
+.login-container {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 680px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  background: #ffffff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(20, 35, 70, 0.16);
+}
+
+/* 왼쪽 이미지/브랜딩 영역 */
+.login-left {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 56px;
+  color: #ffffff;
+
+  /* 실제 이미지 대신 사용할 그라데이션 배경 */
+  background:
+    radial-gradient(circle at 20% 20%, rgba(112, 169, 255, 0.42), transparent 32%),
+    radial-gradient(circle at 80% 30%, rgba(96, 239, 255, 0.28), transparent 28%),
+    linear-gradient(135deg, #123a8c 0%, #245fe0 48%, #143168 100%);
+}
+
+/* 왼쪽 영역에 은은한 패턴 느낌 추가 */
+.login-left::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 0.28;
+}
+
+/* 왼쪽 내부 콘텐츠 */
+.login-left-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* 서비스명 뱃지 */
+.service-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  margin: 0 0 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* 왼쪽 큰 제목 */
+.login-left-title {
+  margin: 0 0 20px;
+  font-size: 40px;
+  line-height: 1.28;
+  letter-spacing: -1.2px;
+}
+
+/* 왼쪽 설명 문구 */
+.login-left-description {
+  max-width: 460px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* 대시보드 미리보기 카드 */
+.dashboard-preview {
+  width: 390px;
+  margin-top: 54px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+}
+
+/* 미리보기 카드 상단 점 3개 */
+.preview-header {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.preview-header span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+/* 미리보기 카드 본문 */
+.preview-body {
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Risk Events 카드 */
+.preview-card {
+  width: 136px;
+  height: 126px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.preview-card p {
+  margin: 0 0 12px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+}
+
+.preview-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 36px;
+}
+
+.preview-card span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+}
+
+/* 간단한 막대그래프 장식 */
+.preview-chart {
+  height: 128px;
+  flex: 1;
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.chart-bar {
+  width: 34px;
+  border-radius: 999px 999px 0 0;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.bar-1 {
+  height: 54px;
+}
+
+.bar-2 {
+  height: 88px;
+}
+
+.bar-3 {
+  height: 70px;
+}
+
+.bar-4 {
+  height: 108px;
+}
+
+/* 오른쪽 로그인 폼 영역 */
+.login-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px;
+}
+
+/* 로그인 폼 전체 박스 */
+.login-form-box {
+  width: 100%;
+  max-width: 390px;
+}
+
+/* 로그인 제목 영역 */
+.login-title-area {
+  margin-bottom: 36px;
+}
+
+.login-sub-title {
+  margin: 0 0 8px;
+  color: #2f6fed;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.login-title-area h2 {
+  margin: 0;
+  color: #162033;
+  font-size: 34px;
+  letter-spacing: -0.8px;
+}
+
+.login-title-area p:last-child {
+  margin: 12px 0 0;
+  color: #6f7c91;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* form 영역 */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* label + input 묶음 */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #27364f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* 아이디/비밀번호 input */
+.form-group input {
+  height: 50px;
+  border: 1px solid #d9e1ef;
+  border-radius: 14px;
+  padding: 0 16px;
+  outline: none;
+  color: #1d2738;
+  background: #ffffff;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+/* input 클릭했을 때 효과 */
+.form-group input:focus {
+  border-color: #2f6fed;
+  box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+}
+
+/* 체크박스 영역 */
+.login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+/* 체크박스 label */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #556173;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* 로그인 버튼 */
+.login-button {
+  width: 100%;
+  height: 52px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 15px;
+  background: #2f6fed;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-button:hover {
+  background: #245fd5;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(47, 111, 237, 0.28);
+}
+
+/* 아이디 찾기 / 비밀번호 찾기 */
+.find-account-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  margin-top: 22px;
+  color: #a1aabc;
+  font-size: 13px;
+}
+
+.find-account-area button {
+  border: none;
+  background: none;
+  color: #66748a;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.find-account-area button:hover {
+  color: #2f6fed;
+  text-decoration: underline;
+}
+
+/* 회원가입 박스 */
+.signup-area {
+  margin-top: 34px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #f6f8fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #66748a;
+  font-size: 14px;
+}
+
+.signup-area button {
+  border: none;
+  background: none;
+  color: #2f6fed;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+}
+
+.signup-area button:hover {
+  text-decoration: underline;
+}
+
+/* 태블릿 화면 대응 */
+@media (max-width: 900px) {
+  .login-page {
+    padding: 24px;
+  }
+
+  .login-container {
+    grid-template-columns: 1fr;
+  }
+
+  .login-left {
+    min-height: 360px;
+    padding: 40px;
+  }
+
+  .login-left-title {
+    font-size: 32px;
+  }
+
+  .dashboard-preview {
+    width: 100%;
+    max-width: 390px;
+  }
+
+  .login-right {
+    padding: 42px 28px;
+  }
+}
+
+/* 모바일 화면 대응 */
+@media (max-width: 520px) {
+  .login-page {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .login-container {
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    padding: 40px 22px;
+  }
+
+  .login-options {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .signup-area {
+    flex-direction: column;
+  }
+}

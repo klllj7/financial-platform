@@ -1,0 +1,190 @@
+import { useState } from "react";
+import "./LoginPage.css";
+
+function LoginPage() {
+  // 사용자가 입력한 아이디와 비밀번호를 저장하는 상태
+  const [loginForm, setLoginForm] = useState({
+    userId: "",
+    password: "",
+  });
+
+  // 로그인 상태 유지 체크박스 상태
+  const [keepLogin, setKeepLogin] = useState(false);
+
+  // 아이디 저장 체크박스 상태
+  const [saveId, setSaveId] = useState(false);
+
+  // input에 입력할 때마다 loginForm 값을 업데이트하는 함수
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setLoginForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // 로그인 버튼 클릭 시 실행되는 함수
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+
+    // 아직 백엔드 API 연결 전이라 console로만 확인
+    console.log("아이디:", loginForm.userId);
+    console.log("비밀번호:", loginForm.password);
+    console.log("로그인 상태 유지:", keepLogin);
+    console.log("아이디 저장:", saveId);
+
+    alert("로그인 API 연결은 다음 단계에서 진행할 예정입니다.");
+  };
+
+  // 회원가입 버튼 클릭 시 실행
+  const handleSignupClick = () => {
+    alert("회원가입 화면은 다음 단계에서 연결할 예정입니다.");
+  };
+
+  // 아이디 찾기 버튼 클릭 시 실행
+  const handleFindIdClick = () => {
+    alert("아이디 찾기 기능은 추후 구현 예정입니다.");
+  };
+
+  // 비밀번호 찾기 버튼 클릭 시 실행
+  const handleFindPasswordClick = () => {
+    alert("비밀번호 찾기 기능은 추후 구현 예정입니다.");
+  };
+
+  return (
+    <main className="login-page">
+      <section className="login-container">
+        {/* 왼쪽 서비스 소개/이미지 영역 */}
+        <section className="login-left">
+          <div className="login-left-content">
+            <p className="service-badge">AI Financial Platform</p>
+
+            <h1 className="login-left-title">
+              금융권 생성형 AI 사용을
+              <br />
+              안전하게 관리하세요
+            </h1>
+
+            <p className="login-left-description">
+              AI 사용 로그, 위험 이벤트, 정책 판단, 조치 이력을 한곳에서
+              관리하고 규제 대응을 위한 증빙 자료를 체계적으로 정리합니다.
+            </p>
+
+            {/* 실제 이미지 대신 대시보드 느낌의 일러스트 카드 */}
+            <div className="dashboard-preview">
+              <div className="preview-header">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+              <div className="preview-body">
+                <div className="preview-card">
+                  <p>Risk Events</p>
+                  <strong>24</strong>
+                  <span>이번 달 탐지 건수</span>
+                </div>
+
+                <div className="preview-chart">
+                  <span className="chart-bar bar-1"></span>
+                  <span className="chart-bar bar-2"></span>
+                  <span className="chart-bar bar-3"></span>
+                  <span className="chart-bar bar-4"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 오른쪽 로그인 영역 */}
+        <section className="login-right">
+          <div className="login-form-box">
+            <div className="login-title-area">
+              <p className="login-sub-title">Welcome back</p>
+              <h2>로그인</h2>
+              <p>
+                계정 정보를 입력해주세요.
+              </p>
+            </div>
+
+            <form className="login-form" onSubmit={handleLoginSubmit}>
+              {/* 아이디 입력 */}
+              <div className="form-group">
+                <label htmlFor="userId">아이디</label>
+                <input
+                  id="userId"
+                  name="userId"
+                  type="text"
+                  value={loginForm.userId}
+                  onChange={handleInputChange}
+                  placeholder="아이디를 입력하세요"
+                />
+              </div>
+
+              {/* 비밀번호 입력 */}
+              <div className="form-group">
+                <label htmlFor="password">비밀번호</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={loginForm.password}
+                  onChange={handleInputChange}
+                  placeholder="비밀번호를 입력하세요"
+                />
+              </div>
+
+              {/* 체크박스 영역 */}
+              <div className="login-options">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={keepLogin}
+                    onChange={(e) => setKeepLogin(e.target.checked)}
+                  />
+                  <span>로그인 상태 유지</span>
+                </label>
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={saveId}
+                    onChange={(e) => setSaveId(e.target.checked)}
+                  />
+                  <span>아이디 저장</span>
+                </label>
+              </div>
+
+              {/* 로그인 버튼 */}
+              <button className="login-button" type="submit">
+                로그인
+              </button>
+            </form>
+
+            {/* 아이디/비밀번호 찾기 */}
+            <div className="find-account-area">
+              <button type="button" onClick={handleFindIdClick}>
+                아이디 찾기
+              </button>
+              <span>|</span>
+              <button type="button" onClick={handleFindPasswordClick}>
+                비밀번호 찾기
+              </button>
+            </div>
+
+            {/* 회원가입 */}
+            <div className="signup-area">
+              <span>아직 계정이 없으신가요?</span>
+              <button type="button" onClick={handleSignupClick}>
+                회원가입
+              </button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  );
+}
+
+export default LoginPage;
