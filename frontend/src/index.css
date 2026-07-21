@@ -1,0 +1,20 @@
+/* 모든 요소의 크기 계산 방식을 border-box로 통일 */
+* {
+  box-sizing: border-box;
+}
+
+/* 기본 body 스타일 초기화 */
+body {
+  margin: 0;
+  font-family:
+    Arial,
+    "Noto Sans KR",
+    sans-serif;
+  background: #eef3fb;
+}
+
+/* 버튼과 input도 body와 같은 폰트 사용 */
+button,
+input {
+  font-family: inherit;
+}
