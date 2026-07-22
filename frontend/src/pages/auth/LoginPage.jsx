@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getHealthCheck } from "../../api/healthApi"; // backend server test
+import { login } from "../../api/authApi";
+// import { getHealthCheck } from "../../api/healthApi"; // backend server test
 import "./LoginPage.css";
 
 function LoginPage() {
@@ -10,7 +11,7 @@ function LoginPage() {
 
   // 사용자가 입력한 아이디와 비밀번호를 저장하는 상태
   const [loginForm, setLoginForm] = useState({
-    userId: "",
+    email: "",
     password: "",
   });
 
@@ -21,7 +22,7 @@ function LoginPage() {
   const [saveId, setSaveId] = useState(false);  
 
   // backend server test
-  const handleBackendCheck = async () => {
+  /*const handleBackendCheck = async () => {
     try {
       const result = await getHealthCheck();
 
@@ -31,7 +32,7 @@ function LoginPage() {
       console.error("백엔드 연결 실패: ", error);
       alert("백엔드 연결 실패! backend 서버가 켜져 있는지 확인해주세요.");
     }
-  };
+  };*/
 
   // input에 입력할 때마다 loginForm 값을 업데이트하는 함수
   const handleInputChange = (e) => {
@@ -44,16 +45,46 @@ function LoginPage() {
   };
 
   // 로그인 버튼 클릭 시 실행되는 함수
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
 
-    // 아직 백엔드 API 연결 전이라 console로만 확인
-    console.log("아이디:", loginForm.userId);
-    console.log("비밀번호:", loginForm.password);
-    console.log("로그인 상태 유지:", keepLogin);
-    console.log("아이디 저장:", saveId);
+    if (!loginForm.email || !loginForm.password) {
+      alert("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
 
-    alert("로그인 API 연결은 다음 단계에서 진행할 예정입니다.");
+    try {
+      const payload = {
+        email: loginForm.email,
+        password: loginForm.password,
+      };
+
+      const result = await login(payload);
+
+      console.log("로그인 성공: ", result);
+
+      // 백엔드 응답 구조
+      const token = result.data.token;
+      const user = result.data.user;
+
+      // 토큰 저장
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      alert(`${user.name}님 로그인 성공!`);
+
+      // 권한별 화면 이동은 나중에 실제 대시보드 만들면 연결
+      // if (user.role === "ADMIN") {
+      //   navigate("/admin/accounts");
+      // } else if (user.role === "COMPLIANCE_MANAGER") {
+      //   navigate("/compliance/dashboard");
+      // } else {
+      //   navigate("/my-dashboard");
+      // }
+    } catch (error) {
+      console.error("로그인 실패: ", error);
+      alert(error.response?.data?.error?.message || "로그인에 실패했습니다.");
+    }
   };
 
   // 회원가입 버튼 클릭 시 실행
@@ -130,14 +161,14 @@ function LoginPage() {
             <form className="login-form" onSubmit={handleLoginSubmit}>
               {/* 아이디 입력 */}
               <div className="form-group">
-                <label htmlFor="userId">아이디</label>
+                <label htmlFor="email">아이디</label>
                 <input
-                  id="userId"
-                  name="userId"
-                  type="text"
-                  value={loginForm.userId}
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={loginForm.email}
                   onChange={handleInputChange}
-                  placeholder="아이디를 입력하세요"
+                  placeholder="example@company.com"
                 />
               </div>
 
@@ -181,9 +212,9 @@ function LoginPage() {
               </button>
 
               {/* 백엔드 서버 연결 테스트 */}
-              <button className="backend-check-button" type="button" onClick={handleBackendCheck}>
+              {/*<button className="backend-check-button" type="button" onClick={handleBackendCheck}>
                 백엔드 연결 테스트
-              </button>
+              </button>*/}
             </form>
 
             {/* 아이디/비밀번호 찾기 */}

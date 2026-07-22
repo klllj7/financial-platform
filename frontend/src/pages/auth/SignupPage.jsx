@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signup } from "../../api/authApi";
 import "./SignupPage.css";
 
 function SignupPage() {
@@ -29,7 +30,7 @@ function SignupPage() {
   };
 
   // 회원가입 버튼 클릭 시 실행되는 함수
-  const handleSignupSubmit = (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
 
     // 간단한 필수값 검증
@@ -50,12 +51,33 @@ function SignupPage() {
       return;
     }
 
-    setErrorMessage("");
+    try{
+      setErrorMessage("");
 
-    // 아직 백엔드 API 연결 전이라 console로만 확인
-    console.log("회원가입 정보:", signupForm);
+      // 백엔드 회원가입 API에 보낼 데이터
+      const payload = {
+        name: signupForm.name,
+        email: signupForm.email,
+        password: signupForm.password,
+        department: signupForm.department,
+        role: signupForm.role,
+      };
 
-    alert("회원가입 API 연결은 다음 단계에서 진행할 예정입니다.");
+      const result = await signup(payload);
+
+      console.log("회원가입 성공: ", result);
+
+      alert("회원가입이 완료되었습니다. 로그인 화면으로 이동합니다.");
+
+      // 회원가입 성공 후 로그인 페이지로 이동
+      navigate("/login");
+    } catch (error) {
+      console.error("회원가입 실패: ", error);
+
+      setErrorMessage(
+        error.response?.data?.error?.message || "회원가입에 실패했습니다."
+      );
+    }
   };
 
   // 로그인 화면으로 이동
