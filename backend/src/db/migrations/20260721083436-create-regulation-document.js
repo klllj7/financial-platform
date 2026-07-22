@@ -2,33 +2,33 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('RegulationDocuments', {
+    await queryInterface.createTable('regulation_document', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      docName: {
+      doc_name: {
         type: Sequelize.STRING
       },
       source: {
         type: Sequelize.STRING
       },
-      revisedAt: {
+      revised_at: {
         type: Sequelize.DATE
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('RegulationDocuments');
+    await queryInterface.dropTable('regulation_document');
   }
 };

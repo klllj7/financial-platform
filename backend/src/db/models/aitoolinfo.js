@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      AiToolInfo.hasMany(models.UsageLog, { foreignKey: 'aiToolId' });
     }
   }
   AiToolInfo.init({
@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'AiToolInfo',
+    tableName: 'ai_tool_info',
+    underscored: true,
   });
   return AiToolInfo;
 };

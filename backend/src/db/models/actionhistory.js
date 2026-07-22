@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      ActionHistory.belongsTo(models.UsageLog, { foreignKey: 'eventId' });
+      ActionHistory.belongsTo(models.UserInfo, { as: 'actor', foreignKey: 'actorUserId' });
     }
   }
   ActionHistory.init({

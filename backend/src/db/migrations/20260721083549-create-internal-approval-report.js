@@ -2,23 +2,27 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('InternalApprovalReports', {
+    await queryInterface.createTable('internal_approval_report', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      departmentId: {
-        type: Sequelize.INTEGER
+      department_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: 'department', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
       },
       title: {
         type: Sequelize.STRING
       },
-      periodStart: {
+      period_start: {
         type: Sequelize.DATE
       },
-      periodEnd: {
+      period_end: {
         type: Sequelize.DATE
       },
       content: {
@@ -27,29 +31,37 @@ module.exports = {
       status: {
         type: Sequelize.STRING
       },
-      createdBy: {
-        type: Sequelize.INTEGER
+      created_by: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: 'user_info', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
       },
-      approvedBy: {
-        type: Sequelize.INTEGER
+      approved_by: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: { model: 'user_info', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
-      reviewerComment: {
+      reviewer_comment: {
         type: Sequelize.TEXT
       },
-      filePath: {
+      file_path: {
         type: Sequelize.STRING
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('InternalApprovalReports');
+    await queryInterface.dropTable('internal_approval_report');
   }
 };

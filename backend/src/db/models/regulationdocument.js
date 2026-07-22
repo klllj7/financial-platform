@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      RegulationDocument.hasMany(models.RegulationClause, { foreignKey: 'docId' });
     }
   }
   RegulationDocument.init({
@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'RegulationDocument',
+    tableName: 'regulation_document',
+    underscored: true,
   });
   return RegulationDocument;
 };

@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      RegulationClause.belongsTo(models.RegulationDocument, { foreignKey: 'docId' });
+      RegulationClause.hasMany(models.EventClauseMap, { foreignKey: 'clauseId' });    
     }
   }
   RegulationClause.init({

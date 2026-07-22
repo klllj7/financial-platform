@@ -2,42 +2,46 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('PolicyInfos', {
+    await queryInterface.createTable('policy_info', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      departmentId: {
-        type: Sequelize.INTEGER
+      department_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: 'department', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
       },
       name: {
         type: Sequelize.STRING
       },
-      ruleContent: {
+      rule_content: {
         type: Sequelize.JSONB
       },
       version: {
         type: Sequelize.INTEGER
       },
-      activeYn: {
+      active_yn: {
         type: Sequelize.BOOLEAN
       },
-      approvalStatus: {
+      approval_status: {
         type: Sequelize.STRING
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('PolicyInfos');
+    await queryInterface.dropTable('policy_info');
   }
 };

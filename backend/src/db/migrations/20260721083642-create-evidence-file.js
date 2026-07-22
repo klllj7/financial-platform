@@ -2,51 +2,63 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('EvidenceFiles', {
+    await queryInterface.createTable('evidence_file', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      departmentId: {
+      department_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: 'department', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
+      },
+      event_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: { model: 'usage_log', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
+      target_year: {
         type: Sequelize.INTEGER
       },
-      eventId: {
-        type: Sequelize.INTEGER
-      },
-      targetYear: {
-        type: Sequelize.INTEGER
-      },
-      categoryTag: {
+      category_tag: {
         type: Sequelize.STRING
       },
-      fileName: {
+      file_name: {
         type: Sequelize.STRING
       },
-      fileType: {
+      file_type: {
         type: Sequelize.STRING
       },
-      filePath: {
+      file_path: {
         type: Sequelize.STRING
       },
-      sourceType: {
+      source_type: {
         type: Sequelize.STRING
       },
-      uploadedBy: {
-        type: Sequelize.INTEGER
+      uploaded_by: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: { model: 'user_info', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('EvidenceFiles');
+    await queryInterface.dropTable('evidence_file');
   }
 };

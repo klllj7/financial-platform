@@ -2,17 +2,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('RegulationClauses', {
+    await queryInterface.createTable('regulation_clause', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      docId: {
-        type: Sequelize.INTEGER
+      doc_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: 'regulation_document', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
-      clauseNo: {
+      clause_no: {
         type: Sequelize.STRING
       },
       title: {
@@ -21,17 +25,17 @@ module.exports = {
       description: {
         type: Sequelize.TEXT
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('RegulationClauses');
+    await queryInterface.dropTable('regulation_clause');
   }
 };

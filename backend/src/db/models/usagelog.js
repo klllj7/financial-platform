@@ -10,7 +10,14 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      UsageLog.belongsTo(models.UserInfo, { foreignKey: 'userId' });
+      UsageLog.belongsTo(models.AiToolInfo, { foreignKey: 'aiToolId' });
+      UsageLog.belongsTo(models.PolicyInfo, { foreignKey: 'policyId' });
+      UsageLog.hasMany(models.EventLog, { foreignKey: 'eventId' });
+      UsageLog.hasMany(models.ActionHistory, { foreignKey: 'eventId' });
+      UsageLog.hasMany(models.EventClauseMap, { foreignKey: 'eventId' });
+      UsageLog.hasMany(models.EvidenceFile, { foreignKey: 'eventId' });
+      UsageLog.hasOne(models.PromptStorage, { foreignKey: 'eventId' });
     }
   }
   UsageLog.init({

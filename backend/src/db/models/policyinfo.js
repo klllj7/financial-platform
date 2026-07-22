@@ -10,7 +10,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      PolicyInfo.belongsTo(models.Department, { foreignKey: 'departmentId' });
+      PolicyInfo.hasMany(models.PolicyHistory, { foreignKey: 'policyId' });
+      PolicyInfo.hasMany(models.UsageLog, { foreignKey: 'policyId' });    
     }
   }
   PolicyInfo.init({

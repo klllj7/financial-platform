@@ -10,7 +10,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      EvidenceFile.belongsTo(models.Department, {foreignKey: 'departmentId'});
+      EvidenceFile.belongsTo(models.UsageLog, {foreignKey: 'eventId'});
+      EvidenceFile.belongsTo(models.UserInfo, {as:'uploader', foreignKey:'uploadedBy'});
     }
   }
   EvidenceFile.init({

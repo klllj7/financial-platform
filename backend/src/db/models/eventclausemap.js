@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      EventClauseMap.belongsTo(models.UsageLog, { foreignKey: 'eventId' });
+      EventClauseMap.belongsTo(models.RegulationClause, { foreignKey: 'clauseId' });
     }
   }
   EventClauseMap.init({

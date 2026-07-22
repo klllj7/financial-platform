@@ -10,7 +10,10 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Department.hasMany(models.UserInfo, { foreignKey: 'departmentId' });
+      Department.hasMany(models.PolicyInfo, { foreignKey: 'departmentId' });
+      Department.hasMany(models.InternalApprovalReport, { foreignKey: 'departmentId' });
+      Department.hasMany(models.EvidenceFile, { foreignKey: 'departmentId' });
     }
   }
   Department.init({
@@ -19,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Department',
+    tableName: 'department',
+    underscored: true
   });
   return Department;
 };
