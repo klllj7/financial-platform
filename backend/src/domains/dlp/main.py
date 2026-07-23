@@ -108,3 +108,35 @@ def create_action(event_id: int, request: ActionRequest):
         }
     finally:
         db.close()
+
+@app.get("/events")
+def list_events():
+    db = SessionLocal()
+    try:
+        events = db.query(EventLog).order_by(EventLog.created_at.desc()).all()
+
+        result = []
+        for event in events:
+            usage_log = db.query(UsageLog).filter(UsageLog.id == event.event_id).first()
+            actions = db.query(ActionHistory).filter(ActionHistory.event_id == event.event_id).all()
+
+            result.append({
+                "event_id": event.event_id,
+                "description": usage_log.description if usage_log else None,
+                "detection_type": event.detection_type,
+                "grade": event.grade,
+                "masked_yn": event.masked_yn,
+                "created_at": event.created_at,
+                "action": [
+                    {
+                        "action_type": a.action_type,
+                        "action_reason": a.action_reason,
+                        "actor_user_id": a.actor_user_id,
+                        "action_time": a.action_time
+                    }
+                    for a in actions
+                ]
+            })
+        return result
+    finally:
+        db.close()

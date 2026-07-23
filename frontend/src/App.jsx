@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import EventListPage from "./pages/dlp/EventListPage";
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
 
         {/* 회원가입 페이지 */}
         <Route path="/signup" element={<SignupPage />} />
+
+        {/* 위험 이벤트 관리 페이지 */}
+        <Route path="/dlp/events" element={<EventListPage />}></Route>
       </Routes>
     </BrowserRouter>
   );
