@@ -74,14 +74,13 @@ function LoginPage() {
       alert(`${user.name}님 로그인 성공!`);
 
       // 권한별 화면 이동은 나중에 실제 대시보드 만들면 연결
-      navigate("/my-dashboard");
-      // if (user.role === "ADMIN") {
-      //   navigate("/admin/accounts");
+      if (user.role === "ADMIN") {
+        navigate("/admin/accounts");
       // } else if (user.role === "COMPLIANCE_MANAGER") {
       //   navigate("/compliance/dashboard");
-      // } else {
-      //   navigate("/my-dashboard");
-      // }
+      } else {
+        navigate("/my-dashboard");
+      }
     } catch (error) {
       console.error("로그인 실패: ", error);
       alert(error.response?.data?.error?.message || "로그인에 실패했습니다.");

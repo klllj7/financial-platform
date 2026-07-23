@@ -19,6 +19,7 @@ import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
 import NoticePage from "./pages/notices/NoticePage";
 import AiToolsPage from "./pages/ai-tools/AiToolsPage";
 import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
+import AdminAccountPage from "./pages/admin/AdminAccountPage";
 
 function App() {
   return (
@@ -75,6 +76,11 @@ function App() {
           <Route
             path="/report/evidence"
             element={<EvidenceChecklistPage />}
+          />
+          {/* 관리자 - 계정 관리 */}
+          <Route
+            path="/admin/accounts"
+            element={<AdminAccountPage />}
           />
         </Route>
 
