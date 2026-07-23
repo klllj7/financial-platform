@@ -64,7 +64,7 @@ const COMPLIANCE_MENU_ITEMS = [
     label: "상시평가 증빙자료",
     path: "/compliance/evidence",
     icon: FileCheck2,
-    enabled: false,
+    enabled: true,
   },
   {
     label: "정책 관리",
