@@ -1,17 +1,6 @@
-<<<<<<< HEAD
-node_modules
-package
-package-lock
-=======
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
@@ -22,11 +11,6 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 
 # env
 .env
@@ -35,4 +19,3 @@ dist-ssr
 # IntelliJ IDEA
 .idea/
 *.iml
->>>>>>> cfe31f21804633b0caf90c2fab6cc99928ca7f01

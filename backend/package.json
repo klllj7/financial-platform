@@ -2,26 +2,17 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-<<<<<<< HEAD
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-=======
   "main": "src/app.js",
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
     "seed": "node src/db/init.js"
->>>>>>> cfe31f21804633b0caf90c2fab6cc99928ca7f01
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-<<<<<<< HEAD
-    "express": "^5.2.1"
-=======
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -33,6 +24,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
->>>>>>> cfe31f21804633b0caf90c2fab6cc99928ca7f01
   }
 }

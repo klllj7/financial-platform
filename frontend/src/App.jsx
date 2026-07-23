@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
 
 function App() {
   return (
@@ -11,6 +12,9 @@ function App() {
 
         {/* 로그인 페이지 */}
         <Route path="/login" element={<LoginPage />} />
+
+        {/* 정책 관리 페이지 */}
+        <Route path="/policies" element={<PolicyManagementPage />} /> 
 
         {/* 회원가입 페이지 */}
         <Route path="/signup" element={<SignupPage />} />
