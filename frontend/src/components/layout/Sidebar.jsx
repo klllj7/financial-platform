@@ -2,6 +2,7 @@
 import {
   Bell,
   Bot,
+  ClipboardCheck,
   LayoutDashboard,
   LogOut,
   ShieldCheck,
@@ -9,7 +10,7 @@ import {
 } from "lucide-react";
 
 /*
-  NavLink는 메뉴 이동과 활성 메뉴 표시를 담당한다.
+  NavLink는 메뉴 이동과 활성 메뉴 표시를 담당
   useNavigate는 로그아웃 후 로그인 페이지 이동에 사용한다.
 */
 import {
@@ -106,6 +107,27 @@ function Sidebar() {
         {menus.map((menu) => {
           const Icon = menu.icon;
 
+        {/* AI 사용하기 */}
+        <NavLink
+          to="/ai-chat"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
+          <Bot size={18} />
+          <span>AI 사용하기</span>
+        </NavLink>
+
+        {/* 상시평가 증빙자료 */}
+        <NavLink
+          to="/report/evidence"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
+          <ClipboardCheck size={18} />
+          <span>상시평가 증빙자료</span>
+        </NavLink>
           return (
             <NavLink
               key={menu.to}

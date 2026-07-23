@@ -1,0 +1,469 @@
+/* ==================================================
+   페이지 전체
+================================================== */
+
+.evidence-checklist-page {
+  min-height: calc(100vh - 58px);
+  padding: 28px;
+
+  background: var(--color-background);
+}
+
+
+/* ==================================================
+   페이지 제목 영역
+================================================== */
+
+.ce-heading {
+  margin-bottom: 22px;
+}
+
+.ce-heading h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.ce-heading p {
+  margin: 8px 0 0;
+
+  color: var(--color-text-sub);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ==================================================
+   안내 카드
+================================================== */
+
+.ce-disclaimer-card {
+  margin-bottom: 18px;
+  padding: 14px 18px;
+
+  background: linear-gradient(135deg, #fff8e6 0%, #fffdf7 100%);
+
+  border: 1px solid #f6d27b;
+  border-radius: 15px;
+}
+
+.ce-disclaimer-content {
+  color: #8a5a00;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* ==================================================
+   공통 흰색 패널
+================================================== */
+
+.ce-panel {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+
+  box-shadow: 0 8px 28px rgba(20, 35, 70, 0.04);
+
+  overflow: hidden;
+}
+
+
+/* ==================================================
+   요약 패널
+================================================== */
+
+.ce-summary-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-bottom: 18px;
+  padding: 16px 20px;
+}
+
+.ce-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+.ce-summary-row strong {
+  color: var(--color-text);
+}
+
+.ce-summary-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ce-summary-progress-label {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+/* ==================================================
+   진행바
+================================================== */
+
+.ce-progress-track {
+  width: 120px;
+  height: 6px;
+
+  background: #e5eaf2;
+  border-radius: 999px;
+
+  overflow: hidden;
+}
+
+.ce-progress-track-sm {
+  width: 96px;
+}
+
+.ce-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.ce-progress-fill.ce-tone-good { background: #079a70; }
+.ce-progress-fill.ce-tone-mid { background: var(--color-primary); }
+.ce-progress-fill.ce-tone-low { background: #c06a00; }
+
+
+/* ==================================================
+   탭
+================================================== */
+
+.ce-tab-list {
+  display: flex;
+  align-items: center;
+
+  width: fit-content;
+  margin-bottom: 18px;
+  padding: 4px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.ce-tab {
+  height: 34px;
+  padding: 0 16px;
+
+  color: #71809a;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.ce-tab.active {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+
+/* ==================================================
+   필터
+================================================== */
+
+.ce-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin-bottom: 18px;
+}
+
+.ce-select {
+  height: 36px;
+  padding: 0 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-size: 12px;
+}
+
+
+/* ==================================================
+   대항목 카드 목록
+================================================== */
+
+.ce-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ce-category-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-height: 54px;
+  padding: 0 20px;
+
+  background: #f6f8fc;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+
+  text-align: left;
+}
+
+.ce-category-header:hover {
+  background: #eef2f9;
+}
+
+.ce-chevron {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.ce-category-title {
+  flex: 1;
+
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ce-count-badge {
+  flex-shrink: 0;
+
+  padding: 3px 8px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ce-count-badge.ce-tone-good { color: #07835f; background: #def7ed; border: 1px solid #a2e6cf; }
+.ce-count-badge.ce-tone-mid { color: #315b99; background: #edf4ff; border: 1px solid #cfddf8; }
+.ce-count-badge.ce-tone-low { color: #b96800; background: #fff3d4; border: 1px solid #f6d27b; }
+
+.ce-pct-text {
+  flex-shrink: 0;
+  width: 34px;
+
+  color: var(--color-text-sub);
+  font-size: 11px;
+  text-align: right;
+}
+
+
+/* ==================================================
+   표
+================================================== */
+
+.ce-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ce-table {
+  width: 100%;
+  min-width: 640px;
+
+  border-collapse: collapse;
+}
+
+.ce-table th,
+.ce-table td {
+  height: 44px;
+  padding: 0 20px;
+
+  border-bottom: 1px solid #e5eaf2;
+
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ce-table th {
+  color: #71809a;
+  background: #f6f8fc;
+  font-weight: 700;
+}
+
+.ce-table td {
+  color: #526582;
+  background: #ffffff;
+}
+
+.ce-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ce-table tbody tr:hover td {
+  background: #f9fbff;
+}
+
+.ce-col-no { width: 56px; color: var(--color-text-sub); }
+.ce-col-result { width: 90px; }
+.ce-col-evidence { width: 100px; }
+.ce-col-file { width: 220px; white-space: normal; }
+
+.ce-empty-row {
+  padding: 20px;
+
+  color: #8b98ad;
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* ==================================================
+   배지
+================================================== */
+
+.ce-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 24px;
+  padding: 0 8px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ce-badge-done { color: #07835f; background: #def7ed; border: 1px solid #a2e6cf; }
+.ce-badge-partial { color: #b96800; background: #fff3d4; border: 1px solid #f6d27b; }
+.ce-badge-none { color: #cd4048; background: #ffe7e8; border: 1px solid #f0b0b4; }
+.ce-badge-na { color: #64738b; background: #eef1f6; border: 1px solid #d7dde7; }
+
+.ce-evidence-done,
+.ce-evidence-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 3px 8px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ce-evidence-done { color: #07835f; background: #def7ed; border: 1px solid #a2e6cf; }
+.ce-evidence-pending { color: #64738b; background: #eef1f6; border: 1px solid #d7dde7; }
+
+
+/* ==================================================
+   증빙파일 링크 / 업로드 버튼
+================================================== */
+
+.ce-file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ce-upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  height: 28px;
+  padding: 0 10px;
+
+  color: var(--color-text-sub);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.ce-upload-button:hover {
+  background: #f7faff;
+  border-color: #bfd1f1;
+}
+
+
+/* ==================================================
+   해당없음 섹션
+================================================== */
+
+.ce-na-title {
+  color: #94a3b8;
+}
+
+.ce-na-tag {
+  margin-left: auto;
+
+  color: #b5c0d1;
+  font-size: 11px;
+}
+
+.ce-na-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  padding: 14px 20px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+
+/* ==================================================
+   반응형
+================================================== */
+
+@media (max-width: 700px) {
+  .evidence-checklist-page {
+    padding: 22px 16px;
+  }
+
+  .ce-summary-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ce-tab-list {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .ce-tab {
+    flex-shrink: 0;
+  }
+}

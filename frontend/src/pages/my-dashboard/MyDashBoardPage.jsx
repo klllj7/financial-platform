@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Bell,
-  CircleDollarSign,
   ClipboardList,
 } from "lucide-react";
 
@@ -222,26 +221,6 @@ function MyDashboardPage() {
           </div>
         </article>
 
-        {/* 토큰 사용량과 비용 카드 */}
-        <article className="dashboard-summary-card">
-          <div className="summary-icon summary-icon-success">
-            <CircleDollarSign size={22} />
-          </div>
-
-          <div className="summary-content">
-            <span className="summary-label">
-              토큰 사용량 / 비용
-            </span>
-
-            <strong className="summary-value">
-              {dashboardSummary.tokenUsage} 토큰
-            </strong>
-
-            <small>
-              ₩ {dashboardSummary.estimatedCost} / 이번 달
-            </small>
-          </div>
-        </article>
 
         {/* 모델별 사용 비율 카드 */}
         <article className="dashboard-summary-card model-summary-card">

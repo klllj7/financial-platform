@@ -1,0 +1,641 @@
+/* 전사 대시보드 페이지 전체 */
+
+.compliance-dashboard-page {
+  min-height:
+    calc(
+      100vh -
+      var(--compliance-header-height, 62px)
+    );
+
+  padding: 26px 28px 36px;
+
+  background: #eef3fb;
+}
+
+
+/* 페이지 제목 영역 */
+
+.compliance-dashboard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  margin-bottom: 20px;
+}
+
+/* 전사 대시보드 제목 */
+.compliance-dashboard-heading h2 {
+  margin: 0;
+
+  color: #17263e;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.45px;
+}
+
+/* 조치 필요 안내와 기준일 */
+.compliance-dashboard-heading p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  margin: 7px 0 0;
+
+  color: #71809a;
+  font-size: 12px;
+}
+
+/* 오늘 조치 필요 버튼 */
+.compliance-action-summary-button {
+  padding: 0;
+
+  color: #ff3f4f;
+  background: transparent;
+  border: none;
+
+  font-family: inherit;
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+/* 조치 필요 건수 */
+.compliance-action-summary-button strong {
+  font-weight: 800;
+}
+
+/* 기준일 */
+.compliance-dashboard-standard-date {
+  color: #71809a;
+}
+
+/* AI 모델 신청 현황 버튼 */
+.compliance-model-application-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 38px;
+  padding: 0 15px;
+
+  color: #314f7f;
+  background: #ffffff;
+
+  border: 1px solid #dce3ee;
+  border-radius: 20px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 14px rgba(23, 48, 90, 0.04);
+
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+/* 버튼에 마우스를 올렸을 때 */
+.compliance-model-application-button:hover {
+  color: #2f6fed;
+  border-color: #bad0f7;
+
+  transform: translateY(-1px);
+}
+
+
+/* 상단 요약 카드 배치 */
+
+.compliance-summary-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+
+/* 상단 요약 카드 공통 */
+
+.compliance-summary-card,
+.compliance-notice-panel {
+  min-width: 0;
+  min-height: 162px;
+
+  background: #ffffff;
+  border: 1px solid #dfe5ef;
+  border-radius: 16px;
+
+  box-shadow:
+    0 7px 24px rgba(20, 35, 70, 0.04);
+}
+
+/* 요약 카드 */
+.compliance-summary-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  padding: 20px;
+}
+
+/* 요약 카드 아이콘 */
+.compliance-summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 13px;
+}
+
+/* AI 사용 횟수 아이콘 */
+.compliance-summary-icon-primary {
+  color: #2f6fed;
+  background: #edf3ff;
+}
+
+/* 비용 아이콘 */
+.compliance-summary-icon-cost {
+  color: #0b9872;
+  background: #e9f9f3;
+}
+
+/* 요약 카드 내용 */
+.compliance-summary-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+/* 요약 카드 항목 이름 */
+.compliance-summary-label {
+  color: #6e7c94;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 요약 카드 주요 숫자 */
+.compliance-summary-value {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #1f304c;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* 요약 카드 보조 설명 */
+.compliance-summary-content small {
+  margin-top: 6px;
+
+  color: #7184a2;
+  font-size: 10px;
+}
+
+
+/* 위험 이벤트 현황 카드 */
+
+.compliance-risk-summary-card {
+  align-items: stretch;
+}
+
+/* 위험 이벤트 카드 내부 */
+.compliance-risk-card-content {
+  width: 100%;
+}
+
+/* 그래프와 범례 배치 */
+.compliance-risk-card-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 10px;
+}
+
+/* 위험 이벤트 도넛 그래프 */
+.compliance-risk-donut {
+  flex: 0 0 80px;
+
+  width: 80px;
+  height: 80px;
+}
+
+/* 위험 등급 목록 */
+.compliance-risk-legend {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+
+  min-width: 0;
+}
+
+/* 위험 등급 한 줄 */
+.compliance-risk-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #63738c;
+  font-size: 10px;
+}
+
+/* 위험 등급 건수 */
+.compliance-risk-legend-row strong {
+  color: #293c5a;
+  font-size: 11px;
+}
+
+/* 즉시 조치 버튼 */
+.compliance-risk-legend-row button {
+  margin-left: auto;
+  padding: 3px 6px;
+
+  color: #e73843;
+  background: #ffe9e9;
+
+  border: 1px solid #ffc4c7;
+  border-radius: 5px;
+
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+/* 위험 등급 색상 점 */
+.compliance-risk-dot {
+  flex-shrink: 0;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+}
+
+.risk-dot-high {
+  background: #ff4d4f;
+}
+
+.risk-dot-medium {
+  background: #f59e0b;
+}
+
+.risk-dot-low {
+  background: #10b981;
+}
+
+
+/* 예산 사용률 */
+
+.compliance-budget-progress {
+  width: 100%;
+  height: 6px;
+  margin-top: 13px;
+
+  overflow: hidden;
+
+  background: #edf1f7;
+  border-radius: 999px;
+}
+
+/* 예산 진행 막대 */
+.compliance-budget-progress span {
+  display: block;
+
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2f6fed 0%,
+      #244f9f 100%
+    );
+
+  border-radius: inherit;
+}
+
+/* 예산 설명 */
+.compliance-budget-description {
+  line-height: 1.4;
+}
+
+
+/* 최근 공지사항 */
+
+.compliance-notice-panel {
+  overflow: hidden;
+}
+
+/* 공지사항 제목 영역 */
+.compliance-notice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 50px;
+  padding: 0 15px;
+
+  border-bottom: 1px solid #e5eaf2;
+}
+
+/* 공지사항 제목 */
+.compliance-notice-header > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #2f6fed;
+}
+
+.compliance-notice-header h3 {
+  margin: 0;
+
+  color: #263853;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 전체 보기 버튼 */
+.compliance-notice-header button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 4px;
+
+  color: #315b99;
+  background: transparent;
+  border: none;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+/* 공지사항 목록 */
+.compliance-notice-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 공지사항 한 개 */
+.compliance-notice-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+
+  min-height: 36px;
+  padding: 7px 15px;
+
+  color: inherit;
+  background: #ffffff;
+
+  border: none;
+  border-bottom: 1px solid #edf0f5;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s;
+}
+
+/* 마지막 공지사항 선 제거 */
+.compliance-notice-item:last-child {
+  border-bottom: none;
+}
+
+/* 공지사항 hover */
+.compliance-notice-item:hover {
+  background: #f8faff;
+}
+
+/* 공지사항 내용 */
+.compliance-notice-item > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  min-width: 0;
+}
+
+/* 공지사항 카테고리 */
+.compliance-notice-category {
+  flex-shrink: 0;
+
+  padding: 3px 5px;
+
+  color: #315b99;
+  background: #edf4ff;
+  border-radius: 4px;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+/* 공지사항 제목 */
+.compliance-notice-item strong {
+  overflow: hidden;
+
+  color: #354663;
+  font-size: 9px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 공지사항 날짜 */
+.compliance-notice-item small {
+  flex-shrink: 0;
+
+  color: #8c99ad;
+  font-size: 8px;
+}
+
+
+/* 그래프 패널 공통 */
+
+.compliance-dashboard-panel {
+  min-width: 0;
+  margin-bottom: 18px;
+
+  background: #ffffff;
+  border: 1px solid #dfe5ef;
+  border-radius: 16px;
+
+  box-shadow:
+    0 7px 24px rgba(20, 35, 70, 0.04);
+}
+
+/* 그래프 패널 제목 영역 */
+.compliance-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 18px 20px 0;
+}
+
+/* 그래프 제목 */
+.compliance-panel-header h3 {
+  margin: 0;
+
+  color: #263853;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* 그래프 설명 */
+.compliance-panel-header p {
+  margin: 5px 0 0;
+
+  color: #8794a9;
+  font-size: 9px;
+}
+
+
+/* 부서별 위험 이벤트 */
+
+.compliance-department-risk-panel {
+  min-height: 320px;
+}
+
+/* 그래프 색상 범례 */
+.compliance-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  color: #697992;
+  font-size: 9px;
+}
+
+/* 범례 한 개 */
+.compliance-chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* 범례 색상 점 */
+.compliance-chart-legend i {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+.chart-dot-high {
+  background: #ff4d4f;
+}
+
+.chart-dot-medium {
+  background: #f59e0b;
+}
+
+.chart-dot-low {
+  background: #10b981;
+}
+
+/* 부서별 위험 이벤트 그래프 높이 */
+.compliance-department-chart {
+  width: 100%;
+  height: 245px;
+  margin-top: 5px;
+  padding: 0 12px;
+}
+
+
+/* 30일 사용 추이 */
+
+.compliance-usage-trend-panel {
+  min-height: 330px;
+  margin-bottom: 0;
+}
+
+/* 30일 사용 추이 그래프 */
+.compliance-usage-chart {
+  width: 100%;
+  height: 265px;
+  padding: 0 12px 12px;
+}
+
+
+/* 반응형 */
+
+@media (max-width: 1350px) {
+  /* 화면이 좁아지면 상단 카드를 두 열로 배치 */
+  .compliance-summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .compliance-dashboard-page {
+    padding: 22px 18px 30px;
+  }
+
+  /* 제목과 버튼을 세로로 배치 */
+  .compliance-dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  /* 상단 카드를 한 열로 배치 */
+  .compliance-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 차트 제목과 범례를 세로로 배치 */
+  .compliance-panel-header {
+    flex-direction: column;
+  }
+
+  .compliance-chart-legend {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .compliance-dashboard-page {
+    padding: 18px 13px 25px;
+  }
+
+  .compliance-model-application-button {
+    width: 100%;
+  }
+
+  .compliance-department-chart {
+    height: 225px;
+  }
+
+  .compliance-usage-chart {
+    height: 235px;
+  }
+}
