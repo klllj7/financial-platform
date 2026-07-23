@@ -1,0 +1,214 @@
+// AI Tool 페이지에서 사용할 아이콘을 가져온다.
+import {
+  Bot,
+  ClipboardList,
+  Plus,
+} from "lucide-react";
+
+/*
+  대시보드와 AI Tool 신청 페이지에서 함께 사용할
+  AI Tool 신청 현황 Mock 데이터를 가져온다.
+*/
+import {
+  aiToolApplicationData,
+} from "../../mocks/dashboardMock";
+
+// AI Tool 신청 페이지 전용 CSS
+import "./AiToolsPage.css";
+
+/*
+  신청 상태에 맞는 CSS 클래스 이름을 반환한다.
+
+  approved → 초록색 승인 완료
+  pending  → 주황색 검토 중
+  rejected → 빨간색 반려
+*/
+const getApplicationStatusClassName = (statusKey) => {
+  return `ai-tools-status ai-tools-status-${statusKey}`;
+};
+
+function AiToolsPage() {
+  /*
+    신청 현황 데이터가 배열이 아닌 경우에도
+    화면 전체가 멈추지 않도록 빈 배열을 사용한다.
+  */
+  const applications = Array.isArray(
+    aiToolApplicationData,
+  )
+    ? aiToolApplicationData
+    : [];
+
+  /*
+    현재 검토 중인 신청 건수를 계산한다.
+  */
+  const pendingCount = applications.filter(
+    (application) =>
+      application.statusKey === "pending",
+  ).length;
+
+  /*
+    AI Tool 신청하기 버튼을 클릭했을 때 실행한다.
+
+    아직 신청 폼 페이지를 만들지 않았기 때문에
+    현재는 안내창만 표시한다.
+  */
+  const handleApplyButtonClick = () => {
+    alert(
+      "AI Tool 신청 폼은 다음 단계에서 구현할 예정입니다.",
+    );
+  };
+
+  return (
+    <div className="ai-tools-page">
+      {/* ==================================================
+          페이지 제목 영역
+      ================================================== */}
+      <header className="ai-tools-heading">
+        <div>
+          {/* 페이지 제목 */}
+          <h2>AI Tool 신청</h2>
+
+          {/* 페이지 기능 설명 */}
+          <p>
+            신청한 AI Tool의 처리 상태를 확인하고,
+            새로운 사용 권한을 신청할 수 있습니다.
+          </p>
+        </div>
+
+        {/* 새로운 AI Tool 신청 버튼 */}
+        <button
+          type="button"
+          className="ai-tool-apply-button"
+          onClick={handleApplyButtonClick}
+        >
+          <Plus size={17} />
+          AI Tool 신청하기
+        </button>
+      </header>
+
+      {/* ==================================================
+          페이지 안내 카드
+      ================================================== */}
+      <section className="ai-tools-guide-card">
+        {/* 안내 카드 아이콘 */}
+        <div className="ai-tools-guide-icon">
+          <Bot size={24} />
+        </div>
+
+        {/* 안내 카드 내용 */}
+        <div className="ai-tools-guide-content">
+          <strong>
+            승인된 AI Tool만 업무에 사용할 수 있습니다.
+          </strong>
+
+          <p>
+            신청한 AI Tool은 담당자의 검토 후 사용 권한이
+            부여됩니다. 검토 결과는 이 페이지와 마이
+            대시보드에서 확인할 수 있습니다.
+          </p>
+        </div>
+      </section>
+
+      {/* ==================================================
+          내 AI Tool 신청 현황
+      ================================================== */}
+      <section className="ai-tools-section">
+        {/* 신청 현황 제목 영역 */}
+        <div className="ai-tools-section-header">
+          <div className="ai-tools-section-title">
+            <div className="ai-tools-section-title-row">
+              <ClipboardList size={19} />
+
+              <h3>내 신청 현황</h3>
+
+              {/*
+                검토 중인 신청이 있는 경우에만
+                검토 중 건수를 표시한다.
+              */}
+              {pendingCount > 0 && (
+                <span className="ai-tools-pending-count">
+                  검토 중 {pendingCount}
+                </span>
+              )}
+            </div>
+
+            <p>
+              내가 신청한 AI Tool의 처리 상태를 확인합니다.
+            </p>
+          </div>
+
+          {/* 전체 신청 건수 */}
+          <span className="ai-tools-count">
+            총 {applications.length}건
+          </span>
+        </div>
+
+        {/* 신청 현황 목록 */}
+        {applications.length > 0 ? (
+          <div className="ai-tools-application-list">
+            {applications.map((application) => (
+              <article
+                key={application.id}
+                className="ai-tools-application-card"
+              >
+                {/* AI Tool 이름과 신청 상태 */}
+                <div className="ai-tools-application-top">
+                  <div className="ai-tools-application-name">
+                    <strong>
+                      {application.toolName}
+                    </strong>
+
+                    <span>
+                      {application.provider}
+                    </span>
+                  </div>
+
+                  {/* 승인 완료, 검토 중, 반려 배지 */}
+                  <span
+                    className={getApplicationStatusClassName(
+                      application.statusKey,
+                    )}
+                  >
+                    {application.status}
+                  </span>
+                </div>
+
+                {/* 신청 목적 */}
+                <div className="ai-tools-application-info">
+                  <span>사용 목적</span>
+
+                  <p>{application.purpose}</p>
+                </div>
+
+                {/* 신청 날짜 */}
+                <div className="ai-tools-application-footer">
+                  <span>
+                    신청일 {application.requestedAt}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          /*
+            신청 내역이 없는 경우 표시할 화면
+          */
+          <div className="ai-tools-empty">
+            <ClipboardList size={30} />
+
+            <strong>
+              표시할 신청 내역이 없습니다.
+            </strong>
+
+            <p>
+              AI Tool을 신청하면 검토 중, 승인 완료,
+              반려 상태가 이곳에 표시됩니다.
+            </p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export default AiToolsPage;
