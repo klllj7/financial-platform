@@ -22,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'LoginHistory',
+    tableName: 'loginhistory', 
+    underscored: true
   });
   return LoginHistory;
 };

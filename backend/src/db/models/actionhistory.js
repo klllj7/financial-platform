@@ -22,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'ActionHistory',
+    tableName: 'actionhistory', 
+    underscored: true
   });
   return ActionHistory;
 };

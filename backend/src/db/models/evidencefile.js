@@ -28,6 +28,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'EvidenceFile',
+    tableName: 'evidencefile', 
+    underscored: true
   });
   return EvidenceFile;
 };

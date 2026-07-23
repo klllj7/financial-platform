@@ -22,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PromptStorage',
+    tableName: 'promptstorage', 
+    underscored: true
   });
   return PromptStorage;
 };

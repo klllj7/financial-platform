@@ -21,6 +21,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'EventLog',
+    tableName: 'eventlog', 
+    underscored: true
   });
   return EventLog;
 };

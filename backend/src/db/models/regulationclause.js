@@ -22,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'RegulationClause',
+    tableName: 'regulationclause', 
+    underscored: true
   });
   return RegulationClause;
 };

@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PolicyHistory',
+    tableName: 'policyhistory', 
+    underscored: true
   });
   return PolicyHistory;
 };

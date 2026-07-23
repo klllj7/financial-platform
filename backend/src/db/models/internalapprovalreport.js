@@ -29,6 +29,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'InternalApprovalReport',
+    tableName: 'internalapprovalreport', 
+    underscored: true
   });
   return InternalApprovalReport;
 };

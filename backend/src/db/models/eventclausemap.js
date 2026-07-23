@@ -23,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'EventClauseMap',
+    tableName: 'eventclausemap', 
+    underscored: true
   });
   return EventClauseMap;
 };
