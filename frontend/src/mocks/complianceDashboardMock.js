@@ -237,3 +237,62 @@ export const complianceUsageTrendData = [
     riskEventCount: 4,
   },
 ];
+
+/* ==================================================
+   오늘의 조치 필요 항목
+
+   아직 조치가 완료되지 않은 위험 이벤트 목록이다.
+   백엔드 연결 후에는 위험 이벤트 조회 API 응답값으로
+   교체하면 된다.
+================================================== */
+
+export const complianceActionItems = [
+  {
+    id: 1,
+
+    // 위험 등급
+    riskLevel: "HIGH",
+
+    // 사용자 이름은 개인정보 노출을 줄이기 위해 마스킹한다.
+    userName: "조*정",
+
+    department: "여신심사부",
+
+    // 어떤 위험이 탐지되었는지 표시한다.
+    eventType: "고객정보 포함 질의",
+
+    // 사용한 AI 모델
+    modelName: "GPT-4o",
+
+    // 현재 조치 상태
+    actionStatus: "조치없음",
+
+    // CSS 색상 구분에 사용할 값
+    actionStatusType: "none",
+
+    occurredAt: "방금 전",
+  },
+  {
+    id: 2,
+    riskLevel: "HIGH",
+    userName: "강*철",
+    department: "경영기획부",
+    eventType: "비공개 재무데이터 입력",
+    modelName: "Claude Sonnet",
+    actionStatus: "조치없음",
+    actionStatusType: "none",
+    occurredAt: "5시간 전",
+  },
+  {
+    id: 3,
+    riskLevel: "MEDIUM",
+    userName: "박*진",
+    department: "리스크관리부",
+    eventType: "내부망 우회 시도",
+    modelName: "GPT-4o-mini",
+    actionStatus: "모니터링",
+    actionStatusType: "monitoring",
+    occurredAt: "23시간 전",
+  },
+];
+

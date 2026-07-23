@@ -24,11 +24,10 @@ import AdminAccountPage from "./pages/admin/AdminAccountPage";
 // 컴플라이언스 담당자용 공통 레이아웃
 import ComplianceLayout from "./components/compliance-layout/ComplianceLayout";
 
-// 컴플라이언스 담당자용 전사 대시보드
+// 컴플라이언스 담당자용
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
-
-// 컴플라이언스 담당자용 공지사항 페이지
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
+
 
 function App() {
   return (

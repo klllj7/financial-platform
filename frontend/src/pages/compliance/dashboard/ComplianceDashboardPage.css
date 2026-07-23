@@ -1,19 +1,33 @@
-/* 전사 대시보드 페이지 전체 */
+/* ==================================================
+   전사 대시보드 페이지 전체
+================================================== */
 
 .compliance-dashboard-page {
+  /*
+    상단 헤더를 제외한 나머지 화면 높이를 사용한다.
+
+    컴플라이언스 레이아웃의 헤더 높이는
+    임직원 레이아웃과 같은 58px이다.
+  */
   min-height:
     calc(
       100vh -
-      var(--compliance-header-height, 62px)
+      var(--compliance-header-height, 58px)
     );
 
   padding: 26px 28px 36px;
 
-  background: #eef3fb;
+  /*
+    임직원 대시보드와 같은
+    전역 배경색을 사용한다.
+  */
+  background: var(--color-background);
 }
 
 
-/* 페이지 제목 영역 */
+/* ==================================================
+   페이지 제목 영역
+================================================== */
 
 .compliance-dashboard-heading {
   display: flex;
@@ -34,7 +48,7 @@
   letter-spacing: -0.45px;
 }
 
-/* 조치 필요 안내와 기준일 */
+/* 대시보드 기준일 */
 .compliance-dashboard-heading p {
   display: flex;
   align-items: center;
@@ -46,36 +60,23 @@
   font-size: 12px;
 }
 
-/* 오늘 조치 필요 버튼 */
-.compliance-action-summary-button {
-  padding: 0;
-
-  color: #ff3f4f;
-  background: transparent;
-  border: none;
-
-  font-family: inherit;
-  font-size: 12px;
-
-  cursor: pointer;
-}
-
-/* 조치 필요 건수 */
-.compliance-action-summary-button strong {
-  font-weight: 800;
-}
-
 /* 기준일 */
 .compliance-dashboard-standard-date {
   color: #71809a;
 }
 
-/* AI 모델 신청 현황 버튼 */
+
+/* ==================================================
+   AI 모델 신청 현황 버튼
+================================================== */
+
 .compliance-model-application-button {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
+
+  flex-shrink: 0;
 
   min-height: 38px;
   padding: 0 15px;
@@ -110,7 +111,410 @@
 }
 
 
-/* 상단 요약 카드 배치 */
+/* ==================================================
+   오늘의 조치 필요 항목 전체 패널
+================================================== */
+
+.compliance-action-required-panel {
+  margin-bottom: 18px;
+
+  background: #ffffff;
+
+  border: 1px solid #dfe5ef;
+  border-radius: 16px;
+
+  box-shadow:
+    0 7px 24px rgba(20, 35, 70, 0.04);
+
+  overflow: hidden;
+}
+
+
+/* ==================================================
+   조치 필요 항목 상단 제목 영역
+================================================== */
+
+.compliance-action-required-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  min-height: 62px;
+  padding: 0 24px;
+
+  /*
+    왼쪽은 옅은 빨간색,
+    오른쪽은 옅은 주황색으로 이어진다.
+  */
+  background:
+    linear-gradient(
+      90deg,
+      #fff4f4 0%,
+      #fff9ed 100%
+    );
+
+  border-bottom: 1px solid #eadfe0;
+}
+
+/* 빨간 점, 제목, 미조치 건수 배치 */
+.compliance-action-required-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  min-width: 0;
+}
+
+/* 조치가 필요하다는 것을 표시하는 빨간 점 */
+.compliance-action-required-dot {
+  flex-shrink: 0;
+
+  width: 9px;
+  height: 9px;
+
+  background: #ff3247;
+  border-radius: 50%;
+}
+
+/* 오늘의 조치 필요 항목 제목 */
+.compliance-action-required-title h3 {
+  margin: 0;
+
+  color: #233653;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* 미조치 건수 배지 */
+.compliance-action-required-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  min-height: 28px;
+  padding: 0 10px;
+
+  color: #e42438;
+  background: #fff0f1;
+
+  border: 1px solid #ffbdc4;
+  border-radius: 9px;
+
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 오른쪽 안내 문구 */
+.compliance-action-required-header > p {
+  margin: 0;
+
+  color: #7586a2;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+/* HIGH 등급 우선 정렬 문구 */
+.compliance-action-required-header > p strong {
+  font-weight: 800;
+}
+
+
+/* ==================================================
+   조치 필요 항목 목록
+================================================== */
+
+.compliance-action-required-list {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ==================================================
+   조치 필요 항목 한 줄
+================================================== */
+
+.compliance-action-required-item {
+  display: grid;
+  grid-template-columns:
+    82px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+  gap: 16px;
+
+  min-height: 91px;
+  padding: 15px 22px;
+
+  border-bottom: 1px solid #e6eaf1;
+
+  transition: background-color 0.2s;
+}
+
+/* 마지막 항목은 아래쪽 구분선을 제거한다. */
+.compliance-action-required-item:last-child {
+  border-bottom: none;
+}
+
+/* 항목에 마우스를 올렸을 때 */
+.compliance-action-required-item:hover {
+  background: #fafcff;
+}
+
+
+/* ==================================================
+   위험 등급 배지
+================================================== */
+
+.compliance-action-risk-area {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.compliance-action-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 67px;
+  min-height: 33px;
+  padding: 0 9px;
+
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* HIGH 등급 */
+.compliance-action-risk-badge.high {
+  color: #e12632;
+  background: #fff0f1;
+
+  border: 1px solid #ffbec4;
+}
+
+/* MEDIUM 등급 */
+.compliance-action-risk-badge.medium {
+  color: #b86607;
+  background: #fff7d9;
+
+  border: 1px solid #f5d261;
+}
+
+/* LOW 등급이 들어오는 경우 */
+.compliance-action-risk-badge.low {
+  color: #07815f;
+  background: #e9f9f3;
+
+  border: 1px solid #a9e5d2;
+}
+
+
+/* ==================================================
+   위험 이벤트 상세 정보
+================================================== */
+
+.compliance-action-item-content {
+  min-width: 0;
+}
+
+/* 사용자, 부서, 탐지 유형 */
+.compliance-action-item-primary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 사용자 이름 */
+.compliance-action-item-primary > strong {
+  color: #223654;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* 사용자 소속 부서 */
+.compliance-action-department {
+  color: #75839a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 탐지된 위험 유형 */
+.compliance-action-event-type {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 25px;
+  padding: 0 9px;
+
+  color: #687995;
+  background: #f0f3f9;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* 모델, 조치 상태, 발생 시간 */
+.compliance-action-item-secondary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 9px;
+
+  color: #7183a1;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 항목 사이 가운데 점 */
+.compliance-action-item-secondary i {
+  color: #9aa7b9;
+  font-style: normal;
+}
+
+
+/* ==================================================
+   조치 상태 배지
+================================================== */
+
+.compliance-action-status {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+  padding: 0 8px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* 조치하지 않은 상태 */
+.compliance-action-status.none {
+  color: #687995;
+  background: #f0f3f8;
+
+  border: 1px solid #dbe2ec;
+}
+
+/* 모니터링 상태 */
+.compliance-action-status.monitoring {
+  color: #2266d7;
+  background: #eaf2ff;
+
+  border: 1px solid #bed4ff;
+}
+
+/* 조치 진행 상태 */
+.compliance-action-status.processing {
+  color: #a85f08;
+  background: #fff5dc;
+
+  border: 1px solid #f1d28d;
+}
+
+/* 조치 완료 상태 */
+.compliance-action-status.completed {
+  color: #07815f;
+  background: #e9f9f3;
+
+  border: 1px solid #a9e5d2;
+}
+
+/* 발생 시간 */
+.compliance-action-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.compliance-action-time svg {
+  flex-shrink: 0;
+}
+
+
+/* ==================================================
+   조치하기 버튼
+================================================== */
+
+.compliance-action-item-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-width: 112px;
+  min-height: 42px;
+  padding: 0 17px;
+
+  color: #ffffff;
+  background: #1e4279;
+
+  border: none;
+  border-radius: 17px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+/* 조치하기 버튼 아이콘 */
+.compliance-action-item-button svg {
+  flex-shrink: 0;
+}
+
+/* 버튼에 마우스를 올렸을 때 */
+.compliance-action-item-button:hover {
+  background: #153866;
+
+  box-shadow:
+    0 7px 16px rgba(24, 61, 113, 0.18);
+
+  transform: translateY(-1px);
+}
+
+
+/* ==================================================
+   조치 필요 항목이 없을 때
+================================================== */
+
+.compliance-action-required-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 110px;
+  padding: 24px;
+
+  color: #7b8aa2;
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* ==================================================
+   상단 요약 카드 배치
+================================================== */
 
 .compliance-summary-grid {
   display: grid;
@@ -123,7 +527,9 @@
 }
 
 
-/* 상단 요약 카드 공통 */
+/* ==================================================
+   상단 요약 카드 공통
+================================================== */
 
 .compliance-summary-card,
 .compliance-notice-panel {
@@ -210,7 +616,9 @@
 }
 
 
-/* 위험 이벤트 현황 카드 */
+/* ==================================================
+   위험 이벤트 현황 카드
+================================================== */
 
 .compliance-risk-summary-card {
   align-items: stretch;
@@ -305,7 +713,9 @@
 }
 
 
-/* 예산 사용률 */
+/* ==================================================
+   예산 사용률
+================================================== */
 
 .compliance-budget-progress {
   width: 100%;
@@ -340,7 +750,9 @@
 }
 
 
-/* 최근 공지사항 */
+/* ==================================================
+   최근 공지사항
+================================================== */
 
 .compliance-notice-panel {
   overflow: hidden;
@@ -385,6 +797,7 @@
 
   color: #315b99;
   background: transparent;
+
   border: none;
 
   font-family: inherit;
@@ -451,6 +864,7 @@
 
   color: #315b99;
   background: #edf4ff;
+
   border-radius: 4px;
 
   font-size: 8px;
@@ -477,13 +891,16 @@
 }
 
 
-/* 그래프 패널 공통 */
+/* ==================================================
+   그래프 패널 공통
+================================================== */
 
 .compliance-dashboard-panel {
   min-width: 0;
   margin-bottom: 18px;
 
   background: #ffffff;
+
   border: 1px solid #dfe5ef;
   border-radius: 16px;
 
@@ -519,7 +936,9 @@
 }
 
 
-/* 부서별 위험 이벤트 */
+/* ==================================================
+   부서별 위험 이벤트
+================================================== */
 
 .compliance-department-risk-panel {
   min-height: 320px;
@@ -571,7 +990,9 @@
 }
 
 
-/* 30일 사용 추이 */
+/* ==================================================
+   30일 사용 추이
+================================================== */
 
 .compliance-usage-trend-panel {
   min-height: 330px;
@@ -586,33 +1007,84 @@
 }
 
 
-/* 반응형 */
+/* ==================================================
+   기본 반응형
+================================================== */
 
 @media (max-width: 1350px) {
-  /* 화면이 좁아지면 상단 카드를 두 열로 배치 */
+  /*
+    화면이 좁아지면 상단 카드를
+    두 열로 배치한다.
+  */
   .compliance-summary-grid {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
 }
 
+
+/* ==================================================
+   조치 필요 항목 태블릿 반응형
+================================================== */
+
+@media (max-width: 850px) {
+  /* 조치 패널 제목과 안내 문구를 세로로 배치한다. */
+  .compliance-action-required-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    padding: 17px 18px;
+  }
+
+  .compliance-action-required-header > p {
+    text-align: left;
+  }
+
+  /*
+    위험 등급과 상세 내용을 두 열로 배치한다.
+  */
+  .compliance-action-required-item {
+    grid-template-columns:
+      72px
+      minmax(0, 1fr);
+
+    gap: 13px;
+
+    padding: 16px 18px;
+  }
+
+  /*
+    조치하기 버튼을 상세 정보 아래쪽으로 이동한다.
+  */
+  .compliance-action-item-button {
+    grid-column: 2;
+
+    justify-self: flex-start;
+  }
+}
+
+
+/* ==================================================
+   일반 태블릿 반응형
+================================================== */
+
 @media (max-width: 800px) {
   .compliance-dashboard-page {
     padding: 22px 18px 30px;
   }
 
-  /* 제목과 버튼을 세로로 배치 */
+  /* 제목과 버튼을 세로로 배치한다. */
   .compliance-dashboard-heading {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  /* 상단 카드를 한 열로 배치 */
+  /* 상단 카드를 한 열로 배치한다. */
   .compliance-summary-grid {
     grid-template-columns: 1fr;
   }
 
-  /* 차트 제목과 범례를 세로로 배치 */
+  /* 차트 제목과 범례를 세로로 배치한다. */
   .compliance-panel-header {
     flex-direction: column;
   }
@@ -622,6 +1094,11 @@
   }
 }
 
+
+/* ==================================================
+   모바일 반응형
+================================================== */
+
 @media (max-width: 560px) {
   .compliance-dashboard-page {
     padding: 18px 13px 25px;
@@ -629,6 +1106,30 @@
 
   .compliance-model-application-button {
     width: 100%;
+  }
+
+  /* 조치 패널 제목을 여러 줄로 표시한다. */
+  .compliance-action-required-title {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /*
+    모바일에서는 위험 등급, 내용, 버튼을
+    한 열로 배치한다.
+  */
+  .compliance-action-required-item {
+    grid-template-columns: 1fr;
+  }
+
+  .compliance-action-item-button {
+    grid-column: 1;
+
+    width: 100%;
+  }
+
+  .compliance-action-risk-badge {
+    min-height: 29px;
   }
 
   .compliance-department-chart {
