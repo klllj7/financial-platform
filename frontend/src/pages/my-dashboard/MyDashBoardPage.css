@@ -1,0 +1,1056 @@
+/* 대시보드 페이지 전체 */
+
+.my-dashboard-page {
+  --dashboard-side-panel-width: 330px;
+
+  min-height: calc(100vh - 58px);
+  padding: 26px 28px 34px;
+
+  background: var(--color-background);
+}
+
+
+/* 페이지 제목과 월 선택 탭 */
+
+.dashboard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  margin-bottom: 22px;
+}
+
+/* 대시보드 제목 */
+.dashboard-heading h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* 현재 조회 중인 월 */
+.dashboard-heading p {
+  margin: 7px 0 0;
+
+  color: var(--color-text-sub);
+  font-size: 13px;
+}
+
+.dashboard-heading p strong {
+  color: #64789b;
+}
+
+/* 월 선택 버튼 목록 */
+.month-tab-list {
+  display: flex;
+  align-items: center;
+
+  padding: 4px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+/* 월 선택 버튼 */
+.month-tab {
+  height: 34px;
+  padding: 0 16px;
+
+  color: #71809a;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+/* 현재 선택된 월 */
+.month-tab.active {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+
+/* 상단 요약 카드 */
+
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+/* 요약 카드 공통 */
+.dashboard-summary-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  min-height: 118px;
+  padding: 20px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+
+  box-shadow:
+    0 8px 28px rgba(20, 35, 70, 0.045);
+}
+
+/* 요약 카드 아이콘 공통 */
+.summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 13px;
+}
+
+/* 위험 이벤트 아이콘 */
+.summary-icon-warning {
+  color: #f28b00;
+  background: #fff7df;
+}
+
+/* AI 사용 횟수 아이콘 */
+.summary-icon-primary {
+  color: var(--color-primary);
+  background: #eef4ff;
+}
+
+/* 토큰 사용량과 비용 아이콘 */
+.summary-icon-success {
+  color: #0ca878;
+  background: #e8fbf3;
+}
+
+/* 요약 카드 내용 */
+.summary-content {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+/* 요약 카드 항목 이름 */
+.summary-label {
+  color: #6e7c94;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 요약 카드 주요 수치 */
+.summary-value {
+  display: block;
+
+  margin-top: 5px;
+
+  color: var(--color-text);
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+/* 요약 카드 보조 설명 */
+.summary-content small {
+  margin-top: 5px;
+
+  color: #7788a6;
+  font-size: 12px;
+}
+
+
+/* 모델 사용 비율 */
+
+.model-summary-card {
+  align-items: stretch;
+}
+
+.model-card-content {
+  width: 100%;
+}
+
+.model-allocation {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-top: 10px;
+}
+
+/* 모델별 사용 비율 도넛 그래프 */
+.model-donut-chart {
+  position: relative;
+
+  flex: 0 0 58px;
+
+  width: 58px;
+  height: 58px;
+
+  background:
+    conic-gradient(
+      #2f6fed 0% 45%,
+      #6c74db 45% 75%,
+      #15366d 75% 100%
+    );
+
+  border-radius: 50%;
+}
+
+/* 가운데 흰색 원을 넣어 도넛 모양으로 만들기 */
+.model-donut-chart::after {
+  content: "";
+
+  position: absolute;
+  inset: 12px;
+
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+/* 모델별 사용 비율 범례 */
+.model-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  min-width: 0;
+}
+
+/* 범례 한 줄 */
+.model-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #71809a;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.model-legend-item strong {
+  color: #324361;
+}
+
+/* 모델별 색상 점 */
+.model-legend-dot {
+  flex-shrink: 0;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+.model-color-1 {
+  background: #2f6fed;
+}
+
+.model-color-2 {
+  background: #6c74db;
+}
+
+.model-color-3 {
+  background: #15366d;
+}
+
+
+/* 공통 대시보드 패널 */
+
+.dashboard-panel {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+
+  box-shadow:
+    0 8px 28px rgba(20, 35, 70, 0.04);
+}
+
+/* 대시보드 패널 제목 */
+.dashboard-panel h3 {
+  margin: 0;
+
+  color: #253653;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+/* 그래프와 공지사항 배치 */
+
+.dashboard-main-grid {
+  display: grid;
+  width: 100%;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    var(--dashboard-side-panel-width, 330px);
+
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* 최근 7일 사용 추이 */
+.trend-panel {
+  min-width: 0;
+  padding: 20px 20px 12px;
+}
+
+.trend-chart-container {
+  width: 100%;
+  height: 260px;
+  margin-top: 14px;
+}
+
+
+/* 대시보드 공지사항 */
+
+.notice-panel {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 326px;
+
+  overflow: hidden;
+}
+
+/* 공지사항 제목 영역 */
+.notice-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  flex-shrink: 0;
+
+  min-height: 56px;
+  padding: 0 16px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 공지사항 아이콘과 제목 */
+.notice-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--color-primary);
+}
+
+.notice-panel-title h3 {
+  color: var(--color-text);
+}
+
+/* 공지사항 전체 보기 버튼 */
+.notice-view-all-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 5px;
+
+  color: #315b99;
+  background: transparent;
+  border: none;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.notice-view-all-button:hover {
+  color: var(--color-primary);
+}
+
+/* 공지사항 목록 */
+.dashboard-notice-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* 공지사항 한 개 */
+.dashboard-notice-item {
+  appearance: none;
+  -webkit-appearance: none;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 66px;
+  padding: 11px 16px;
+
+  color: inherit;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #e8edf5;
+
+  font-family: inherit;
+  text-align: left;
+
+  transition: background-color 0.2s;
+}
+
+.dashboard-notice-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-notice-item:hover {
+  background: #f7faff;
+}
+
+/* 카테고리와 NEW 표시 */
+.notice-item-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 5px;
+}
+
+/* 공지사항 카테고리 */
+.notice-category {
+  display: inline-flex;
+  align-items: center;
+
+  height: 20px;
+  padding: 0 7px;
+
+  color: #315b99;
+  background: #edf4ff;
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* 새로운 공지사항 표시 */
+.notice-new-badge {
+  color: #ff4d5e;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* 공지사항 제목 */
+.notice-item-title {
+  width: 100%;
+
+  color: #2d3e5c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+
+  display: -webkit-box;
+  overflow: hidden;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* 공지사항 등록일 */
+.notice-item-date {
+  margin-top: 5px;
+
+  color: #8a98af;
+  font-size: 10px;
+}
+
+
+/* 최근 사용 이력과 AI Tool 신청 현황 배치*/
+
+.dashboard-bottom-grid {
+  display: grid;
+  width: 100%;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    var(--dashboard-side-panel-width, 330px);
+
+  align-items: stretch;
+  gap: 18px;
+}
+
+/*
+  최근 사용 이력 표가 Grid 영역 안에서
+  정상적으로 줄어들 수 있도록 설정
+*/
+.dashboard-bottom-grid .history-panel {
+  min-width: 0;
+}
+
+
+/* 최근 사용 이력 */
+
+.history-panel {
+  overflow: hidden;
+}
+
+/* 최근 사용 이력 제목과 전체 보기 버튼 */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 54px;
+  padding: 0 18px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 전체 보기 버튼 */
+.view-all-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 5px;
+
+  color: #254a82;
+  background: transparent;
+  border: none;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.view-all-button:hover {
+  color: var(--color-primary);
+}
+
+/* 표가 화면보다 넓으면 가로 스크롤을 제공 */
+.history-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* 최근 사용 이력 표 */
+.history-table {
+  width: 100%;
+  min-width: 760px;
+
+  border-collapse: collapse;
+}
+
+/* 표의 제목과 데이터 칸 */
+.history-table th,
+.history-table td {
+  height: 46px;
+  padding: 0 18px;
+
+  border-bottom: 1px solid #e5eaf2;
+
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* 표 제목 */
+.history-table th {
+  color: #71809a;
+  background: #f6f8fc;
+  font-weight: 700;
+}
+
+/* 표 데이터 */
+.history-table td {
+  color: #526582;
+  background: #ffffff;
+}
+
+/* 마지막 행 아래쪽 선 제거 */
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 행에 마우스를 올렸을 때 */
+.history-table tbody tr:hover td {
+  background: #f9fbff;
+}
+
+.history-table td strong {
+  color: #253653;
+}
+
+/* AI Tool 공급자 이름 */
+.provider-name {
+  color: #7b8dac;
+  font-size: 11px;
+}
+
+
+/* 위험 등급 배지 */
+
+.risk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 50px;
+  height: 24px;
+  padding: 0 8px;
+
+  border-radius: 5px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* 낮은 위험 */
+.risk-low {
+  color: #079a70;
+  background: #ddf8ee;
+  border: 1px solid #9de7cf;
+}
+
+/* 중간 위험 */
+.risk-medium {
+  color: #c06a00;
+  background: #fff2ce;
+  border: 1px solid #f6cf67;
+}
+
+/* 높은 위험 */
+.risk-high {
+  color: #d13c3c;
+  background: #ffe4e4;
+  border: 1px solid #f2aaaa;
+}
+
+
+/* 조치 상태 배지 */
+
+.action-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 24px;
+  padding: 0 8px;
+
+  border-radius: 5px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* 조치 없음 */
+.action-none {
+  color: #64738b;
+  background: #eef1f6;
+  border: 1px solid #d7dde7;
+}
+
+/* 경고 발송 */
+.action-warning {
+  color: #d13c3c;
+  background: #ffe4e4;
+  border: 1px solid #f2aaaa;
+}
+
+/* 모니터링 */
+.action-monitoring {
+  color: #2764d9;
+  background: #e7efff;
+  border: 1px solid #b6ceff;
+}
+
+
+/* AI Tool 신청 현황*/
+
+/* AI Tool 신청 현황 카드 전체 */
+.tool-application-panel {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+/* 신청 현황 제목 영역 */
+.tool-application-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  flex-shrink: 0;
+
+  min-height: 54px;
+  padding: 0 16px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 아이콘, 제목, 검토 중 건수 */
+.tool-application-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  min-width: 0;
+
+  color: var(--color-primary);
+}
+
+/* AI Tool 신청 현황 제목 */
+.tool-application-title h3 {
+  flex-shrink: 0;
+
+  color: var(--color-text);
+}
+
+/* 검토 중 신청 건수 */
+.tool-pending-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 21px;
+  padding: 0 7px;
+
+  color: #b96800;
+  background: #fff3d4;
+  border: 1px solid #f6d27b;
+  border-radius: 6px;
+
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* AI Tool 신청 현황 전체 보기 버튼 */
+.tool-application-view-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  flex-shrink: 0;
+
+  padding: 5px;
+
+  color: #315b99;
+  background: transparent;
+  border: none;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tool-application-view-all:hover {
+  color: var(--color-primary);
+}
+
+/* AI Tool 신청 목록 */
+.tool-application-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+
+  padding: 12px;
+}
+
+/* AI Tool 신청 항목 한 개 */
+.tool-application-item {
+  padding: 12px;
+
+  background: #f8faff;
+  border: 1px solid #e3e9f3;
+  border-radius: 11px;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+/* 신청 항목에 마우스를 올렸을 때 */
+.tool-application-item:hover {
+  border-color: #c5d5f3;
+
+  box-shadow:
+    0 6px 18px rgba(31, 68, 133, 0.08);
+
+  transform: translateY(-1px);
+}
+
+/* AI Tool 이름과 상태 영역 */
+.tool-application-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* AI Tool 이름과 공급자 */
+.tool-application-name {
+  min-width: 0;
+}
+
+/* AI Tool 이름 */
+.tool-application-name strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: #263853;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* OpenAI, Anthropic 등의 공급자 */
+.tool-application-name span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #8491a6;
+  font-size: 10px;
+}
+
+/* 신청 상태 공통 배지 */
+.tool-application-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  min-height: 22px;
+  padding: 0 7px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 승인 완료 */
+.tool-status-approved {
+  color: #07835f;
+  background: #def7ed;
+  border: 1px solid #a2e6cf;
+}
+
+/* 검토 중 */
+.tool-status-pending {
+  color: #b96800;
+  background: #fff3d4;
+  border: 1px solid #f4cf73;
+}
+
+/* 반려 */
+.tool-status-rejected {
+  color: #cd4048;
+  background: #ffe7e8;
+  border: 1px solid #f0b0b4;
+}
+
+/* AI Tool 신청 목적 */
+.tool-application-purpose {
+  margin: 9px 0 0;
+
+  color: #61718b;
+  font-size: 11px;
+  line-height: 1.45;
+
+  /* 신청 목적이 길어도 최대 두 줄까지만 표시 */
+  display: -webkit-box;
+  overflow: hidden;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* AI Tool 신청 날짜 */
+.tool-application-date {
+  display: block;
+
+  margin-top: 8px;
+
+  color: #929db0;
+  font-size: 10px;
+}
+
+
+/* AI Tool 신청 내역이 없을 때 */
+
+.tool-application-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  flex: 1;
+
+  min-height: 220px;
+  padding: 24px;
+
+  color: #8b98ad;
+  text-align: center;
+}
+
+/* 빈 화면 아이콘 */
+.tool-application-empty svg {
+  margin-bottom: 10px;
+
+  color: #9badc8;
+}
+
+/* 빈 화면 제목 */
+.tool-application-empty strong {
+  color: #526582;
+  font-size: 13px;
+}
+
+/* 빈 화면 설명 */
+.tool-application-empty p {
+  max-width: 230px;
+  margin: 7px 0 0;
+
+  color: #8b98ad;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* 반응형 */
+
+@media (max-width: 1200px) {
+  /* 상단 요약 카드를 두 줄로 배치 */
+  .dashboard-summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1150px) {
+  /*
+    화면이 충분히 넓은 경우
+    AI Tool 신청 항목을 3열로 배치
+  */
+  .tool-application-list {
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  /* 두 대시보드 Grid를 동일한 시점에 세로로 배치한다. */
+  .dashboard-main-grid,
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 공지사항을 두 열로 표시 */
+  .dashboard-notice-list {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-notice-item {
+    min-height: 86px;
+  }
+
+  .dashboard-notice-item:nth-child(odd) {
+    border-right: 1px solid #e8edf5;
+  }
+}
+
+@media (max-width: 800px) {
+  .my-dashboard-page {
+    padding: 22px 18px 28px;
+  }
+
+  /* 제목과 월 선택 영역을 세로로 배치 */
+  .dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  /* 월 선택 버튼이 넘치면 가로로 스크롤 */
+  .month-tab-list {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .month-tab {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  /* AI Tool 신청 항목을 한 줄에 하나씩 표시 */
+  .tool-application-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  /* 공지사항을 한 열로 표시 */
+  .dashboard-notice-list {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-notice-item:nth-child(odd) {
+    border-right: none;
+  }
+
+  /* AI Tool 신청 현황 제목을 세로로 정렬 */
+  .tool-application-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    padding: 14px 16px;
+  }
+
+  .tool-application-view-all {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 560px) {
+  /* 상단 요약 카드를 한 줄에 하나씩 표시 */
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-summary-card {
+    min-height: 104px;
+  }
+
+  /* 모바일에서 그래프 높이를 줄인다. */
+  .trend-chart-container {
+    height: 220px;
+  }
+}
