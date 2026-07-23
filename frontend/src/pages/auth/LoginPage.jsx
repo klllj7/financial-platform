@@ -74,6 +74,7 @@ function LoginPage() {
       alert(`${user.name}님 로그인 성공!`);
 
       // 권한별 화면 이동은 나중에 실제 대시보드 만들면 연결
+      navigate("/my-dashboard");
       // if (user.role === "ADMIN") {
       //   navigate("/admin/accounts");
       // } else if (user.role === "COMPLIANCE_MANAGER") {
