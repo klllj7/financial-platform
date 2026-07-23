@@ -127,7 +127,7 @@ def list_events():
                 "grade": event.grade,
                 "masked_yn": event.masked_yn,
                 "created_at": event.created_at,
-                "action": [
+                "actions": [
                     {
                         "action_type": a.action_type,
                         "action_reason": a.action_reason,

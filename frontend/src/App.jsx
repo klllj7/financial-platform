@@ -9,7 +9,7 @@ import {
 // 로그인과 회원가입 페이지
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
-import EventListPage from "./pages/dlp/EventListPage";
+import EventListPage from "./pages/compliance/events/EventListPage";
 
 // 로그인 후 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
@@ -70,13 +70,18 @@ function App() {
             path="/ai-tools"
             element={<AiToolsPage />}
           />
-
-          {/* 위험 이벤트 관리 페이지 */}
-          <Route
-            path="/dlp/events"
-            element={<EventListPage />}
-          />
         </Route>
+
+        {/*
+          컴플라이언스 담당자 페이지.
+          ComplianceLayout이 아직 준비 중이라 임시로 레이아웃 없이 둔다.
+          ComplianceLayout이 합쳐지면 AppLayout처럼
+          <Route element={<ComplianceLayout />}> 안으로 옮겨야 한다.
+        */}
+        <Route
+          path="/compliance/events"
+          element={<EventListPage />}
+        />
 
         {/* 존재하지 않는 주소로 접근하면 로그인 페이지로 이동 */}
         <Route
