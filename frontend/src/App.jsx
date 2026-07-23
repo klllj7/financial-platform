@@ -90,11 +90,7 @@ function App() {
             element={<AiToolsPage />}
           />
 
-          {/* 상시평가 증빙자료 */}
-          <Route
-            path="/report/evidence"
-            element={<EvidenceChecklistPage />}
-          />
+
           {/* 관리자 - 계정 관리 */}
           <Route
             path="/admin/accounts"
@@ -126,6 +122,13 @@ function App() {
             path="/compliance/notices"
             element={<ComplianceNoticePage />}
           />
+          
+          {/* 상시평가 증빙자료 */}
+          <Route
+            path="/compliance/evidence"
+            element={<EvidenceChecklistPage />}
+          />
+
         </Route>
 
         {/* ==================================================
