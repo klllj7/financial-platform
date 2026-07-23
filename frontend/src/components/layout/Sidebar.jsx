@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /*
-  NavLink는 메뉴 이동과 활성 메뉴 표시를 담당한다.
+  NavLink는 메뉴 이동과 활성 메뉴 표시를 담당
   useNavigate는 로그아웃 후 로그인 페이지 이동에 사용한다.
 */
 import {
