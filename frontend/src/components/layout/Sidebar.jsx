@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   LogOut,
   ShieldCheck,
+  UsersRound,
 } from "lucide-react";
 
 /*
@@ -23,6 +24,9 @@ function Sidebar() {
   // localStorage에 저장된 로그인 사용자 정보 가져오기
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
+  
+  // 사용자 역할
+  const roleCode = user?.role || "EMPLOYEE";
 
   // 사용자 이름
   const userName = user?.name || "사용자";
@@ -33,6 +37,44 @@ function Sidebar() {
   // 부서명
   // department가 객체일 수도 있고 문자열일 수도 있어서 둘다 대응
   const departmentName = user?.department?.name || user?.department || "-";
+
+  // 역할별 메뉴 배열 만들기
+  const employeeMenus = [
+    {
+      to: "/my-dashboard",
+      label: "마이 대시보드",
+      icon: LayoutDashboard,
+    },
+    {
+      to: "/ai-chat",
+      label: "AI 사용하기",
+      icon: Bot,
+    },
+  ];
+
+
+  const complianceMenus = [
+    {
+      to: "/my-dashboard",
+      label: "마이 대시보드",
+      icon: LayoutDashboard,
+    },
+    {
+      to: "/ai-chat",
+      label: "AI 사용하기",
+      icon: Bot,
+    },
+  ];
+
+  const adminMenus = [
+    {
+      to: "/admin/accounts",
+      label: "계정 관리",
+      icon: UsersRound,
+    },
+  ];
+
+  const menus = roleCode === "ADMIN" ? adminMenus : roleCode === "COMPLIANCE_MANAGER" ? complianceMenus : employeeMenus;
 
   // 로그아웃 버튼 클릭 시 실행되는 함수
   const handleLogout = () => {
@@ -61,27 +103,22 @@ function Sidebar() {
 
       {/* 상단 주요 메뉴 */}
       <nav className="sidebar-menu">
-        {/* 마이 대시보드 */}
-        <NavLink
-          to="/my-dashboard"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
-          <LayoutDashboard size={18} />
-          <span>마이 대시보드</span>
-        </NavLink>
+        {menus.map((menu) => {
+          const Icon = menu.icon;
 
-        {/* AI 사용하기 */}
-        <NavLink
-          to="/ai-chat"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
-          <Bot size={18} />
-          <span>AI 사용하기</span>
-        </NavLink>
+          return (
+            <NavLink
+              key={menu.to}
+              to={menu.to}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+            >
+              <Icon size={18} />
+              <span>{menu.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* 사이드바 하단 고정 영역 */}

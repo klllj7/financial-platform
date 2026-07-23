@@ -17,6 +17,7 @@ const PAGE_TITLES = {
   "/ai-chat": "AI 사용하기",
   "/notices": "공지사항",
   "/ai-tools": "AI Tool 신청",
+  "/admin/accounts": "계정 관리",
 };
 
 function AppLayout() {
