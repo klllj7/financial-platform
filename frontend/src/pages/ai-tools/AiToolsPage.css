@@ -1,4 +1,6 @@
-/* AI Tool 신청 페이지 전체 */
+/* ==================================================
+   AI Tool 신청 페이지 전체
+================================================== */
 
 .ai-tools-page {
   min-height: calc(100vh - 58px);
@@ -8,7 +10,9 @@
 }
 
 
-/* 페이지 제목 영역 */
+/* ==================================================
+   페이지 제목 영역
+================================================== */
 
 .ai-tools-heading {
   display: flex;
@@ -64,8 +68,8 @@
 
   transition:
     background-color 0.2s,
-    transform 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    transform 0.2s;
 }
 
 /* 신청하기 버튼에 마우스를 올렸을 때 */
@@ -79,7 +83,9 @@
 }
 
 
-/* 페이지 안내 카드 */
+/* ==================================================
+   페이지 안내 카드
+================================================== */
 
 .ai-tools-guide-card {
   display: flex;
@@ -142,11 +148,11 @@
 }
 
 
-/* AI Tool 공통 영역 */
+/* ==================================================
+   신청 현황 영역
+================================================== */
 
 .ai-tools-section {
-  margin-bottom: 18px;
-
   background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: 16px;
@@ -157,23 +163,35 @@
   overflow: hidden;
 }
 
-/* 각 영역의 제목 부분 */
+/* 신청 현황 제목 영역 */
 .ai-tools-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
 
-  min-height: 68px;
+  min-height: 74px;
   padding: 0 20px;
-
-  color: var(--color-primary);
 
   border-bottom: 1px solid var(--color-border);
 }
 
-/* 영역 제목 */
-.ai-tools-section-header h3 {
+/* 제목 영역 왼쪽 */
+.ai-tools-section-title {
+  min-width: 0;
+}
+
+/* 아이콘, 제목, 검토 중 건수 */
+.ai-tools-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--color-primary);
+}
+
+/* 신청 현황 제목 */
+.ai-tools-section-title-row h3 {
   margin: 0;
 
   color: var(--color-text);
@@ -181,21 +199,43 @@
   font-weight: 800;
 }
 
-/* 영역 설명 */
-.ai-tools-section-header p {
-  margin: 5px 0 0;
+/* 신청 현황 설명 */
+.ai-tools-section-title p {
+  margin: 6px 0 0;
 
   color: var(--color-text-sub);
   font-size: 11px;
 }
 
-/* 신청 가능한 Tool 개수 */
+/* 검토 중 건수 */
+.ai-tools-pending-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 22px;
+  padding: 0 8px;
+
+  color: #b96800;
+  background: #fff3d4;
+
+  border: 1px solid #f6d27b;
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 전체 신청 건수 */
 .ai-tools-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  min-height: 26px;
+  flex-shrink: 0;
+
+  min-height: 27px;
   padding: 0 10px;
 
   color: #315b99;
@@ -209,7 +249,173 @@
 }
 
 
-/* 데이터가 없을 때 표시하는 영역 */
+/* ==================================================
+   신청 현황 카드 목록
+================================================== */
+
+.ai-tools-application-list {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+  padding: 18px;
+}
+
+/* AI Tool 신청 카드 */
+.ai-tools-application-card {
+  min-width: 0;
+  padding: 17px;
+
+  background: #f8faff;
+  border: 1px solid #e1e8f3;
+  border-radius: 13px;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+/* 신청 카드에 마우스를 올렸을 때 */
+.ai-tools-application-card:hover {
+  border-color: #bfd1f1;
+
+  box-shadow:
+    0 7px 20px rgba(32, 69, 132, 0.09);
+
+  transform: translateY(-2px);
+}
+
+/* AI Tool 이름과 상태 */
+.ai-tools-application-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* AI Tool 이름과 공급사 */
+.ai-tools-application-name {
+  min-width: 0;
+}
+
+/* AI Tool 이름 */
+.ai-tools-application-name strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: #263853;
+  font-size: 14px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* AI Tool 공급사 */
+.ai-tools-application-name span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #8491a6;
+  font-size: 11px;
+}
+
+
+/* ==================================================
+   신청 상태 배지
+================================================== */
+
+.ai-tools-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  min-height: 24px;
+  padding: 0 8px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 승인 완료 */
+.ai-tools-status-approved {
+  color: #07835f;
+  background: #def7ed;
+  border: 1px solid #a2e6cf;
+}
+
+/* 검토 중 */
+.ai-tools-status-pending {
+  color: #b96800;
+  background: #fff3d4;
+  border: 1px solid #f4cf73;
+}
+
+/* 반려 */
+.ai-tools-status-rejected {
+  color: #cd4048;
+  background: #ffe7e8;
+  border: 1px solid #f0b0b4;
+}
+
+
+/* ==================================================
+   신청 목적과 날짜
+================================================== */
+
+/* 신청 목적 영역 */
+.ai-tools-application-info {
+  margin-top: 15px;
+  padding-top: 13px;
+
+  border-top: 1px solid #e4eaf3;
+}
+
+/* 사용 목적 항목명 */
+.ai-tools-application-info > span {
+  color: #8a97aa;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* 사용 목적 내용 */
+.ai-tools-application-info p {
+  margin: 6px 0 0;
+
+  color: #536681;
+  font-size: 12px;
+  line-height: 1.5;
+
+  display: -webkit-box;
+  overflow: hidden;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* 신청 날짜 */
+.ai-tools-application-footer {
+  margin-top: 14px;
+}
+
+/* 신청 날짜 글자 */
+.ai-tools-application-footer span {
+  color: #919caf;
+  font-size: 10px;
+}
+
+
+/* ==================================================
+   신청 내역이 없을 때
+================================================== */
 
 .ai-tools-empty {
   display: flex;
@@ -217,8 +423,8 @@
   justify-content: center;
   flex-direction: column;
 
-  min-height: 190px;
-  padding: 30px;
+  min-height: 230px;
+  padding: 32px;
 
   color: #94a3b8;
   text-align: center;
@@ -249,7 +455,17 @@
 }
 
 
-/* 반응형 */
+/* ==================================================
+   반응형
+================================================== */
+
+@media (max-width: 1050px) {
+  /* 신청 카드를 두 열로 표시한다. */
+  .ai-tools-application-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 700px) {
   .ai-tools-page {
@@ -262,19 +478,42 @@
     flex-direction: column;
   }
 
-  /* 모바일에서는 신청 버튼을 전체 너비로 표시 */
+  /* 모바일에서는 신청 버튼을 전체 너비로 표시한다. */
   .ai-tool-apply-button {
     width: 100%;
   }
 
-  /* 안내 카드의 여백 */
+  /* 안내 카드 여백을 줄인다. */
   .ai-tools-guide-card {
     padding: 16px;
   }
 
-  /* 각 영역의 제목 높이를 내용에 맞춤 */
+  /* 신청 현황 제목 영역 */
   .ai-tools-section-header {
-    min-height: 76px;
-    padding: 14px 16px;
+    align-items: flex-start;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  /* 신청 카드를 한 줄에 하나씩 표시한다. */
+  .ai-tools-application-list {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 460px) {
+  /* 신청 현황 제목과 건수를 세로로 배치한다. */
+  .ai-tools-section-header {
+    flex-direction: column;
+  }
+
+  .ai-tools-count {
+    align-self: flex-start;
+  }
+
+  /* 검토 중 배지가 너무 좁아지지 않도록 제목 줄을 줄바꿈한다. */
+  .ai-tools-section-title-row {
+    flex-wrap: wrap;
   }
 }
