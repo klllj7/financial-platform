@@ -1,0 +1,23 @@
+/* AI 사용하기 페이지 전체 영역 */
+.ai-chat-page {
+  min-height: calc(100vh - 58px);
+  padding: 32px;
+
+  background: #eef3fb;
+}
+
+/* 임시 제목 */
+.ai-chat-page h2 {
+  margin: 0 0 12px;
+
+  color: #162033;
+  font-size: 24px;
+}
+
+/* 임시 설명 */
+.ai-chat-page p {
+  margin: 0;
+
+  color: #6f7c91;
+  font-size: 14px;
+}
