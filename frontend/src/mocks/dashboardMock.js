@@ -12,7 +12,6 @@ export const dashboardSummary = {
   mediumOrHigherCount: 2,
   totalUsageCount: 30,
   usageIncrease: 8,
-  tokenUsage: "128K",
   estimatedCost: "3,840",
 };
 
@@ -160,10 +159,7 @@ export const dashboardNoticeData = [
   },
 ];
 
-/*
-  마이 대시보드와 AI Tool 페이지에서 사용할
-  AI Tool 신청 현황 임시 데이터
-*/
+/* AI Tool 신청 현황 임시 데이터 */
 export const aiToolApplicationData = [
   {
     id: 1,
