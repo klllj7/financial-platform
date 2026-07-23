@@ -17,6 +17,11 @@ const PAGE_TITLES = {
   "/ai-chat": "AI 사용하기",
   "/notices": "공지사항",
   "/ai-tools": "AI Tool 신청",
+  "/report/evidence": "상시평가 증빙자료",
+
+  "/compliance/dashboard": "전사 대시보드",
+  "/compliance/notices": "공지사항",
+  
   "/admin/accounts": "계정 관리",
 };
 

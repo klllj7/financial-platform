@@ -21,7 +21,9 @@ function TopHeader({ title }) {
     ADMIN: "관리자",
   };
 
-  const roleLabel = roleLabelMap[user?.role] || "사용자";
+  const roleCode = user?.role?.code || user?.role || "EMPLOYEE";
+
+  const roleLabel = roleLabelMap[roleCode] || "사용자";
   const userName = user?.name || "사용자";
   const userEmail = user?.email || "-";
   const departmentName = user?.department?.name || user?.department || "-";

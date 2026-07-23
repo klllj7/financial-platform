@@ -460,6 +460,7 @@
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
 }
 
 /* 공지사항 등록일 */
@@ -881,6 +882,7 @@
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* AI Tool 신청 날짜 */
