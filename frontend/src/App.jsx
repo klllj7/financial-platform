@@ -19,6 +19,7 @@ import AiChatPage from "./pages/ai-chat/AiChatPage";
 import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
 import NoticePage from "./pages/notices/NoticePage";
 import AiToolsPage from "./pages/ai-tools/AiToolsPage";
+import AdminAccountPage from "./pages/admin/AdminAccountPage";
 
 function App() {
   return (
@@ -69,6 +70,12 @@ function App() {
           <Route
             path="/ai-tools"
             element={<AiToolsPage />}
+          />
+
+          {/* 관리자 - 계정 관리 */}
+          <Route
+            path="/admin/accounts"
+            element={<AdminAccountPage />}
           />
         </Route>
 
