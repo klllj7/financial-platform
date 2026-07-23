@@ -6,7 +6,7 @@ function PolicyManagementPage() {
   const [departmentId, setDepartmentId] = useState("");
   const [name, setName] = useState("");
   const [ruleContent, setRuleContent] = useState("");
-
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
 
     const fetchPolicies = async () => {
         const result = await getPolicies();
@@ -38,7 +38,7 @@ function PolicyManagementPage() {
       <h1>정책 관리</h1>
       <ul>
         {policies.map((policy) => (
-          <li key={policy.id}>
+          <li key={policy.id} onClick={() => setSelectedPolicy(policy)}>
             <h2>{policy.name}</h2>
             <span>{statusLabel[policy.approval_status]}</span>
             <p>{JSON.stringify(policy.rule_content)}</p>
@@ -65,6 +65,24 @@ function PolicyManagementPage() {
         />
         <button type="submit">정책 생성</button>
       </form>
+      {selectedPolicy && (
+        <div className="modal-overlay" onClick={() => setSelectedPolicy(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>{selectedPolicy.name}</h2>
+            <p>상태: {statusLabel[selectedPolicy.approval_status]}</p>
+            <p>버전: v{selectedPolicy.version}</p>
+            <p>규칙: {JSON.stringify(selectedPolicy.rule_content)}</p>
+
+            {selectedPolicy.approval_status === "rejected" && (
+              <p>반려 사유: {selectedPolicy.reject_reason}</p>
+            )}
+
+            <button onClick={() => setSelectedPolicy(null)}>닫기
+            </button>
+      
+      </div>
+    </div>
+  )}
     </div>
   );
 }

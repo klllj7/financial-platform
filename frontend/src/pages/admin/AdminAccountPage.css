@@ -1,0 +1,573 @@
+.admin-account-page {
+  padding: 28px;
+}
+
+/* 상단 제목 카드 */
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 22px;
+  padding: 26px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: 0 12px 32px rgba(20, 35, 70, 0.06);
+}
+
+.admin-page-eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-page-header h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.admin-page-header p {
+  margin: 8px 0 0;
+
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.admin-page-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 58px;
+  height: 58px;
+
+  color: #ffffff;
+  background: linear-gradient(135deg, #2f6df6, #6b7cff);
+
+  border-radius: 18px;
+
+  box-shadow: 0 12px 26px rgba(47, 109, 246, 0.28);
+}
+
+/* 필터 카드 */
+.admin-filter-card {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+
+  margin-bottom: 18px;
+  padding: 18px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+
+  box-shadow: 0 10px 28px rgba(20, 35, 70, 0.045);
+}
+
+.admin-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-filter-group label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-filter-group select {
+  min-width: 180px;
+  height: 40px;
+  padding: 0 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+}
+
+.admin-filter-group select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+.admin-filter-result {
+  margin-left: auto;
+
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-filter-result strong {
+  color: var(--color-primary);
+}
+
+/* 테이블 카드 */
+.admin-table-card {
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: 0 12px 32px rgba(20, 35, 70, 0.06);
+
+  overflow: hidden;
+}
+
+.admin-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 22px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-table-header h3 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.admin-table-header span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-account-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.admin-account-table th {
+  padding: 14px 18px;
+
+  color: #687386;
+  background: #f8faff;
+
+  border-bottom: 1px solid var(--color-border);
+
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.admin-account-table td {
+  padding: 16px 18px;
+
+  color: var(--color-text);
+
+  border-bottom: 1px solid #edf1f7;
+
+  font-size: 13px;
+}
+
+.admin-account-table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.admin-account-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 이름 셀 */
+.admin-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+
+  border-radius: 50%;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* 권한 배지 */
+.admin-role-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-role-badge.ADMIN {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.admin-role-badge.COMPLIANCE_MANAGER {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+.admin-role-badge.EMPLOYEE {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+/* 상태 배지 */
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-status-badge.ACTIVE {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.admin-status-badge.INACTIVE {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+/* 권한 변경 버튼 */
+.admin-manage-button {
+  min-height: 32px;
+  padding: 0 12px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+
+  border: none;
+  border-radius: 9px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    background-color 0.15s;
+}
+
+.admin-manage-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(47, 109, 246, 0.24);
+}
+
+.admin-empty-message {
+  padding: 38px 18px !important;
+
+  color: var(--color-muted) !important;
+  text-align: center;
+}
+
+/* 모달 배경 */
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+/* 권한 변경 모달 */
+.admin-role-modal {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+
+  overflow: hidden;
+}
+
+/* 모달 상단 */
+.admin-role-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 22px 22px 18px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-role-modal-header p {
+  margin: 0 0 6px;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-role-modal-header h3 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+/* 모달 닫기 버튼 */
+.admin-modal-close-button {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 32px;
+  height: 32px;
+
+  color: var(--color-muted);
+  background: #f6f8fc;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.admin-modal-close-button:hover {
+  color: var(--color-text);
+  background: #edf2fb;
+}
+
+/* 모달 본문 */
+.admin-role-modal-body {
+  padding: 22px;
+}
+
+.admin-modal-user-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px;
+
+  background: #f8faff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.admin-modal-user-summary strong {
+  display: block;
+
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.admin-modal-user-summary span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 모달 정보 리스트 */
+.admin-modal-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-top: 16px;
+}
+
+.admin-modal-info-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  font-size: 13px;
+}
+
+.admin-modal-info-list span {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.admin-modal-info-list strong {
+  color: var(--color-text);
+  font-weight: 800;
+  text-align: right;
+}
+
+/* 모달 하단 */
+.admin-role-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 16px 22px 20px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+/* 취소 버튼 */
+.admin-modal-cancel-button,
+.admin-modal-save-button {
+  min-height: 38px;
+  padding: 0 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.admin-modal-cancel-button {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.admin-modal-cancel-button:hover {
+  background: #e2e8f0;
+}
+
+.admin-modal-save-button {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+.admin-modal-save-button:hover {
+  box-shadow: 0 8px 18px rgba(47, 109, 246, 0.24);
+}
+
+/* 권한 선택 영역 */
+.admin-role-select-area {
+  display: flex;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+
+  padding: 12px;
+
+  background: #f8faff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.admin-role-select-area label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-role-select-area select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  outline: none;
+}
+
+.admin-role-select-area select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+/* 반응형 */
+@media (max-width: 760px) {
+  .admin-account-page {
+    padding: 18px;
+  }
+
+  .admin-page-header {
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .admin-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-filter-result {
+    margin-left: 0;
+  }
+
+  .admin-filter-group select {
+    width: 100%;
+  }
+}
