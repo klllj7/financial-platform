@@ -471,14 +471,188 @@
   font-weight: 800;
 }
 
-/* 상단 오른쪽 사용자 정보 */
+/* 상단 사용자 정보와 드롭다운을 감싸는 영역 */
+.top-header-user-wrapper {
+  position: relative;
+}
+
+/* 상단 사용자 정보 버튼 */
 .top-header-user {
+  appearance: none;
+  -webkit-appearance: none;
+
   display: flex;
   align-items: center;
   gap: 8px;
 
+  margin: 0;
+  padding: 6px 8px;
+
   color: var(--color-text);
+  background: transparent;
+
+  border: none;
+  border-radius: 10px;
+
+  font-family: inherit;
   font-size: 13px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s;
+}
+
+.top-header-user:hover {
+  background: #f6f8fc;
+}
+
+/* 사용자 이름 */
+.top-header-user strong {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* 화살표 아이콘 */
+.top-header-arrow {
+  color: var(--color-text);
+  transition: transform 0.2s;
+}
+
+.top-header-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* 사용자 정보 드롭다운 */
+.top-header-dropdown {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 200;
+
+  width: 280px;
+  padding: 16px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+
+  box-shadow:
+    0 18px 40px rgba(20, 35, 70, 0.14);
+}
+
+/* 드롭다운 상단 프로필 영역 */
+.top-header-dropdown-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding-bottom: 14px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 드롭다운 프로필 아이콘 */
+.top-header-dropdown-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 42px;
+  height: 42px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+
+  border-radius: 50%;
+}
+
+/* 드롭다운 사용자 이름 */
+.top-header-dropdown-profile strong {
+  display: block;
+
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* 드롭다운 권한명 */
+.top-header-dropdown-profile span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 이메일, 부서, 권한 정보 */
+.top-header-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.top-header-dropdown-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+
+  font-size: 12px;
+}
+
+.top-header-dropdown-info span {
+  flex-shrink: 0;
+
+  color: var(--color-muted);
+}
+
+.top-header-dropdown-info strong {
+  color: var(--color-text);
+  font-weight: 700;
+  text-align: right;
+
+  word-break: break-all;
+}
+
+/* 드롭다운 로그아웃 버튼 */
+.top-header-logout-button {
+  appearance: none;
+  -webkit-appearance: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: 100%;
+  min-height: 38px;
+
+  margin-top: 16px;
+  padding: 0 12px;
+
+  color: #334155;
+  background: #f6f8fc;
+
+  border: none;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s;
+}
+
+.top-header-logout-button:hover {
+  background: #edf2fb;
 }
 
 /* 임직원 권한 표시 */

@@ -18,6 +18,8 @@ import AiChatPage from "./pages/ai-chat/AiChatPage";
 import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
 import NoticePage from "./pages/notices/NoticePage";
 import AiToolsPage from "./pages/ai-tools/AiToolsPage";
+import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
+import AdminAccountPage from "./pages/admin/AdminAccountPage";
 
 // 컴플라이언스 담당자용 공통 레이아웃
 import ComplianceLayout from "./components/compliance-layout/ComplianceLayout";
@@ -86,6 +88,17 @@ function App() {
           <Route
             path="/ai-tools"
             element={<AiToolsPage />}
+          />
+
+          {/* 상시평가 증빙자료 */}
+          <Route
+            path="/report/evidence"
+            element={<EvidenceChecklistPage />}
+          />
+          {/* 관리자 - 계정 관리 */}
+          <Route
+            path="/admin/accounts"
+            element={<AdminAccountPage />}
           />
         </Route>
 
