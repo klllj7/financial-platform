@@ -18,6 +18,7 @@ import AiChatPage from "./pages/ai-chat/AiChatPage";
 import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
 import NoticePage from "./pages/notices/NoticePage";
 import AiToolsPage from "./pages/ai-tools/AiToolsPage";
+import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 
 function App() {
   return (
@@ -68,6 +69,12 @@ function App() {
           <Route
             path="/ai-tools"
             element={<AiToolsPage />}
+          />
+
+          {/* 상시평가 증빙자료 */}
+          <Route
+            path="/report/evidence"
+            element={<EvidenceChecklistPage />}
           />
         </Route>
 
