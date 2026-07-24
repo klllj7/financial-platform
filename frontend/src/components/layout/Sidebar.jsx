@@ -2,9 +2,11 @@
 import {
   Bell,
   Bot,
+  Boxes,
   ClipboardCheck,
   LayoutDashboard,
   LogOut,
+  ShieldAlert,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -31,6 +33,11 @@ const ROLE_MENUS = {
       label: "AI 사용하기",
       icon: Bot,
     },
+    {
+      to: "/ai-tools",
+      label: "AI Tool 신청",
+      icon: Boxes,
+    },
   ],
 
   COMPLIANCE_MANAGER: [
@@ -38,6 +45,16 @@ const ROLE_MENUS = {
       to: "/compliance/dashboard",
       label: "전사 대시보드",
       icon: LayoutDashboard,
+    },
+    {
+      to: "/compliance/risk-events",
+      label: "위험 이벤트 관리",
+      icon: ShieldAlert,
+    },
+    {
+      to: "/compliance/model-applications",
+      label: "AI Tool·모델 신청 현황",
+      icon: Boxes,
     },
     {
       to: "/ai-chat",
