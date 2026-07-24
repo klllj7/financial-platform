@@ -49,6 +49,11 @@ const ROLE_MENUS = {
       label: "상시평가 증빙자료",
       icon: ClipboardCheck,
     },
+    {
+      to: "/policies",
+      label: "정책 관리",
+      icon: ShieldCheck,
+    },
   ],
 
   ADMIN: [
