@@ -28,6 +28,9 @@ import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceR
 import ComplianceModelApplicationsPage from "./pages/compliance/model-applications/ComplianceModelApplicationsPage";
 
 
+// 정책 관리 페이지
+import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -41,7 +44,6 @@ function App() {
         {/* ==================================================
             로그인 및 회원가입
         ================================================== */}
-
         <Route
           path="/login"
           element={<LoginPage />}
@@ -120,6 +122,35 @@ function App() {
           <Route
             path="/admin/accounts"
             element={<AdminAccountPage />}
+          />
+
+          {/* 컴플라이언스 전사 대시보드 */}
+          <Route
+            path="/compliance/dashboard"
+            element={<ComplianceDashboardPage />}
+          />
+
+          {/*
+            컴플라이언스 담당자용 공지사항
+
+            공지사항 조회뿐만 아니라
+            새로운 공지 작성 기능도 포함된다.
+          */}
+          <Route
+            path="/compliance/notices"
+            element={<ComplianceNoticePage />}
+          />
+
+          {/* 정책 관리 페이지 */}
+          <Route
+            path="/policies"
+            element={<PolicyManagementPage />}
+          />
+
+          {/* 상시평가 증빙자료 (컴플라이언스) */}
+          <Route
+            path="/compliance/evidence"
+            element={<EvidenceChecklistPage />}
           />
         </Route>
 
