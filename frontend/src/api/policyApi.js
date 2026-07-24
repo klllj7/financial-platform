@@ -30,3 +30,9 @@ export const rejectPolicy = async (id, reject_reason) => {
     throw error;
   }
 };
+
+// 정책 수정
+export const updatePolicy = async (id, data) => {
+ const response = await axiosInstance.put(`/policies/${id}`, data);
+  return response.data;
+};

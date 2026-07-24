@@ -18,6 +18,53 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+/* 역할별 사이드바 메뉴 */
+const ROLE_MENUS = {
+  EMPLOYEE: [
+    {
+      to: "/my-dashboard",
+      label: "마이 대시보드",
+      icon: LayoutDashboard,
+    },
+    {
+      to: "/ai-chat",
+      label: "AI 사용하기",
+      icon: Bot,
+    },
+  ],
+
+  COMPLIANCE_MANAGER: [
+    {
+      to: "/compliance/dashboard",
+      label: "전사 대시보드",
+      icon: LayoutDashboard,
+    },
+    {
+      to: "/ai-chat",
+      label: "AI 사용하기",
+      icon: Bot,
+    },
+    {
+      to: "/report/evidence",
+      label: "상시평가 증빙자료",
+      icon: ClipboardCheck,
+    },
+    {
+      to: "/policies",
+      label: "정책 관리",
+      icon: ShieldCheck,
+    },
+  ],
+
+  ADMIN: [
+    {
+      to: "/admin/accounts",
+      label: "계정 관리",
+      icon: UsersRound,
+    },
+  ],
+};
+
 function Sidebar() {
   // 함수 안에서 페이지를 이동하기 위해 사용한다.
   const navigate = useNavigate();
@@ -26,11 +73,9 @@ function Sidebar() {
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
   
-  // 사용자 역할
-  const roleCode = user?.role || "EMPLOYEE";
 
-  // 사용자 이름
-  const userName = user?.name || "사용자";
+  const roleCode = user?.role?.code || user?.role || "EMPLOYEE";  // 사용자 역할
+  const userName = user?.name || "사용자";     // 사용자 이름
 
   // 사용자 이름 첫 글자
   const userInitial = userName.charAt(0);
@@ -39,43 +84,16 @@ function Sidebar() {
   // department가 객체일 수도 있고 문자열일 수도 있어서 둘다 대응
   const departmentName = user?.department?.name || user?.department || "-";
 
-  // 역할별 메뉴 배열 만들기
-  const employeeMenus = [
-    {
-      to: "/my-dashboard",
-      label: "마이 대시보드",
-      icon: LayoutDashboard,
-    },
-    {
-      to: "/ai-chat",
-      label: "AI 사용하기",
-      icon: Bot,
-    },
-  ];
+  
+  // 등록되지 않은 역할이 들어오면 임직원 메뉴를 기본값으로 사용
+  const menus = ROLE_MENUS[roleCode] ?? ROLE_MENUS.EMPLOYEE;
 
-
-  const complianceMenus = [
-    {
-      to: "/my-dashboard",
-      label: "마이 대시보드",
-      icon: LayoutDashboard,
-    },
-    {
-      to: "/ai-chat",
-      label: "AI 사용하기",
-      icon: Bot,
-    },
-  ];
-
-  const adminMenus = [
-    {
-      to: "/admin/accounts",
-      label: "계정 관리",
-      icon: UsersRound,
-    },
-  ];
-
-  const menus = roleCode === "ADMIN" ? adminMenus : roleCode === "COMPLIANCE_MANAGER" ? complianceMenus : employeeMenus;
+  const noticePath =
+    roleCode === "COMPLIANCE_MANAGER"
+      ? "/compliance/notices"
+      : roleCode === "EMPLOYEE"
+        ? "/notices"
+        : null;
 
   // 로그아웃 버튼 클릭 시 실행되는 함수
   const handleLogout = () => {
@@ -107,27 +125,6 @@ function Sidebar() {
         {menus.map((menu) => {
           const Icon = menu.icon;
 
-        {/* AI 사용하기 */}
-        <NavLink
-          to="/ai-chat"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
-          <Bot size={18} />
-          <span>AI 사용하기</span>
-        </NavLink>
-
-        {/* 상시평가 증빙자료 */}
-        <NavLink
-          to="/report/evidence"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
-          <ClipboardCheck size={18} />
-          <span>상시평가 증빙자료</span>
-        </NavLink>
           return (
             <NavLink
               key={menu.to}
@@ -146,23 +143,25 @@ function Sidebar() {
       {/* 사이드바 하단 고정 영역 */}
       <div className="sidebar-bottom">
         {/* 공지사항 전체 목록으로 이동한다. */}
-        <NavLink
-          to="/notices"
-          className={({ isActive }) =>
-            `sidebar-bottom-notice ${
-              isActive ? "active" : ""
-            }`
-          }
-        >
-          <Bell size={18} />
+        {noticePath && (
+          <NavLink
+            to={noticePath}
+            className={({ isActive }) =>
+              `sidebar-bottom-notice ${
+                isActive ? "active" : ""
+              }`
+            }
+          >
+            <Bell size={18} />
 
-          <span className="sidebar-bottom-notice-text">
-            공지사항
-          </span>
+            <span className="sidebar-bottom-notice-text">
+              공지사항
+            </span>
 
-          <span className="notice-dot" />
-        </NavLink>
-
+            <span className="notice-dot" />
+          </NavLink>
+        )}
+        
         {/* 사용자 정보와 로그아웃 */}
         <div className="sidebar-account">
           <div className="sidebar-user">

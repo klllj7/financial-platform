@@ -45,7 +45,7 @@ exports.getPolicies = async (req, res) => {
 exports.updatePolicy = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rule_content } = req.body;
+        const { rule_content, active_yn } = req.body;
 
         const policy = await PolicyInfo.findByPk(id);
         if (!policy) {
@@ -53,7 +53,7 @@ exports.updatePolicy = async (req, res) => {
         }
 
         await PolicyHistory.create({ policy_id: id, version: policy.version, rule_snapshot: policy.rule_content });
-        await policy.update({ version: policy.version + 1, rule_content });
+        await policy.update({ version: policy.version + 1, rule_content, active_yn });
 
         res.json({
             success: true,

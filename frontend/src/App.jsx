@@ -9,7 +9,6 @@ import {
 // 로그인과 회원가입 페이지
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
-import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
 
 // 임직원용 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
@@ -22,14 +21,14 @@ import AiToolsPage from "./pages/ai-tools/AiToolsPage";
 import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
 
-// 컴플라이언스 담당자용 공통 레이아웃
-import ComplianceLayout from "./components/compliance-layout/ComplianceLayout";
-
 // 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 
 // 컴플라이언스 담당자용 공지사항 페이지
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
+
+// 정책 관리 페이지
+import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
 
 function App() {
   return (
@@ -90,22 +89,18 @@ function App() {
             element={<AiToolsPage />}
           />
 
+          {/* 상시평가 증빙자료 */}
+          <Route
+            path="/report/evidence"
+            element={<EvidenceChecklistPage />}
+          />
 
           {/* 관리자 - 계정 관리 */}
           <Route
             path="/admin/accounts"
             element={<AdminAccountPage />}
           />
-        </Route>
 
-        {/* ==================================================
-            컴플라이언스 담당자용 페이지
-
-            ComplianceLayout 내부에 있는 페이지에는
-            컴플라이언스용 사이드바와 상단 헤더가 표시된다.
-        ================================================== */}
-
-        <Route element={<ComplianceLayout />}>
           {/* 컴플라이언스 전사 대시보드 */}
           <Route
             path="/compliance/dashboard"
@@ -129,13 +124,13 @@ function App() {
             element={<PolicyManagementPage />}
           />
 
-          
-          {/* 상시평가 증빙자료 */}
+          {/* 상시평가 증빙자료 (컴플라이언스) */}
           <Route
             path="/compliance/evidence"
             element={<EvidenceChecklistPage />}
           />
-          </Route>
+        </Route>
+
         {/* ==================================================
             존재하지 않는 주소 처리
         ================================================== */}

@@ -73,13 +73,21 @@ function LoginPage() {
 
       alert(`${user.name}님 로그인 성공!`);
 
+      const roleCode = user?.role?.code || user?.role;
+
       // 권한별 화면 이동은 나중에 실제 대시보드 만들면 연결
-      if (user.role === "ADMIN") {
-        navigate("/admin/accounts");
-      } else if (user.role === "COMPLIANCE_MANAGER") {
-        navigate("/compliance/dashboard");
+      if (roleCode === "ADMIN") {
+        navigate("/admin/accounts", {
+          replace: true,
+        });
+      } else if (roleCode === "COMPLIANCE_MANAGER") {
+        navigate("/compliance/dashboard", {
+          replace: true,
+        });
       } else {
-        navigate("/my-dashboard");
+        navigate("/my-dashboard", {
+          replace: true,
+        });
       }
     } catch (error) {
       console.error("로그인 실패: ", error);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPolicies, createPolicy } from "../../api/policyApi";
+import { getPolicies, createPolicy, approvePolicy, rejectPolicy, updatePolicy } from "../../api/policyApi";
 
 function PolicyManagementPage() {
   const [policies, setPolicies] = useState([]);
@@ -7,6 +7,9 @@ function PolicyManagementPage() {
   const [name, setName] = useState("");
   const [ruleContent, setRuleContent] = useState("");
   const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [istEditing, setIsEditing] = useState(false);
+  const [editRuleContent, setEditRuleContent] = useState("");
+  const [editActiveYn, setEditActiveYn] = useState(false);
 
     const fetchPolicies = async () => {
         const result = await getPolicies();
@@ -27,11 +30,24 @@ function PolicyManagementPage() {
         await createPolicy(newPolicy);
         fetchPolicies(); // 정책 생성 후 목록 갱신
     };
+    const handleApprove = async (id) => {
+      await approvePolicy(id);
+      setSelectedPolicy(null);
+      fetchPolicies(); // 정책 승인 후 목록 갱신
+    };
+
+    const handleReject = async (id) => {
+      await rejectPolicy(id, rejectReasonInput);
+      setRejectReasonInput(""); // 반려 사유 초기화
+      setSelectedPolicy(null);
+      fetchPolicies(); // 정책 반려 후 목록 갱신
+    }
     const statusLabel = {
   pending: "승인대기",
   approved: "승인완료",
   rejected: "반려",
 };
+const [rejectReasonInput, setRejectReasonInput] = useState("");
 
   return (
     <div>
@@ -73,8 +89,16 @@ function PolicyManagementPage() {
             <p>버전: v{selectedPolicy.version}</p>
             <p>규칙: {JSON.stringify(selectedPolicy.rule_content)}</p>
 
-            {selectedPolicy.approval_status === "rejected" && (
-              <p>반려 사유: {selectedPolicy.reject_reason}</p>
+            {selectedPolicy.approval_status === "pending" && (
+              <>
+              <textarea
+              placeholder = "반려 사유 (반려할 경우에만 입력)"
+              value = {rejectReasonInput}
+              onChange = {(e) => setRejectReasonInput(e.target.value)}
+              />
+              <button onClick = {()=> handleApprove(selectedPolicy.id)}>승인</button>
+              <button onClick = {()=> handleReject(selectedPolicy.id)}>반려</button>
+              </>
             )}
 
             <button onClick={() => setSelectedPolicy(null)}>닫기
