@@ -29,6 +29,7 @@ import ComplianceModelApplicationsPage from "./pages/compliance/model-applicatio
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
 import AdminModelPage from "./pages/admin/AdminModelPage";
+import AdminPolicyPage from "./pages/admin/AdminPolicyPage";
 
 // 정책 관리 페이지
 import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
@@ -118,6 +119,12 @@ function App() {
           <Route
             path="/admin/models"
             element={<AdminModelPage />}
+          />
+
+          {/* 관리자 - 정책 승인 관리 */}
+          <Route
+            path="/admin/policies"
+            element={<AdminPolicyPage />}
           />
 
           {/* 컴플라이언스 전사 대시보드 */}
