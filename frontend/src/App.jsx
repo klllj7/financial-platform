@@ -90,18 +90,6 @@ function App() {
             element={<AiToolsPage />}
           />
 
-          {/* 컴플라이언스 대시보드 */}
-          <Route
-            path="/compliance/dashboard"
-            element={<ComplianceDashboardPage />}
-          />
-
-          {/* 컴플라이언스 공지사항 */}
-          <Route
-            path="/compliance/notices"
-            element={<ComplianceNoticePage />}
-          />
-
           <Route
             path="/compliance/risk-events"
             element={<ComplianceRiskEventsPage />}

@@ -1,23 +1,95 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Clock3, Eye, Search, ShieldAlert } from "lucide-react";
 
-import { complianceRiskEvents } from "../../../mocks/complianceDashboardMock";
+import { getEvents, postEventAction } from "../../../api/dlpApi";
 import "./ComplianceRiskEventsPage.css";
 
 const RISK_FILTERS = ["전체", "HIGH", "MEDIUM", "LOW"];
 const STATUS_FILTERS = ["전체", "미조치", "조치 중", "모니터링", "조치 완료"];
 
+// 이 화면의 조치 상태(4단계)와 DLP 백엔드의 action_type을 매핑한다.
+// (백엔드는 escalated/dismissed/reviewed 3가지 수동 조치만 구분하므로 근사치로 매핑)
+const ACTION_STATUS_BY_TYPE = {
+  escalated: { label: "조치 중", type: "processing" },
+  dismissed: { label: "조치 완료", type: "completed" },
+  reviewed: { label: "모니터링", type: "monitoring" },
+};
+const NO_ACTION_STATUS = { label: "미조치", type: "none" };
+
+const deriveActionStatus = (actions = []) => {
+  const manualActions = actions.filter((a) =>
+    ["reviewed", "escalated", "dismissed"].includes(a.action_type),
+  );
+  if (manualActions.length === 0) return NO_ACTION_STATUS;
+  const latest = manualActions[manualActions.length - 1];
+  return ACTION_STATUS_BY_TYPE[latest.action_type] ?? NO_ACTION_STATUS;
+};
+
+const formatOccurredAt = (isoString) => {
+  const date = new Date(isoString);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+// LoginPage에서 로그인 성공 시 localStorage에 저장해두는 사용자 정보에서 userId를 꺼낸다.
+const getLoggedInUserId = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"))?.userId ?? null;
+  } catch {
+    return null;
+  }
+};
+
+// 조치 시 백엔드로 보낼 action_type 값과 화면에 보여줄 한글 라벨
+const ACTION_FORM_TYPES = [
+  { value: "reviewed", label: "모니터링 (확인함)" },
+  { value: "escalated", label: "조치 중 (상급보고)" },
+  { value: "dismissed", label: "조치 완료 (오탐/기각)" },
+];
+
 function ComplianceRiskEventsPage() {
   const location = useLocation();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
   const [riskFilter, setRiskFilter] = useState("전체");
   const [statusFilter, setStatusFilter] = useState("전체");
   const [selectedEventId, setSelectedEventId] = useState(
     location.state?.selectedEventId ?? null,
   );
+  const [actionType, setActionType] = useState(ACTION_FORM_TYPES[0].value);
+  const [actionReason, setActionReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const events = Array.isArray(complianceRiskEvents) ? complianceRiskEvents : [];
+  const fetchEvents = () => {
+    setLoading(true);
+    getEvents()
+      .then((res) => {
+        const mapped = res.data.map((event) => {
+          const status = deriveActionStatus(event.actions);
+          return {
+            id: event.event_id,
+            riskLevel: event.grade,
+            userName: event.user_name ?? "-",
+            department: event.department_name ?? "-",
+            eventType: event.detection_type,
+            modelName: "-", // TODO: ai_tool_info 연동되면 실제 값으로 교체 (B 담당자)
+            promptSummary: event.description,
+            actionStatus: status.label,
+            actionStatusType: status.type,
+            occurredAt: formatOccurredAt(event.created_at),
+            actions: event.actions,
+          };
+        });
+        setEvents(mapped);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   const filteredEvents = useMemo(() => {
     const query = keyword.trim().toLowerCase();
@@ -33,6 +105,31 @@ function ComplianceRiskEventsPage() {
 
   const selectedEvent = events.find((event) => event.id === selectedEventId);
   const countBy = (key, value) => events.filter((event) => event[key] === value).length;
+
+  const openEventDetail = (eventId) => {
+    setSelectedEventId(eventId);
+    setActionType(ACTION_FORM_TYPES[0].value);
+    setActionReason("");
+  };
+
+  const handleSubmitAction = async () => {
+    if (!selectedEvent) return;
+    setSubmitting(true);
+    try {
+      await postEventAction(selectedEvent.id, {
+        actor_user_id: getLoggedInUserId(),
+        action_type: actionType,
+        action_reason: actionReason,
+      });
+      setSelectedEventId(null);
+      fetchEvents();
+    } catch (error) {
+      console.error("조치 등록 실패:", error);
+      alert("조치 등록에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="compliance-risk-events-page">
@@ -69,23 +166,27 @@ function ComplianceRiskEventsPage() {
           </select></label>
         </div>
 
-        <div className="risk-events-table-wrap">
-          <table className="risk-events-table">
-            <thead><tr><th>발생 시각</th><th>위험 등급</th><th>사용자 / 부서</th><th>탐지 유형</th><th>사용 모델</th><th>조치 상태</th><th /></tr></thead>
-            <tbody>{filteredEvents.map((event) => (
-              <tr key={event.id}>
-                <td>{event.occurredAt}</td>
-                <td><span className={`risk-level ${event.riskLevel.toLowerCase()}`}>{event.riskLevel}</span></td>
-                <td><strong>{event.userName}</strong><small>{event.department}</small></td>
-                <td><strong>{event.eventType}</strong><small>{event.promptSummary}</small></td>
-                <td>{event.modelName}</td>
-                <td><span className={`risk-status ${event.actionStatusType}`}>{event.actionStatus}</span></td>
-                <td><button type="button" className="risk-view-button" onClick={() => setSelectedEventId(event.id)}><Eye size={15} />상세</button></td>
-              </tr>
-            ))}</tbody>
-          </table>
-          {filteredEvents.length === 0 && <div className="risk-events-empty">조건에 맞는 위험 이벤트가 없습니다.</div>}
-        </div>
+        {loading ? (
+          <div className="risk-events-empty">불러오는 중...</div>
+        ) : (
+          <div className="risk-events-table-wrap">
+            <table className="risk-events-table">
+              <thead><tr><th>발생 시각</th><th>위험 등급</th><th>사용자 / 부서</th><th>탐지 유형</th><th>사용 모델</th><th>조치 상태</th><th /></tr></thead>
+              <tbody>{filteredEvents.map((event) => (
+                <tr key={event.id}>
+                  <td>{event.occurredAt}</td>
+                  <td><span className={`risk-level ${event.riskLevel.toLowerCase()}`}>{event.riskLevel}</span></td>
+                  <td><strong>{event.userName}</strong><small>{event.department}</small></td>
+                  <td><strong>{event.eventType}</strong><small>{event.promptSummary}</small></td>
+                  <td>{event.modelName}</td>
+                  <td><span className={`risk-status ${event.actionStatusType}`}>{event.actionStatus}</span></td>
+                  <td><button type="button" className="risk-view-button" onClick={() => openEventDetail(event.id)}><Eye size={15} />상세</button></td>
+                </tr>
+              ))}</tbody>
+            </table>
+            {filteredEvents.length === 0 && <div className="risk-events-empty">조건에 맞는 위험 이벤트가 없습니다.</div>}
+          </div>
+        )}
       </section>
 
       {selectedEvent && (
@@ -99,7 +200,29 @@ function ComplianceRiskEventsPage() {
               <div><dt>조치 상태</dt><dd>{selectedEvent.actionStatus}</dd></div>
               <div className="wide"><dt>탐지 내용</dt><dd>{selectedEvent.promptSummary}</dd></div>
             </dl>
-            <footer><button type="button" onClick={() => setSelectedEventId(null)}>확인</button></footer>
+
+            <div className="risk-event-action-form">
+              <label>
+                조치 유형
+                <select value={actionType} onChange={(event) => setActionType(event.target.value)}>
+                  {ACTION_FORM_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                조치 사유
+                <textarea
+                  value={actionReason}
+                  onChange={(event) => setActionReason(event.target.value)}
+                  placeholder="조치 사유를 입력하세요"
+                />
+              </label>
+            </div>
+
+            <footer>
+              <button type="button" disabled={submitting} onClick={handleSubmitAction}>조치 저장</button>
+            </footer>
           </section>
         </div>
       )}
