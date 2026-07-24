@@ -81,10 +81,9 @@
 
 
 /* 상단 요약 카드 */
-
 .dashboard-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 
   margin-bottom: 18px;
@@ -131,12 +130,6 @@
 .summary-icon-primary {
   color: var(--color-primary);
   background: #eef4ff;
-}
-
-/* 토큰 사용량과 비용 아이콘 */
-.summary-icon-success {
-  color: #0ca878;
-  background: #e8fbf3;
 }
 
 /* 요약 카드 내용 */
@@ -467,6 +460,7 @@
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
 }
 
 /* 공지사항 등록일 */
@@ -888,6 +882,7 @@
 
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* AI Tool 신청 날짜 */

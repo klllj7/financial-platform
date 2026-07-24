@@ -29,4 +29,5 @@ dist-ssr
 
 # IntelliJ IDEA
 .idea/
-*.iml
+node_modules/
+CLAUDE.md

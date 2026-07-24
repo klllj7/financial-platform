@@ -6,6 +6,7 @@ require("dotenv").config();         // .env 파일 읽기 설정
 const sequelize = require("./common/config/db");  // PostgreSQL 연결 설정 파일 불러오기
 const seedBasicData = require("./db/init");
 const authRoutes = require("./domains/auth/auth.routes");
+const adminRoutes = require("./domains/admin/admin.routes");
 
 const app = express();
 
@@ -26,6 +27,9 @@ app.get("/api/health", (req, res) => {
 
 // Auth API 연결
 app.use("/api/auth", authRoutes);
+
+// Admin API 연결
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 8080;
 

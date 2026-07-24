@@ -1,4 +1,4 @@
-// AI Tool 페이지에서 사용할 아이콘을 가져온다.
+// 아이콘
 import {
   Bot,
   ClipboardList,
@@ -17,7 +17,7 @@ import {
 import "./AiToolsPage.css";
 
 /*
-  신청 상태에 맞는 CSS 클래스 이름을 반환한다.
+  신청 상태에 맞는 CSS 클래스 이름을 반환
 
   approved → 초록색 승인 완료
   pending  → 주황색 검토 중
@@ -46,12 +46,7 @@ function AiToolsPage() {
       application.statusKey === "pending",
   ).length;
 
-  /*
-    AI Tool 신청하기 버튼을 클릭했을 때 실행한다.
-
-    아직 신청 폼 페이지를 만들지 않았기 때문에
-    현재는 안내창만 표시한다.
-  */
+  /* AI Tool 신청하기 버튼을 클릭했을 때 실행 현재는 안내창만 표시 */
   const handleApplyButtonClick = () => {
     alert(
       "AI Tool 신청 폼은 다음 단계에서 구현할 예정입니다.",
@@ -60,9 +55,7 @@ function AiToolsPage() {
 
   return (
     <div className="ai-tools-page">
-      {/* ==================================================
-          페이지 제목 영역
-      ================================================== */}
+      {/* 페이지 제목 영역 */}
       <header className="ai-tools-heading">
         <div>
           {/* 페이지 제목 */}
@@ -86,9 +79,7 @@ function AiToolsPage() {
         </button>
       </header>
 
-      {/* ==================================================
-          페이지 안내 카드
-      ================================================== */}
+      {/* 페이지 안내 카드 */}
       <section className="ai-tools-guide-card">
         {/* 안내 카드 아이콘 */}
         <div className="ai-tools-guide-icon">
@@ -109,9 +100,7 @@ function AiToolsPage() {
         </div>
       </section>
 
-      {/* ==================================================
-          내 AI Tool 신청 현황
-      ================================================== */}
+      {/* 내 AI Tool 신청 현황 */}
       <section className="ai-tools-section">
         {/* 신청 현황 제목 영역 */}
         <div className="ai-tools-section-header">
@@ -190,9 +179,7 @@ function AiToolsPage() {
             ))}
           </div>
         ) : (
-          /*
-            신청 내역이 없는 경우 표시할 화면
-          */
+          /* 신청 내역이 없는 경우 표시할 화면 */
           <div className="ai-tools-empty">
             <ClipboardList size={30} />
 
