@@ -79,6 +79,11 @@ const ROLE_MENUS = {
       label: "계정 관리",
       icon: UsersRound,
     },
+    {
+      to: "/admin/models",
+      label: "AI 모델",
+      icon: Bot,
+    },
   ],
 };
 
