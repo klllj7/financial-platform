@@ -10,6 +10,7 @@ const sequelize = require("./common/config/db");  // PostgreSQL 연결 설정 �
 const seedBasicData = require("./db/init");
 const authRoutes = require("./domains/auth/auth.routes");
 const adminRoutes = require("./domains/admin/admin.routes");
+const evidenceRoutes = require("./domains/report/evidence/evidence.routes");
 
 const app = express();
 
@@ -34,6 +35,9 @@ app.use("/api/auth", authRoutes);
 
 // Admin API 연결
 app.use("/api/admin", adminRoutes);
+
+// report/evidence API 연결
+app.use("/api/report/evidence", evidenceRoutes);
 
 const PORT = process.env.PORT || 8080;
 
