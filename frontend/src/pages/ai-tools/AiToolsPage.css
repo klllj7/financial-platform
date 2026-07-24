@@ -447,6 +447,195 @@
 }
 
 
+/* ==================================================
+   AI Tool 신청 팝업
+================================================== */
+
+.ai-tool-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(16, 30, 52, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.ai-tool-apply-modal {
+  width: min(560px, 100%);
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #dce4ef;
+  border-radius: 18px;
+
+  box-shadow: 0 28px 80px rgba(11, 27, 52, 0.27);
+}
+
+.ai-tool-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 21px 22px;
+
+  background: linear-gradient(135deg, #eef4ff 0%, #f8faff 100%);
+  border-bottom: 1px solid #dce5f3;
+}
+
+.ai-tool-modal-header > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-tool-modal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+
+  color: var(--color-primary);
+  background: #ffffff;
+  border: 1px solid #d2e0fb;
+  border-radius: 12px;
+}
+
+.ai-tool-modal-header h3 {
+  margin: 0;
+  color: #223654;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ai-tool-modal-header p {
+  margin: 5px 0 0;
+  color: #71809a;
+  font-size: 11px;
+}
+
+.ai-tool-modal-header > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  color: #71809a;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid #d8e1ee;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.ai-tool-apply-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+
+  padding: 22px;
+}
+
+.ai-tool-apply-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ai-tool-apply-form label > span {
+  color: #3d506f;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ai-tool-apply-form input,
+.ai-tool-apply-form textarea {
+  width: 100%;
+  padding: 11px 12px;
+
+  color: #263853;
+  background: #fbfcfe;
+  border: 1px solid #d8e0eb;
+  border-radius: 9px;
+  outline: none;
+
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.ai-tool-apply-form input:focus,
+.ai-tool-apply-form textarea:focus {
+  background: #ffffff;
+  border-color: #7da5ef;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.1);
+}
+
+.ai-tool-apply-form textarea {
+  min-height: 112px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.ai-tool-purpose-field {
+  grid-column: 1 / -1;
+}
+
+.ai-tool-purpose-field small {
+  color: #8a97aa;
+  font-size: 9px;
+}
+
+.ai-tool-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+
+  grid-column: 1 / -1;
+
+  margin: 3px -22px -22px;
+  padding: 15px 22px;
+
+  background: #f8faff;
+  border-top: 1px solid #e2e7ef;
+}
+
+.ai-tool-modal-footer button {
+  min-width: 88px;
+  min-height: 38px;
+  padding: 0 15px;
+
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ai-tool-modal-cancel {
+  color: #62738e;
+  background: #ffffff;
+  border: 1px solid #d5dde9;
+}
+
+.ai-tool-modal-submit {
+  color: #ffffff;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+
 /* 반응형 */
 
 @media (max-width: 1050px) {
@@ -505,5 +694,20 @@
   /* 검토 중 배지가 너무 좁아지지 않도록 제목 줄을 줄바꿈 */
   .ai-tools-section-title-row {
     flex-wrap: wrap;
+  }
+
+  .ai-tool-apply-form {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .ai-tool-purpose-field,
+  .ai-tool-modal-footer {
+    grid-column: auto;
+  }
+
+  .ai-tool-modal-footer {
+    margin: 2px -18px -18px;
+    padding: 14px 18px;
   }
 }

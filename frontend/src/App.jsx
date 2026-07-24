@@ -23,9 +23,10 @@ import AdminAccountPage from "./pages/admin/AdminAccountPage";
 
 // 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
-
-// 컴플라이언스 담당자용 공지사항 페이지
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
+import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
+import ComplianceModelApplicationsPage from "./pages/compliance/model-applications/ComplianceModelApplicationsPage";
+
 
 // 정책 관리 페이지
 import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
@@ -89,6 +90,28 @@ function App() {
             element={<AiToolsPage />}
           />
 
+          {/* 컴플라이언스 대시보드 */}
+          <Route
+            path="/compliance/dashboard"
+            element={<ComplianceDashboardPage />}
+          />
+
+          {/* 컴플라이언스 공지사항 */}
+          <Route
+            path="/compliance/notices"
+            element={<ComplianceNoticePage />}
+          />
+
+          <Route
+            path="/compliance/risk-events"
+            element={<ComplianceRiskEventsPage />}
+          />
+
+          <Route
+            path="/compliance/model-applications"
+            element={<ComplianceModelApplicationsPage />}
+          />
+
           {/* 상시평가 증빙자료 */}
           <Route
             path="/report/evidence"
@@ -133,7 +156,7 @@ function App() {
 
         {/* ==================================================
             존재하지 않는 주소 처리
-        ================================================== */}
+        ==================================================*/}
 
         {/*
           현재 등록되지 않은 주소로 접근하면
