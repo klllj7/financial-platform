@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from detector import detect_pii, mask_text
 from db import SessionLocal
-from models import UsageLog, EventLog, ActionHistory
+from models import UsageLog, EventLog, ActionHistory, User, Department
 from detector import compute_grade
 from enum import Enum
 
@@ -14,6 +15,8 @@ def health_check():
 
 class ChatRequest(BaseModel):
     prompt: str
+    # TODO: A 담당자의 로그인/JWT 붙으면 요청 바디 대신 토큰에서 추출하도록 교체
+    user_id: Optional[int] = None
 
 class ActionType(str, Enum):
     reviewed = "reviewed"
@@ -41,7 +44,7 @@ def gateway_chat(request: ChatRequest):
 
     db = SessionLocal()
     try:
-        usage_log = UsageLog(description=request.prompt[:200])
+        usage_log = UsageLog(user_id=request.user_id, description=request.prompt[:200])
         db.add(usage_log)
         db.commit()
         db.refresh(usage_log)
@@ -120,9 +123,18 @@ def list_events():
             usage_log = db.query(UsageLog).filter(UsageLog.id == event.event_id).first()
             actions = db.query(ActionHistory).filter(ActionHistory.event_id == event.event_id).all()
 
+            user = None
+            department = None
+            if usage_log and usage_log.user_id is not None:
+                user = db.query(User).filter(User.id == usage_log.user_id).first()
+                if user and user.department_id is not None:
+                    department = db.query(Department).filter(Department.id == user.department_id).first()
+
             result.append({
                 "event_id": event.event_id,
                 "description": usage_log.description if usage_log else None,
+                "user_name": user.name if user else None,
+                "department_name": department.name if department else None,
                 "detection_type": event.detection_type,
                 "grade": event.grade,
                 "masked_yn": event.masked_yn,

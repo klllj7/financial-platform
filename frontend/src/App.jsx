@@ -9,7 +9,6 @@ import {
 // 로그인과 회원가입 페이지
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
-import EventListPage from "./pages/compliance/events/EventListPage";
 
 // 임직원용 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
@@ -91,18 +90,6 @@ function App() {
             element={<AiToolsPage />}
           />
 
-          {/* 컴플라이언스 대시보드 */}
-          <Route
-            path="/compliance/dashboard"
-            element={<ComplianceDashboardPage />}
-          />
-
-          {/* 컴플라이언스 공지사항 */}
-          <Route
-            path="/compliance/notices"
-            element={<ComplianceNoticePage />}
-          />
-
           <Route
             path="/compliance/risk-events"
             element={<ComplianceRiskEventsPage />}
@@ -140,12 +127,6 @@ function App() {
           <Route
             path="/compliance/notices"
             element={<ComplianceNoticePage />}
-          />
-
-          {/* 컴플라이언스 위험 이벤트 관리 */}
-          <Route
-            path="/compliance/events"
-            element={<EventListPage />}
           />
 
           {/* 정책 관리 페이지 */}

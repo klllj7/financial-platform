@@ -8,8 +8,26 @@ class UsageLog(Base):
     __tablename__ = "usage_log"
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=True)
     description = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class User(Base):
+    """A 담당자가 Node/Sequelize로 만든 users 테이블을 읽기 전용으로 매핑 (같은 financial_platform DB 공유)."""
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    department_id = Column(Integer, ForeignKey("department.id"))
+
+
+class Department(Base):
+    """A 담당자가 Node/Sequelize로 만든 department 테이블을 읽기 전용으로 매핑."""
+    __tablename__ = "department"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
 
 
 class EventLog(Base):

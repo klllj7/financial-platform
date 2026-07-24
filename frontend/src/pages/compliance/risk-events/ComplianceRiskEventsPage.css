@@ -287,6 +287,13 @@
 .risk-event-modal dd { margin: 0; color: #2e4262; font-size: 12px; font-weight: 700; line-height: 1.5; }
 .risk-event-modal footer { display: flex; justify-content: flex-end; padding: 15px 22px; background: #f8faff; border-top: 1px solid #e4e9f1; }
 .risk-event-modal footer button { min-width: 84px; min-height: 36px; color: #fff; background: #2b5fae; border: none; border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.risk-event-modal footer button:disabled { opacity: .6; cursor: not-allowed; }
+
+.risk-event-action-form { display: flex; flex-direction: column; gap: 14px; padding: 0 22px 22px; }
+.risk-event-action-form label { display: flex; flex-direction: column; gap: 6px; color: #7c8ba1; font-size: 10px; font-weight: 700; }
+.risk-event-action-form select,
+.risk-event-action-form textarea { padding: 9px 11px; color: #2e4262; background: #fff; border: 1px solid #dce3ed; border-radius: 8px; font-family: inherit; font-size: 12px; }
+.risk-event-action-form textarea { min-height: 64px; resize: vertical; }
 @media (max-width: 1000px) { .risk-events-summary-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 700px) { .compliance-risk-events-page { padding: 22px 16px 30px; } .compliance-risk-events-heading, .risk-events-panel-header, .risk-events-filters { align-items: stretch; flex-direction: column; } .risk-events-search { width: 100%; } .risk-events-filters > div { flex-wrap: wrap; } }
 @media (max-width: 480px) { .risk-events-summary-grid { grid-template-columns: 1fr; } .risk-event-modal dl { grid-template-columns: 1fr; } .risk-event-modal dl > div.wide { grid-column: auto; } }
