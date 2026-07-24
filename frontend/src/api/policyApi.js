@@ -36,3 +36,9 @@ export const updatePolicy = async (id, data) => {
  const response = await axiosInstance.put(`/policies/${id}`, data);
   return response.data;
 };
+
+// 정책 활성화 여부만 변경 (규칙/버전은 그대로)
+export const setPolicyActive = async (id, active_yn) => {
+  const response = await axiosInstance.patch(`/policies/${id}/active`, { active_yn });
+  return response.data;
+};

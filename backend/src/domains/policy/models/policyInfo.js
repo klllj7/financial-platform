@@ -32,6 +32,10 @@ const PolicyInfo = sequelize.define("PolicyInfo", {
   reject_reason: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  requested_by: {
+    type: DataTypes.STRING,
+    allowNull: true,
   }
 }, {
   tableName: "policy_info",

@@ -3,11 +3,12 @@ const PolicyHistory = require("../models/policyHistory"); // PolicyHistory 모�
 //Post /api/policies
 exports.createPolicy = async (req, res) => {
     try{
-        const { department_id, name, rule_content} =req.body;
+        const { department_id, name, rule_content, requested_by } = req.body;
         const policy = await PolicyInfo.create({
             department_id,
             name,
-            rule_content
+            rule_content,
+            requested_by
         });
         res.json({
             success: true,
@@ -94,6 +95,23 @@ exports.rejectPolicy = async (req, res) => {
             return res.status(404).json({ success: false, data: null, error: "정책을 찾을 수 없습니다." });
         }
         await policy.update({ approval_status: "rejected", active_yn: false, reject_reason });
+        res.json({ success: true, data: policy, error: null });
+    } catch (error) {
+        res.status(500).json({ success: false, data: null, error: error.message });
+    }
+};
+
+// PATCH /api/policies/:id/active
+// 규칙 내용/버전은 건드리지 않고 활성화 여부만 켜고 끈다.
+exports.setPolicyActive = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { active_yn } = req.body;
+        const policy = await PolicyInfo.findByPk(id);
+        if (!policy) {
+            return res.status(404).json({ success: false, data: null, error: "정책을 찾을 수 없습니다." });
+        }
+        await policy.update({ active_yn });
         res.json({ success: true, data: policy, error: null });
     } catch (error) {
         res.status(500).json({ success: false, data: null, error: error.message });
