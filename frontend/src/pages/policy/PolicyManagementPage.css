@@ -1,0 +1,653 @@
+/* 페이지 전체 여백 */
+.policy-page {
+  padding: 28px;
+}
+
+/* 상단 제목 카드: "정책 관리" 제목과 설명 문구 */
+.policy-page-header {
+  margin-bottom: 22px;
+  padding: 26px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: var(--shadow-card);
+}
+
+/* 제목 위 작은 라벨 (예: "POLICY") */
+.policy-page-eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.policy-page-header h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.policy-page-header p {
+  margin: 8px 0 0;
+
+  color: var(--color-text-sub);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 정책 목록 테이블 전체를 감싸는 카드 */
+.policy-table-card {
+  margin-bottom: 22px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: var(--shadow-card);
+
+  overflow: hidden;
+}
+
+/* 필터 바: 왼쪽에 필터 아이콘 + 드롭다운들, 오른쪽에 건수와 "+ 요청" 버튼 */
+.policy-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+
+  padding: 18px 22px;
+
+  background: #f8faff;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* "필터" 아이콘 + 텍스트, 드롭다운 라벨과 같은 높이(맨 위)로 정렬 */
+.policy-filter-icon-label {
+  display: flex;
+  align-items: hight;
+  gap: 6px;
+
+  height: 38px;
+
+  color: var(--color-text-sub);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 드롭다운 하나(라벨 + select)를 세로로 묶는 단위 */
+.policy-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.policy-filter-field label {
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.policy-filter-field select {
+  min-width: 140px;
+  height: 38px;
+  padding: 0 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+  cursor: pointer;
+}
+
+.policy-filter-field select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+/* 필터 바 오른쪽 끝: 건수 + "+ 요청" 버튼. margin-left: auto로 오른쪽에 붙는다. */
+.policy-filter-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-left: auto;
+
+  padding-bottom: 9px;
+}
+
+.policy-filter-count {
+  color: var(--color-text-sub);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 테이블이 화면보다 넓어지면 가로 스크롤이 생기게 함 */
+.policy-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.policy-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.policy-table th {
+  padding: 14px 18px;
+
+  color: #687386;
+  background: #f8faff;
+
+  border-bottom: 1px solid var(--color-border);
+
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.policy-table td {
+  padding: 16px 18px;
+
+  color: var(--color-text);
+
+  border-bottom: 1px solid #edf1f7;
+
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* 행을 클릭하면 상세 모달이 열리므로 커서를 손 모양으로 */
+.policy-table tbody tr {
+  cursor: pointer;
+}
+
+.policy-table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.policy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 필터 결과가 없을 때 보여주는 안내 문구 */
+.policy-empty-message {
+  padding: 38px 18px !important;
+
+  color: var(--color-text-sub) !important;
+  text-align: center;
+  cursor: default !important;
+}
+
+/* 정책 이름 + 규칙 요약(JSON)을 세로로 묶는 셀 */
+.policy-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.policy-name-cell strong {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* 규칙 JSON이 길어도 한 줄로만 보이게 자르고 ...으로 표시 */
+.policy-name-cell span {
+  max-width: 360px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 승인상태 배지: approval_status 값(pending/approved/rejected)에 따라 색이 바뀐다 */
+.policy-status-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.policy-status-badge.pending {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.policy-status-badge.approved {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.policy-status-badge.rejected {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+/* 활성여부를 색 점 하나로 표시 (active_yn true/false) */
+.policy-active-dot {
+  display: inline-block;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+}
+
+.policy-active-dot.on {
+  background: var(--color-primary);
+}
+
+.policy-active-dot.off {
+  background: #d9e1ef;
+}
+
+/* 정책 요청(생성) 모달, 정책 수정 폼에서 같이 쓰는 입력 폼 레이아웃 */
+.policy-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+
+.policy-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 두 칸짜리 grid에서 한 줄 전체를 차지하게 함 (규칙 JSON 입력창 등) */
+.policy-form-group-wide {
+  grid-column: 1 / -1;
+}
+
+.policy-form-group label {
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.policy-form-group input,
+.policy-form-group textarea {
+  padding: 0 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+}
+
+.policy-form-group input {
+  height: 40px;
+}
+
+.policy-form-group textarea {
+  min-height: 84px;
+  padding-top: 10px;
+
+  resize: vertical;
+}
+
+.policy-form-group input:focus,
+.policy-form-group textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+/* "+ 요청" 버튼에 쓰는 기본 강조 버튼 스타일 */
+.policy-primary-button {
+  align-self: end;
+
+  min-height: 40px;
+  padding: 0 18px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+
+  border: none;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.policy-primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(47, 109, 246, 0.24);
+}
+
+/* 모달 배경 (반투명 어둡게 깔리는 부분, 클릭하면 모달이 닫힌다) */
+.policy-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+/* 정책 상세/요청 모달 공통 박스 */
+.policy-modal {
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+
+  overflow-y: auto;
+}
+
+.policy-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 22px 22px 18px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.policy-modal-header p {
+  margin: 0 0 6px;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.policy-modal-header h3 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.policy-modal-close-button {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+
+  color: var(--color-text-sub);
+  background: #f6f8fc;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.policy-modal-close-button:hover {
+  color: var(--color-text);
+  background: #edf2fb;
+}
+
+.policy-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding: 22px;
+}
+
+/* 상세 모달 안, "규칙 내용" / "활성 여부" 같은 key-value 목록 */
+.policy-modal-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.policy-modal-info-list div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  font-size: 13px;
+}
+
+.policy-modal-info-list span {
+  flex-shrink: 0;
+
+  color: var(--color-text-sub);
+  font-weight: 600;
+}
+
+.policy-modal-info-list strong {
+  color: var(--color-text);
+  font-weight: 700;
+  text-align: right;
+
+  word-break: break-all;
+}
+
+/* 반려된 정책 상세에 보여주는 반려 사유 박스 */
+.policy-reject-reason {
+  margin: 0;
+  padding: 12px 14px;
+
+  color: #b91c1c;
+  background: #fee2e2;
+
+  border-radius: 12px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 승인대기 상태일 때만 보이는 승인/반려 영역 (반려 사유 입력 + 버튼 2개) */
+.policy-approve-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding: 14px;
+
+  background: #f8faff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.policy-approve-area textarea {
+  min-height: 64px;
+  padding: 10px 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+  resize: vertical;
+}
+
+.policy-approve-area textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+.policy-approve-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* 승인/반려/수정/저장 버튼 공통 크기와 모양 */
+.policy-approve-button,
+.policy-reject-button,
+.policy-edit-button,
+.policy-modal-save-button {
+  min-height: 38px;
+  padding: 0 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.policy-approve-button {
+  color: #ffffff;
+  background: #059669;
+}
+
+.policy-approve-button:hover {
+  box-shadow: 0 8px 18px rgba(5, 150, 105, 0.28);
+}
+
+.policy-reject-button {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.policy-reject-button:hover {
+  background: #fecaca;
+}
+
+/* 정책 수정 폼 (모달 안에서 "수정" 버튼을 눌렀을 때만 보인다) */
+.policy-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding: 14px;
+
+  background: #f8faff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.policy-edit-form label {
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.policy-edit-form textarea {
+  min-height: 84px;
+  padding: 10px 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+  resize: vertical;
+}
+
+/* "활성화" 체크박스는 세로 정렬(column)이 아니라 가로로 붙어야 해서 !important로 덮어씀 */
+.policy-edit-checkbox {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.policy-edit-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.policy-modal-save-button {
+  align-self: flex-end;
+
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+.policy-modal-save-button:hover {
+  box-shadow: 0 8px 18px rgba(47, 109, 246, 0.24);
+}
+
+.policy-edit-button {
+  align-self: flex-start;
+
+  color: var(--color-primary);
+  background: #eef3fb;
+}
+
+.policy-edit-button:hover {
+  background: #e2eaf9;
+}
+
+/* 반응형: 화면이 좁아지면 여백을 줄이고, 폼을 1열로, 버튼을 꽉 채운다 */
+@media (max-width: 760px) {
+  .policy-page {
+    padding: 18px;
+  }
+
+  .policy-form {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-primary-button {
+    align-self: stretch;
+  }
+}
