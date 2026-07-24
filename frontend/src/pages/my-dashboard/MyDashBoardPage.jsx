@@ -1,5 +1,5 @@
-// 월 관리를 위해
-import { useState } from "react";
+// 월 선택 상태와 대시보드 API 조회 시점을 관리하기 위해 사용
+import { useEffect, useState } from "react";
 
 // 버튼 클릭 시 다른 페이지로 이동하기 위해 useNavigate를 사용
 import { useNavigate } from "react-router-dom";
@@ -25,15 +25,17 @@ import {
   YAxis,
 } from "recharts";
 
-/* 백엔드 연결 전 화면에 표시할 Mock 데이터 */
+/* 아직 API가 연결되지 않은 사용량·위험 통계용 Mock 데이터 */
 import {
-  aiToolApplicationData,
-  dashboardNoticeData,
   dashboardSummary,
   modelAllocationData,
   recentUsageData,
   usageTrendData,
 } from "../../mocks/dashboardMock";
+
+/* 공지사항과 AI Tool 신청 현황을 백엔드에서 조회한다. */
+import { getNotices } from "../../api/noticeApi";
+import { getAiToolApplications } from "../../api/aiToolApi";
 
 /* 대시보드 전용 CSS */
 import "./MyDashboardPage.css";
@@ -93,23 +95,80 @@ function MyDashboardPage() {
   const [selectedMonth, setSelectedMonth] =
     useState("2026년 07월");
 
-  /*
-    공지사항 데이터가 배열이 아닌 경우에도
-    화면 전체가 멈추지 않도록 빈 배열을 사용
-  */
-  const notices = Array.isArray(dashboardNoticeData)
-    ? dashboardNoticeData
-    : [];
+  /* 대시보드에는 서버에서 조회한 최신 데이터 3건만 저장한다. */
+  const [notices, setNotices] = useState([]);
+  const [toolApplications, setToolApplications] =
+    useState([]);
 
   /*
-    AI Tool 신청 데이터가 배열이 아닌 경우에도
-    화면 전체가 멈추지 않도록 빈 배열을 사용
+    백엔드 응답을 기존 대시보드 카드가 사용하는 표시 형식으로 변환한다.
+    API 연결 실패 시 Mock 데이터는 사용하지 않고 빈 상태를 유지한다.
   */
-  const toolApplications = Array.isArray(
-    aiToolApplicationData,
-  )
-    ? aiToolApplicationData
-    : [];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [noticeResponse, applicationResponse] =
+          await Promise.all([
+            getNotices(),
+            getAiToolApplications(),
+          ]);
+
+        const noticeData = Array.isArray(noticeResponse.data)
+          ? noticeResponse.data
+          : [];
+        const applicationData = Array.isArray(
+          applicationResponse.data,
+        )
+          ? applicationResponse.data
+          : [];
+
+        setNotices(
+          noticeData.slice(0, 3).map((notice) => {
+            const createdAt = new Date(notice.createdAt);
+            const isNew =
+              Date.now() - createdAt.getTime() <=
+              3 * 24 * 60 * 60 * 1000;
+
+            return {
+              id: notice.id,
+              category: notice.category,
+              title: notice.title,
+              createdAt: createdAt.toLocaleDateString("ko-KR"),
+              isNew,
+            };
+          }),
+        );
+
+        setToolApplications(
+          applicationData.slice(0, 3).map((application) => ({
+            id: application.id,
+            toolName: application.toolName,
+            provider: application.provider,
+            purpose: application.purpose,
+            requestedAt: new Date(
+              application.createdAt,
+            ).toLocaleDateString("ko-KR"),
+            status:
+              application.status === "APPROVED"
+                ? "승인 완료"
+                : application.status === "REJECTED"
+                  ? "반려"
+                  : "검토 중",
+            statusKey:
+              application.status === "APPROVED"
+                ? "approved"
+                : application.status === "REJECTED"
+                  ? "rejected"
+                  : "pending",
+          })),
+        );
+      } catch (error) {
+        console.error("마이 대시보드 데이터 조회 실패", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   /*
     AI Tool 신청 현황 중

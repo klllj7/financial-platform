@@ -18,54 +18,15 @@ import {
   Search,
   X,
 } from "lucide-react";
+import {
+  createNotice,
+  getNotices,
+} from "../../../api/noticeApi";
 
 /*
   컴플라이언스 공지사항 전용 CSS다.
 */
 import "./ComplianceNoticePage.css";
-
-
-/*
-  백엔드 연결 전 화면 확인에 사용할 기본 공지사항이다.
-
-  localStorage에 저장된 공지사항이 없을 때
-  아래 데이터가 처음 화면에 표시된다.
-*/
-const INITIAL_NOTICE_DATA = [
-  {
-    id: 1,
-    category: "정책",
-    title: "생성형 AI 사용 정책 개정 안내",
-    content:
-      "생성형 AI 사용 시 개인정보 및 고객정보 입력 제한 기준이 변경되었습니다. 개정된 정책을 확인해 주세요.",
-    author: "김준",
-    department: "준법감시부",
-    createdAt: "2026-07-23",
-    isPinned: true,
-  },
-  {
-    id: 2,
-    category: "보안",
-    title: "고객정보 포함 프롬프트 입력 금지 안내",
-    content:
-      "고객명, 주민등록번호, 계좌번호 등 개인정보가 포함된 내용을 외부 AI 서비스에 입력할 수 없습니다.",
-    author: "김준",
-    department: "준법감시부",
-    createdAt: "2026-07-22",
-    isPinned: true,
-  },
-  {
-    id: 3,
-    category: "시스템",
-    title: "AI Gateway 정기 점검 안내",
-    content:
-      "AI Gateway 정기 점검으로 일부 AI 서비스 이용이 일시적으로 제한될 수 있습니다.",
-    author: "박관리",
-    department: "IT운영팀",
-    createdAt: "2026-07-20",
-    isPinned: false,
-  },
-];
 
 
 /*
@@ -82,54 +43,9 @@ const INITIAL_FORM = {
 };
 
 
-/*
-  localStorage에서 사용할 이름이다.
-
-  다른 데이터와 구분하기 위해
-  컴플라이언스 공지사항 전용 이름을 사용한다.
-*/
-const STORAGE_KEY = "compliance-notices";
-
-
 function ComplianceNoticePage() {
-  /*
-    화면에 표시할 전체 공지사항 목록이다.
-
-    함수 형태로 초기값을 넣으면
-    컴포넌트가 처음 만들어질 때 한 번만 실행된다.
-  */
-  const [notices, setNotices] = useState(() => {
-    /*
-      이전에 localStorage에 저장된 공지사항을 가져온다.
-    */
-    const savedNotices =
-      localStorage.getItem(STORAGE_KEY);
-
-    /*
-      저장된 데이터가 있다면 JSON 형태에서
-      JavaScript 배열로 변환해서 사용한다.
-    */
-    if (savedNotices) {
-      try {
-        return JSON.parse(savedNotices);
-      } catch (error) {
-        /*
-          저장된 데이터가 손상된 경우
-          기본 공지사항을 사용한다.
-        */
-        console.error(
-          "저장된 공지사항을 불러오지 못했습니다.",
-          error,
-        );
-      }
-    }
-
-    /*
-      저장된 데이터가 없다면
-      기본 Mock 데이터를 사용한다.
-    */
-    return INITIAL_NOTICE_DATA;
-  });
+  // PostgreSQL에 저장된 공지사항 목록이다.
+  const [notices, setNotices] = useState([]);
 
   /*
     공지사항 작성 모달의 열림 여부다.
@@ -155,18 +71,19 @@ function ComplianceNoticePage() {
   const [searchKeyword, setSearchKeyword] =
     useState("");
 
-  /*
-    공지사항 목록이 변경될 때마다
-    변경된 목록을 localStorage에 저장한다.
-
-    현재는 백엔드가 없기 때문에 사용하는 임시 방식이다.
-  */
+  /* 페이지 진입 시 백엔드에서 전체 공지사항을 조회한다. */
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(notices),
-    );
-  }, [notices]);
+    const fetchNotices = async () => {
+      try {
+        const response = await getNotices();
+        setNotices(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error("공지사항 조회 실패", error);
+        alert("공지사항을 불러오지 못했습니다.");
+      }
+    };
+    fetchNotices();
+  }, []);
 
   /*
     입력창의 name을 기준으로
@@ -216,7 +133,7 @@ function ComplianceNoticePage() {
   /*
     공지사항 등록 폼을 제출했을 때 실행한다.
   */
-  const handleSubmitNotice = (event) => {
+  const handleSubmitNotice = async (event) => {
     /*
       form 제출 시 브라우저가 새로고침되는
       기본 동작을 막는다.
@@ -253,47 +170,19 @@ function ComplianceNoticePage() {
       return;
     }
 
-    /*
-      오늘 날짜를 YYYY-MM-DD 형식으로 만든다.
-
-      예:
-      2026-07-23
-    */
-    const today = new Date()
-      .toISOString()
-      .slice(0, 10);
-
-    /*
-      새로 등록할 공지사항 객체다.
-
-      현재 사용자 이름과 부서는
-      화면 확인용 임시 데이터다.
-    */
-    const newNotice = {
-      id: Date.now(),
-      category: noticeForm.category,
-      title: trimmedTitle,
-      content: trimmedContent,
-      author: "김준",
-      department: "준법감시부",
-      createdAt: today,
-      isPinned: noticeForm.isPinned,
-    };
-
-    /*
-      새 공지사항을 기존 목록의 가장 위에 추가한다.
-    */
-    setNotices((previousNotices) => [
-      newNotice,
-      ...previousNotices,
-    ]);
-
-    /*
-      작성 완료 후 모달을 닫는다.
-    */
-    handleCloseWriteModal();
-
-    alert("공지사항이 등록되었습니다.");
+    try {
+      const response = await createNotice({
+        category: noticeForm.category,
+        title: trimmedTitle,
+        content: trimmedContent,
+        isPinned: noticeForm.isPinned,
+      });
+      setNotices((previousNotices) => [response.data, ...previousNotices]);
+      handleCloseWriteModal();
+      alert("공지사항이 등록되었습니다.");
+    } catch (error) {
+      alert(error.response?.data?.error?.message || "공지사항 등록에 실패했습니다.");
+    }
   };
 
   /*
@@ -458,7 +347,7 @@ function ComplianceNoticePage() {
                   </div>
 
                   <time>
-                    {notice.createdAt}
+                    {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
                   </time>
                 </div>
 
@@ -470,8 +359,8 @@ function ComplianceNoticePage() {
 
                 {/* 공지사항 작성자 */}
                 <footer>
-                  작성자 {notice.author} ·{" "}
-                  {notice.department}
+                  작성자 {notice.authorName} ·{" "}
+                  {notice.departmentName || "-"}
                 </footer>
               </article>
             ))}

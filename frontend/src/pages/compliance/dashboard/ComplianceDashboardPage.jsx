@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* 전사 대시보드에 표시할 아이콘 */
@@ -38,12 +39,14 @@ import {
 import {
   complianceActionItems,
   complianceDashboardSummary,
-  complianceModelApplications,
-  complianceNoticeData,
   complianceRiskChartData,
   complianceUsageTrendData,
   departmentRiskData,
 } from "../../../mocks/complianceDashboardMock";
+
+/* 최근 공지와 AI Tool 신청 현황을 실제 백엔드에서 조회한다. */
+import { getNotices } from "../../../api/noticeApi";
+import { getAiToolApplications } from "../../../api/aiToolApi";
 
 /*
   전사 대시보드 전용 CSS
@@ -69,15 +72,83 @@ function ComplianceDashboardPage() {
   */
   const navigate = useNavigate();
 
+  /* 대시보드 카드에는 API에서 받은 최신 항목 3건만 표시한다. */
+  const [notices, setNotices] = useState([]);
+  const [modelApplications, setModelApplications] =
+    useState([]);
+
   /*
-    Mock 데이터가 배열이 아니어도
-    화면이 멈추지 않도록 빈 배열을 사용한다.
+    공지와 신청 현황을 함께 조회하고,
+    현재 대시보드 UI가 사용하는 필드 이름으로 변환한다.
   */
-  const notices = Array.isArray(
-    complianceNoticeData,
-  )
-    ? complianceNoticeData
-    : [];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [noticeResponse, applicationResponse] =
+          await Promise.all([
+            getNotices(),
+            getAiToolApplications(),
+          ]);
+
+        const noticeData = Array.isArray(noticeResponse.data)
+          ? noticeResponse.data
+          : [];
+        const applicationData = Array.isArray(
+          applicationResponse.data,
+        )
+          ? applicationResponse.data
+          : [];
+
+        setNotices(
+          noticeData.slice(0, 3).map((notice) => ({
+            id: notice.id,
+            category: notice.category,
+            title: notice.title,
+            date: new Date(
+              notice.createdAt,
+            ).toLocaleDateString("ko-KR"),
+          })),
+        );
+
+        setModelApplications(
+          applicationData.slice(0, 3).map((application) => ({
+            id: application.id,
+            applicantName: application.applicantName,
+            department: application.departmentName || "-",
+            requestName: application.toolName,
+            requestType: "AI Tool",
+            requestedAt: new Date(
+              application.createdAt,
+            ).toLocaleDateString("ko-KR"),
+            status:
+              application.status === "APPROVED"
+                ? "승인"
+                : application.status === "REJECTED"
+                  ? "반려"
+                  : "검토 대기",
+            statusType:
+              application.status === "APPROVED"
+                ? "approved"
+                : application.status === "REJECTED"
+                  ? "rejected"
+                  : "pending",
+          })),
+        );
+      } catch (error) {
+        console.error(
+          "컴플라이언스 대시보드 데이터 조회 실패",
+          error,
+        );
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  /*
+    아직 API가 연결되지 않은 위험·사용량 통계는
+    기존 Mock 데이터로 안전하게 표시한다.
+  */
 
   const riskChartData = Array.isArray(
     complianceRiskChartData,
@@ -91,12 +162,6 @@ function ComplianceDashboardPage() {
     ? complianceActionItems.slice(0, 3)
     : [];
 
-  const modelApplications = Array.isArray(
-    complianceModelApplications,
-  )
-    ? complianceModelApplications.slice(0, 3)
-    : [];
-
   const departmentData = Array.isArray(
     departmentRiskData,
   )
@@ -108,26 +173,6 @@ function ComplianceDashboardPage() {
   )
     ? complianceUsageTrendData
     : [];
-
-  /* 위험 이벤트 관리 전체 목록으로 이동한다. */
-  const handleRiskEventClick = () => {
-    navigate("/compliance/risk-events");
-  };
-
-  /*
-    각 위험 이벤트의 조치하기 버튼을 눌렀을 때
-    실행하는 함수다.
-
-    위험 이벤트 상세 페이지가 완성되면 다음처럼
-    실제 상세 주소로 이동하도록 변경할 수 있다.
-
-    navigate(`/compliance/risk-events/${itemId}`);
-  */
-  const handleActionItemClick = (itemId) => {
-    navigate("/compliance/risk-events", {
-      state: { selectedEventId: itemId },
-    });
-  };
 
   /*
     AI 모델 신청 현황 페이지는 아직 없으므로
@@ -266,7 +311,7 @@ function ComplianceDashboardPage() {
 
                   <button
                     type="button"
-                    onClick={handleRiskEventClick}
+                    aria-label="즉시 조치가 필요한 위험 이벤트 건수"
                   >
                     즉시 조치{" "}
                     {
@@ -418,10 +463,6 @@ function ComplianceDashboardPage() {
 
           <div className="compliance-action-required-header-actions">
             <p><strong>HIGH 등급 우선 정렬</strong></p>
-            <button type="button" onClick={handleRiskEventClick}>
-              전체 보기
-              <ArrowRight size={14} />
-            </button>
           </div>
         </header>
 
@@ -496,18 +537,6 @@ function ComplianceDashboardPage() {
                     </div>
                   </div>
 
-                  {/* 조치하기 버튼 */}
-                  <button
-                    type="button"
-                    className="compliance-action-item-button"
-                    onClick={() =>
-                      handleActionItemClick(item.id)
-                    }
-                  >
-                    확인하기
-
-                    <ChevronRight size={17} />
-                  </button>
                 </article>
               );
             })
@@ -649,7 +678,6 @@ function ComplianceDashboardPage() {
                 left: -10,
                 bottom: 20,
               }}
-              onClick={handleRiskEventClick}
             >
               <CartesianGrid
                 strokeDasharray="4 4"

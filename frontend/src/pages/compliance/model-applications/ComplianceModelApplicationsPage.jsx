@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Boxes, CheckCircle2, Clock3, Eye, Search, XCircle } from "lucide-react";
 
-import { complianceModelApplications } from "../../../mocks/complianceDashboardMock";
+import {
+  getAiToolApplications,
+  reviewAiToolApplication,
+} from "../../../api/aiToolApi";
 import "./ComplianceModelApplicationsPage.css";
 
 const TYPE_FILTERS = ["전체", "AI Tool", "AI 모델"];
@@ -17,9 +20,58 @@ function ComplianceModelApplicationsPage() {
     location.state?.selectedApplicationId ?? null,
   );
 
-  const applications = Array.isArray(complianceModelApplications)
-    ? complianceModelApplications
-    : [];
+  // 백엔드에서 조회한 실제 신청 내역만 저장한다.
+  const [applications, setApplications] = useState([]);
+
+  // 반려 버튼을 누른 뒤 입력할 반려 사유다.
+  const [rejectReason, setRejectReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
+
+  // 승인·반려 API 처리 중 중복 클릭을 막는다.
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+
+  /* 페이지 진입 시 백엔드의 전체 신청 내역을 조회한다. */
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const response = await getAiToolApplications();
+        const apiApplications = Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        setApplications(
+          apiApplications.map((application) => ({
+              id: application.id,
+              applicantName: application.applicantName,
+              department: application.departmentName || "-",
+              requestName: application.toolName,
+              requestType: "AI Tool",
+              purpose: application.purpose,
+              requestedAt: new Date(application.createdAt).toLocaleDateString("ko-KR"),
+              status: application.status === "APPROVED"
+                ? "승인"
+                : application.status === "REJECTED"
+                  ? "반려"
+                  : "검토 대기",
+              statusType: application.status === "APPROVED"
+                ? "approved"
+                : application.status === "REJECTED"
+                  ? "rejected"
+                  : "pending",
+              reviewer: application.reviewerId ? `담당자 #${application.reviewerId}` : "미배정",
+              reviewComment: application.reviewComment,
+              source: "api",
+          })),
+        );
+      } catch (error) {
+        console.error("AI Tool 신청 목록 조회 실패", error);
+        setReviewError("AI Tool 신청 목록을 불러오지 못했습니다.");
+      }
+    };
+
+    fetchApplications();
+  }, []);
 
   const filteredApplications = useMemo(() => {
     const query = keyword.trim().toLowerCase();
@@ -35,6 +87,59 @@ function ComplianceModelApplicationsPage() {
 
   const selectedApplication = applications.find((application) => application.id === selectedId);
   const countStatus = (status) => applications.filter((application) => application.status === status).length;
+
+  /* 승인·반려 결과를 목록과 요약 카드에 즉시 반영한다. */
+  const handleReview = async (status) => {
+    if (!selectedApplication || isReviewing) return;
+
+    if (status === "REJECTED" && !rejectReason.trim()) {
+      setReviewError("반려 사유를 입력해 주세요.");
+      return;
+    }
+
+    setIsReviewing(true);
+    setReviewError("");
+
+    try {
+      await reviewAiToolApplication(selectedApplication.id, {
+        status,
+        reviewComment: status === "REJECTED" ? rejectReason.trim() : "승인 처리",
+      });
+
+      setApplications((currentApplications) =>
+        currentApplications.map((application) =>
+          application.id === selectedApplication.id
+            ? {
+              ...application,
+              status: status === "APPROVED" ? "승인" : "반려",
+              statusType: status === "APPROVED" ? "approved" : "rejected",
+              reviewer: "현재 사용자",
+              reviewComment: status === "REJECTED" ? rejectReason.trim() : "승인 처리",
+            }
+            : application,
+        ),
+      );
+
+      setIsRejecting(false);
+      setRejectReason("");
+      setSelectedId(null);
+    } catch (error) {
+      setReviewError(
+        error.response?.data?.error?.message ||
+          "검토 결과를 저장하지 못했습니다.",
+      );
+    } finally {
+      setIsReviewing(false);
+    }
+  };
+
+  /* 상세 팝업을 닫을 때 반려 입력 상태도 함께 초기화한다. */
+  const handleModalClose = () => {
+    setSelectedId(null);
+    setIsRejecting(false);
+    setRejectReason("");
+    setReviewError("");
+  };
 
   return (
     <div className="compliance-applications-page">
@@ -84,9 +189,9 @@ function ComplianceModelApplicationsPage() {
       </section>
 
       {selectedApplication && (
-        <div className="application-modal-backdrop" role="presentation" onMouseDown={() => setSelectedId(null)}>
+        <div className="application-modal-backdrop" role="presentation" onMouseDown={handleModalClose}>
           <section className="application-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
-            <header><div><span className={`application-type ${selectedApplication.requestType === "AI Tool" ? "tool" : "model"}`}>{selectedApplication.requestType}</span><h3>{selectedApplication.requestName}</h3></div><button type="button" onClick={() => setSelectedId(null)}>닫기</button></header>
+            <header><div><span className={`application-type ${selectedApplication.requestType === "AI Tool" ? "tool" : "model"}`}>{selectedApplication.requestType}</span><h3>{selectedApplication.requestName}</h3></div><button type="button" onClick={handleModalClose}>닫기</button></header>
             <dl>
               <div><dt>신청자</dt><dd>{selectedApplication.applicantName} · {selectedApplication.department}</dd></div>
               <div><dt>신청일</dt><dd>{selectedApplication.requestedAt}</dd></div>
@@ -94,7 +199,66 @@ function ComplianceModelApplicationsPage() {
               <div><dt>검토 담당자</dt><dd>{selectedApplication.reviewer || "미배정"}</dd></div>
               <div className="wide"><dt>사용 목적</dt><dd>{selectedApplication.purpose || "업무 생산성 향상을 위한 사용 신청"}</dd></div>
             </dl>
-            <footer><button type="button" onClick={() => setSelectedId(null)}>확인</button></footer>
+
+            {isRejecting && (
+              <div className="application-reject-area">
+                <label htmlFor="application-reject-reason">반려 사유</label>
+                <textarea
+                  id="application-reject-reason"
+                  value={rejectReason}
+                  onChange={(event) => setRejectReason(event.target.value)}
+                  placeholder="신청자에게 전달할 반려 사유를 입력해 주세요."
+                  rows={3}
+                />
+              </div>
+            )}
+
+            {reviewError && (
+              <div className="application-review-error">
+                {reviewError}
+              </div>
+            )}
+
+            <footer className="application-review-footer">
+              <button
+                type="button"
+                className="application-review-close"
+                onClick={handleModalClose}
+              >
+                닫기
+              </button>
+
+              {!["승인", "반려"].includes(selectedApplication.status) && (
+                <>
+                  <button
+                    type="button"
+                    className="application-review-reject"
+                    disabled={isReviewing}
+                    onClick={() => {
+                      if (isRejecting) {
+                        handleReview("REJECTED");
+                      } else {
+                        setIsRejecting(true);
+                        setReviewError("");
+                      }
+                    }}
+                  >
+                    <XCircle size={15} />
+                    {isRejecting ? "반려 확정" : "반려"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="application-review-approve"
+                    disabled={isReviewing}
+                    onClick={() => handleReview("APPROVED")}
+                  >
+                    <CheckCircle2 size={15} />
+                    승인
+                  </button>
+                </>
+              )}
+            </footer>
           </section>
         </div>
       )}

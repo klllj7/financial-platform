@@ -296,19 +296,6 @@ export const complianceActionItems = [
   },
 ];
 
-/* 위험 이벤트 관리 전체 목록 */
-export const complianceRiskEvents = [
-  { id: 1, riskLevel: "HIGH", userName: "조*정", department: "여신심사부", eventType: "고객정보 포함 질의", modelName: "GPT-4o", promptSummary: "고객 상담 내역과 계좌정보를 포함한 요약 요청", actionStatus: "미조치", actionStatusType: "none", occurredAt: "2026-07-24 10:42" },
-  { id: 2, riskLevel: "HIGH", userName: "강*철", department: "경영기획부", eventType: "비공개 재무데이터 입력", modelName: "Claude Sonnet", promptSummary: "공시 전 분기 실적 자료 분석 요청", actionStatus: "미조치", actionStatusType: "none", occurredAt: "2026-07-24 05:18" },
-  { id: 3, riskLevel: "MEDIUM", userName: "박*진", department: "리스크관리부", eventType: "내부망 우회 시도", modelName: "GPT-4o-mini", promptSummary: "승인되지 않은 외부 AI 접속 시도", actionStatus: "모니터링", actionStatusType: "monitoring", occurredAt: "2026-07-23 11:03" },
-  { id: 4, riskLevel: "HIGH", userName: "한*수", department: "고객서비스부", eventType: "개인식별정보 입력", modelName: "Microsoft Copilot", promptSummary: "주민등록번호가 포함된 민원 내용 정리 요청", actionStatus: "조치 중", actionStatusType: "processing", occurredAt: "2026-07-22 16:35" },
-  { id: 5, riskLevel: "MEDIUM", userName: "김*현", department: "디지털전략부", eventType: "미승인 모델 사용", modelName: "Gemini 2.5 Pro", promptSummary: "사내 승인 목록에 없는 모델 호출", actionStatus: "조치 완료", actionStatusType: "completed", occurredAt: "2026-07-22 14:12" },
-  { id: 6, riskLevel: "LOW", userName: "이*은", department: "준법감시부", eventType: "정책 키워드 탐지", modelName: "GPT-4.1", promptSummary: "내부 규정 초안의 표현 적정성 검토 요청", actionStatus: "조치 완료", actionStatusType: "completed", occurredAt: "2026-07-21 09:48" },
-  { id: 7, riskLevel: "MEDIUM", userName: "정*우", department: "IT운영팀", eventType: "소스코드 외부 전송", modelName: "Claude Sonnet", promptSummary: "내부 인증 모듈 코드가 포함된 디버깅 요청", actionStatus: "모니터링", actionStatusType: "monitoring", occurredAt: "2026-07-20 18:27" },
-  { id: 8, riskLevel: "LOW", userName: "오*민", department: "인사부", eventType: "민감정보 유사 패턴", modelName: "GPT-4o-mini", promptSummary: "채용 통계 내 전화번호 유사 패턴 탐지", actionStatus: "조치 완료", actionStatusType: "completed", occurredAt: "2026-07-19 13:05" },
-];
-
-
 /* ==================================================
    AI Tool · 모델 신청 현황
 

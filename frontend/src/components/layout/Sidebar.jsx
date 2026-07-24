@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   LayoutDashboard,
   LogOut,
-  ShieldAlert,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -47,11 +46,6 @@ const ROLE_MENUS = {
       icon: LayoutDashboard,
     },
     {
-      to: "/compliance/risk-events",
-      label: "위험 이벤트 관리",
-      icon: ShieldAlert,
-    },
-    {
       to: "/compliance/model-applications",
       label: "AI Tool·모델 신청 현황",
       icon: Boxes,
@@ -78,6 +72,11 @@ const ROLE_MENUS = {
       to: "/admin/accounts",
       label: "계정 관리",
       icon: UsersRound,
+    },
+    {
+      to: "/ai-chat",
+      label: "AI 사용하기",
+      icon: Bot,
     },
   ],
 };

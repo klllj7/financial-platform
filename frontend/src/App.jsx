@@ -24,7 +24,6 @@ import AdminAccountPage from "./pages/admin/AdminAccountPage";
 // 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
-import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
 import ComplianceModelApplicationsPage from "./pages/compliance/model-applications/ComplianceModelApplicationsPage";
 
 
@@ -100,11 +99,6 @@ function App() {
           <Route
             path="/compliance/notices"
             element={<ComplianceNoticePage />}
-          />
-
-          <Route
-            path="/compliance/risk-events"
-            element={<ComplianceRiskEventsPage />}
           />
 
           <Route

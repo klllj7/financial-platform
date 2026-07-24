@@ -1,17 +1,30 @@
-// 공지사항 Mock 데이터를 가져온다.
-import { dashboardNoticeData } from "../../mocks/dashboardMock";
+import { useEffect, useState } from "react";
+import { getNotices } from "../../api/noticeApi";
 
 // 공지사항 페이지 전용 CSS
 import "./NoticePage.css";
 
 function NoticePage() {
-  /*
-    공지사항 데이터가 배열이 아닌 경우에도
-    화면이 멈추지 않도록 빈 배열로 처리한다.
-  */
-  const notices = Array.isArray(dashboardNoticeData)
-    ? dashboardNoticeData
-    : [];
+  // 백엔드에서 조회한 공지사항만 화면에 표시한다.
+  const [notices, setNotices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        const response = await getNotices();
+        setNotices(Array.isArray(response.data) ? response.data : []);
+      } catch (requestError) {
+        console.error("공지사항 조회 실패", requestError);
+        setError("공지사항을 불러오지 못했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotices();
+  }, []);
 
   return (
     <div className="notice-page">
@@ -26,6 +39,11 @@ function NoticePage() {
 
       {/* 전체 공지사항 목록 */}
       <section className="notice-page-card">
+        {isLoading && <div className="notice-page-item">공지사항을 불러오고 있습니다.</div>}
+        {error && <div className="notice-page-item">{error}</div>}
+        {!isLoading && !error && notices.length === 0 && (
+          <div className="notice-page-item">등록된 공지사항이 없습니다.</div>
+        )}
         {notices.map((notice) => (
           <article
             key={notice.id}
@@ -38,7 +56,7 @@ function NoticePage() {
                   {notice.category}
                 </span>
 
-                {notice.isNew && (
+                {new Date(notice.createdAt).getTime() > Date.now() - 3 * 24 * 60 * 60 * 1000 && (
                   <span className="notice-page-new">
                     NEW
                   </span>
@@ -53,7 +71,7 @@ function NoticePage() {
             </div>
 
             {/* 공지사항 등록일 */}
-            <time>{notice.createdAt}</time>
+            <time>{new Date(notice.createdAt).toLocaleDateString("ko-KR")}</time>
           </article>
         ))}
       </section>

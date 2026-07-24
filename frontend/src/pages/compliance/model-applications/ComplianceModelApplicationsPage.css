@@ -56,6 +56,21 @@
 .application-modal dd { margin: 0; color: #2e4262; font-size: 12px; font-weight: 700; line-height: 1.5; }
 .application-modal footer { display: flex; justify-content: flex-end; padding: 15px 22px; background: #f8faff; border-top: 1px solid #e4e9f1; }
 .application-modal footer button { min-width: 84px; min-height: 36px; color: #fff; background: #2b5fae; border: none; border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+
+/* 반려를 선택했을 때 사유를 입력하는 영역이다. */
+.application-reject-area { margin: 0 22px 18px; padding: 14px; background: #fff7f7; border: 1px solid #ffd2d6; border-radius: 10px; }
+.application-reject-area label { display: block; margin-bottom: 7px; color: #a9343f; font-size: 10px; font-weight: 800; }
+.application-reject-area textarea { width: 100%; padding: 10px 11px; color: #394d6b; background: #fff; border: 1px solid #e3bfc3; border-radius: 8px; outline: none; resize: vertical; font-family: inherit; font-size: 11px; line-height: 1.5; }
+.application-reject-area textarea:focus { border-color: #dc6570; box-shadow: 0 0 0 3px rgba(220, 73, 87, .1); }
+.application-review-error { margin: 0 22px 12px; padding: 9px 11px; color: #c23743; background: #fff0f1; border: 1px solid #ffc4c9; border-radius: 8px; font-size: 10px; }
+
+/* 상세 팝업 하단의 승인·반려 처리 버튼 영역이다. */
+.application-modal .application-review-footer { gap: 8px; }
+.application-modal .application-review-footer button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.application-modal .application-review-footer .application-review-close { margin-right: auto; color: #687995; background: #fff; border: 1px solid #d5dde9; }
+.application-modal .application-review-footer .application-review-reject { color: #cf3542; background: #fff; border: 1px solid #f0aeb4; }
+.application-modal .application-review-footer .application-review-approve { color: #fff; background: #168363; border: 1px solid #168363; }
+.application-modal .application-review-footer button:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 1000px) { .applications-summary-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 700px) { .compliance-applications-page { padding: 22px 16px 30px; } .compliance-applications-heading, .applications-panel-header, .applications-filters { align-items: stretch; flex-direction: column; } .applications-search { width: 100%; } .applications-filters > div { flex-wrap: wrap; } }
-@media (max-width: 480px) { .applications-summary-grid { grid-template-columns: 1fr; } .application-modal dl { grid-template-columns: 1fr; } .application-modal dl > div.wide { grid-column: auto; } }
+@media (max-width: 480px) { .applications-summary-grid { grid-template-columns: 1fr; } .application-modal dl { grid-template-columns: 1fr; } .application-modal dl > div.wide { grid-column: auto; } .application-modal .application-review-footer { flex-wrap: wrap; } .application-modal .application-review-footer button { flex: 1; } .application-modal .application-review-footer .application-review-close { flex-basis: 100%; margin-right: 0; } }
