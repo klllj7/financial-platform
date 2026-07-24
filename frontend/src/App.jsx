@@ -21,12 +21,11 @@ import AiToolsPage from "./pages/ai-tools/AiToolsPage";
 import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
 
-// 컴플라이언스 담당자용 공통 레이아웃
-import ComplianceLayout from "./components/compliance-layout/ComplianceLayout";
-
-// 컴플라이언스 담당자용
+// 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
+import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
+import ComplianceModelApplicationsPage from "./pages/compliance/model-applications/ComplianceModelApplicationsPage";
 
 
 function App() {
@@ -89,41 +88,38 @@ function App() {
             element={<AiToolsPage />}
           />
 
-          {/* 상시평가 증빙자료 */}
-          <Route
-            path="/report/evidence"
-            element={<EvidenceChecklistPage />}
-          />
-          {/* 관리자 - 계정 관리 */}
-          <Route
-            path="/admin/accounts"
-            element={<AdminAccountPage />}
-          />
-        </Route>
-
-        {/* ==================================================
-            컴플라이언스 담당자용 페이지
-
-            ComplianceLayout 내부에 있는 페이지에는
-            컴플라이언스용 사이드바와 상단 헤더가 표시된다.
-        ================================================== */}
-
-        <Route element={<ComplianceLayout />}>
-          {/* 컴플라이언스 전사 대시보드 */}
+          {/* 컴플라이언스 대시보드 */}
           <Route
             path="/compliance/dashboard"
             element={<ComplianceDashboardPage />}
           />
 
-          {/*
-            컴플라이언스 담당자용 공지사항
-
-            공지사항 조회뿐만 아니라
-            새로운 공지 작성 기능도 포함된다.
-          */}
+          {/* 컴플라이언스 공지사항 */}
           <Route
             path="/compliance/notices"
             element={<ComplianceNoticePage />}
+          />
+
+          <Route
+            path="/compliance/risk-events"
+            element={<ComplianceRiskEventsPage />}
+          />
+
+          <Route
+            path="/compliance/model-applications"
+            element={<ComplianceModelApplicationsPage />}
+          />
+
+          {/* 상시평가 증빙자료 */}
+          <Route
+            path="/report/evidence"
+            element={<EvidenceChecklistPage />}
+          />
+
+          {/* 관리자 - 계정 관리 */}
+          <Route
+            path="/admin/accounts"
+            element={<AdminAccountPage />}
           />
         </Route>
 

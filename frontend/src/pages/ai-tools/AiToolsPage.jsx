@@ -1,8 +1,11 @@
+import { useState } from "react";
+
 // 아이콘
 import {
   Bot,
   ClipboardList,
   Plus,
+  X,
 } from "lucide-react";
 
 /*
@@ -32,11 +35,21 @@ function AiToolsPage() {
     신청 현황 데이터가 배열이 아닌 경우에도
     화면 전체가 멈추지 않도록 빈 배열을 사용한다.
   */
-  const applications = Array.isArray(
-    aiToolApplicationData,
-  )
-    ? aiToolApplicationData
-    : [];
+  const [applications, setApplications] = useState(
+    Array.isArray(aiToolApplicationData)
+      ? aiToolApplicationData
+      : [],
+  );
+
+  const [isApplyModalOpen, setIsApplyModalOpen] =
+    useState(false);
+
+  const [applicationForm, setApplicationForm] =
+    useState({
+      toolName: "",
+      provider: "",
+      purpose: "",
+    });
 
   /*
     현재 검토 중인 신청 건수를 계산한다.
@@ -46,11 +59,47 @@ function AiToolsPage() {
       application.statusKey === "pending",
   ).length;
 
-  /* AI Tool 신청하기 버튼을 클릭했을 때 실행 현재는 안내창만 표시 */
+  /* AI Tool 신청 팝업을 연다. */
   const handleApplyButtonClick = () => {
-    alert(
-      "AI Tool 신청 폼은 다음 단계에서 구현할 예정입니다.",
+    setIsApplyModalOpen(true);
+  };
+
+  const handleApplyModalClose = () => {
+    setIsApplyModalOpen(false);
+    setApplicationForm({
+      toolName: "",
+      provider: "",
+      purpose: "",
+    });
+  };
+
+  const handleApplicationFormChange = (event) => {
+    const { name, value } = event.target;
+    setApplicationForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+  };
+
+  const handleApplicationSubmit = (event) => {
+    event.preventDefault();
+
+    const today = new Intl.DateTimeFormat("en-CA").format(
+      new Date(),
     );
+
+    setApplications((currentApplications) => [
+      {
+        id: Date.now(),
+        ...applicationForm,
+        requestedAt: today,
+        status: "검토 중",
+        statusKey: "pending",
+      },
+      ...currentApplications,
+    ]);
+
+    handleApplyModalClose();
   };
 
   return (
@@ -194,6 +243,106 @@ function AiToolsPage() {
           </div>
         )}
       </section>
+
+      {isApplyModalOpen && (
+        <div
+          className="ai-tool-modal-backdrop"
+          role="presentation"
+          onMouseDown={handleApplyModalClose}
+        >
+          <section
+            className="ai-tool-apply-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-tool-apply-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header className="ai-tool-modal-header">
+              <div>
+                <span className="ai-tool-modal-icon">
+                  <Bot size={20} />
+                </span>
+
+                <div>
+                  <h3 id="ai-tool-apply-modal-title">
+                    AI Tool 신청하기
+                  </h3>
+                  <p>
+                    업무에 사용할 AI Tool 정보를 입력해 주세요.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                aria-label="팝업 닫기"
+                onClick={handleApplyModalClose}
+              >
+                <X size={19} />
+              </button>
+            </header>
+
+            <form
+              className="ai-tool-apply-form"
+              onSubmit={handleApplicationSubmit}
+            >
+              <label>
+                <span>AI Tool 이름</span>
+                <input
+                  name="toolName"
+                  value={applicationForm.toolName}
+                  onChange={handleApplicationFormChange}
+                  placeholder="예: ChatGPT Enterprise"
+                  required
+                />
+              </label>
+
+              <label>
+                <span>공급사</span>
+                <input
+                  name="provider"
+                  value={applicationForm.provider}
+                  onChange={handleApplicationFormChange}
+                  placeholder="예: OpenAI"
+                  required
+                />
+              </label>
+
+              <label className="ai-tool-purpose-field">
+                <span>사용 목적</span>
+                <textarea
+                  name="purpose"
+                  value={applicationForm.purpose}
+                  onChange={handleApplicationFormChange}
+                  placeholder="사용할 업무와 필요한 이유를 구체적으로 작성해 주세요."
+                  rows={5}
+                  required
+                />
+                <small>
+                  고객정보나 비밀번호 등 민감정보는 입력하지 마세요.
+                </small>
+              </label>
+
+              <footer className="ai-tool-modal-footer">
+                <button
+                  type="button"
+                  className="ai-tool-modal-cancel"
+                  onClick={handleApplyModalClose}
+                >
+                  취소
+                </button>
+
+                <button
+                  type="submit"
+                  className="ai-tool-modal-submit"
+                >
+                  신청하기
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

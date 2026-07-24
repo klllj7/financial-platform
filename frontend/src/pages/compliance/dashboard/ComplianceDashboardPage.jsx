@@ -9,6 +9,7 @@ import {
   CircleDollarSign,
   Clock3,
   Cuboid,
+  Wrench,
 } from "lucide-react";
 
 /* 컴포넌트 */
@@ -37,6 +38,7 @@ import {
 import {
   complianceActionItems,
   complianceDashboardSummary,
+  complianceModelApplications,
   complianceNoticeData,
   complianceRiskChartData,
   complianceUsageTrendData,
@@ -86,7 +88,13 @@ function ComplianceDashboardPage() {
   const actionItems = Array.isArray(
     complianceActionItems,
   )
-    ? complianceActionItems
+    ? complianceActionItems.slice(0, 3)
+    : [];
+
+  const modelApplications = Array.isArray(
+    complianceModelApplications,
+  )
+    ? complianceModelApplications.slice(0, 3)
     : [];
 
   const departmentData = Array.isArray(
@@ -101,17 +109,9 @@ function ComplianceDashboardPage() {
     ? complianceUsageTrendData
     : [];
 
-  /*
-    위험 이벤트 관리 페이지는 아직 구현 전이므로
-    현재는 안내창을 표시한다.
-
-    위험 이벤트 페이지가 완성되면 아래 코드를
-    navigate("/compliance/risk-events")로 변경하면 된다.
-  */
+  /* 위험 이벤트 관리 전체 목록으로 이동한다. */
   const handleRiskEventClick = () => {
-    alert(
-      "위험 이벤트 관리 페이지는 현재 구현 중입니다.",
-    );
+    navigate("/compliance/risk-events");
   };
 
   /*
@@ -124,9 +124,9 @@ function ComplianceDashboardPage() {
     navigate(`/compliance/risk-events/${itemId}`);
   */
   const handleActionItemClick = (itemId) => {
-    alert(
-      `${itemId}번 위험 이벤트 조치 화면은 현재 구현 중입니다.`,
-    );
+    navigate("/compliance/risk-events", {
+      state: { selectedEventId: itemId },
+    });
   };
 
   /*
@@ -134,9 +134,13 @@ function ComplianceDashboardPage() {
     현재는 임시 안내창을 표시한다.
   */
   const handleModelApplicationClick = () => {
-    alert(
-      "AI 모델 신청 현황 페이지는 현재 구현 중입니다.",
-    );
+    navigate("/compliance/model-applications");
+  };
+
+  const handleModelApplicationItemClick = (applicationId) => {
+    navigate("/compliance/model-applications", {
+      state: { selectedApplicationId: applicationId },
+    });
   };
 
   /*
@@ -172,16 +176,6 @@ function ComplianceDashboardPage() {
           </p>
         </div>
 
-        {/* AI 모델 신청 현황 버튼 */}
-        <button
-          type="button"
-          className="compliance-model-application-button"
-          onClick={handleModelApplicationClick}
-        >
-          <Cuboid size={16} />
-
-          AI 모델 신청 현황
-        </button>
       </header>
 
       {/* ==================================================
@@ -406,6 +400,7 @@ function ComplianceDashboardPage() {
       {/* ==================================================
           오늘의 조치 필요 항목
       ================================================== */}
+      <div className="compliance-issue-application-grid">
       <section className="compliance-action-required-panel">
         {/* 조치 필요 패널 제목 */}
         <header className="compliance-action-required-header">
@@ -413,18 +408,21 @@ function ComplianceDashboardPage() {
             {/* 조치가 필요하다는 것을 나타내는 빨간 점 */}
             <span className="compliance-action-required-dot" />
 
-            <h3>오늘의 조치 필요 항목</h3>
+            <h3>위험 이벤트 관리</h3>
 
-            {/* 현재 미조치 항목 수 */}
+            {/* 이벤트 항목 수 */}
             <span className="compliance-action-required-count">
-              {actionItems.length}건 미조치
+              {actionItems.length}건
             </span>
           </div>
 
-          <p>
-            지금 무엇을 해야 하는지 확인하세요.
-            <strong> — HIGH 등급 우선 정렬</strong>
-          </p>
+          <div className="compliance-action-required-header-actions">
+            <p><strong>HIGH 등급 우선 정렬</strong></p>
+            <button type="button" onClick={handleRiskEventClick}>
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </header>
 
         {/* 조치 필요 위험 이벤트 목록 */}
@@ -506,7 +504,7 @@ function ComplianceDashboardPage() {
                       handleActionItemClick(item.id)
                     }
                   >
-                    조치하기
+                    확인하기
 
                     <ChevronRight size={17} />
                   </button>
@@ -515,14 +513,93 @@ function ComplianceDashboardPage() {
             })
           ) : (
             /*
-              오늘 조치할 항목이 없는 경우 표시한다.
+              최근 이슈가 없는 경우 표시한다.
             */
             <div className="compliance-action-required-empty">
-              오늘 조치가 필요한 위험 이벤트가 없습니다.
+              최근 이슈가 없습니다.
             </div>
           )}
         </div>
       </section>
+
+      {/* ==================================================
+          AI Tool · 모델 신청 현황
+      ================================================== */}
+      <section className="compliance-model-application-panel">
+        <header className="compliance-model-application-header">
+          <div className="compliance-model-application-title">
+            <span className="compliance-model-application-icon">
+              <Cuboid size={17} />
+            </span>
+
+            <h3>AI Tool · 모델 신청 현황</h3>
+
+            <span className="compliance-model-application-count">
+              {modelApplications.length}건
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleModelApplicationClick}
+          >
+            전체 보기
+
+            <ArrowRight size={14} />
+          </button>
+        </header>
+
+        <div className="compliance-model-application-list">
+          {modelApplications.length > 0 ? (
+            modelApplications.map((application) => (
+              <button
+                key={application.id}
+                type="button"
+                className="compliance-model-application-item"
+                onClick={() =>
+                  handleModelApplicationItemClick(application.id)
+                }
+              >
+                <span className="compliance-model-application-item-icon">
+                  <Wrench size={16} />
+                </span>
+
+                <span className="compliance-model-application-content">
+                  <span className="compliance-model-application-primary">
+                    <strong>{application.requestName}</strong>
+
+                    <span>{application.requestType}</span>
+                  </span>
+
+                  <span className="compliance-model-application-meta">
+                    {application.applicantName}
+                    <i aria-hidden="true">·</i>
+                    {application.department}
+                    <i aria-hidden="true">·</i>
+                    {application.requestedAt}
+                  </span>
+                </span>
+
+                <span
+                  className={`
+                    compliance-model-application-status
+                    ${application.statusType}
+                  `}
+                >
+                  {application.status}
+                </span>
+
+                <ChevronRight size={16} />
+              </button>
+            ))
+          ) : (
+            <div className="compliance-model-application-empty">
+              접수된 신청이 없습니다.
+            </div>
+          )}
+        </div>
+      </section>
+      </div>
 
 
 

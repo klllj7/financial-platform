@@ -116,7 +116,8 @@
 ================================================== */
 
 .compliance-action-required-panel {
-  margin-bottom: 18px;
+  min-width: 0;
+  margin-bottom: 0;
 
   background: #ffffff;
 
@@ -131,6 +132,19 @@
 
 
 /* ==================================================
+   최근 이슈 · AI Tool/모델 신청 현황 2열 배치
+================================================== */
+
+.compliance-issue-application-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+
+  margin-bottom: 18px;
+}
+
+
+/* ==================================================
    조치 필요 항목 상단 제목 영역
 ================================================== */
 
@@ -141,7 +155,7 @@
   gap: 20px;
 
   min-height: 62px;
-  padding: 0 24px;
+  padding: 0 20px;
 
   /*
     왼쪽은 옅은 빨간색,
@@ -209,7 +223,13 @@
 }
 
 /* 오른쪽 안내 문구 */
-.compliance-action-required-header > p {
+.compliance-action-required-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.compliance-action-required-header-actions > p {
   margin: 0;
 
   color: #7586a2;
@@ -219,8 +239,23 @@
 }
 
 /* HIGH 등급 우선 정렬 문구 */
-.compliance-action-required-header > p strong {
+.compliance-action-required-header-actions > p strong {
   font-weight: 800;
+}
+
+.compliance-action-required-header-actions > button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 5px;
+  color: #b12635;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 
@@ -241,15 +276,15 @@
 .compliance-action-required-item {
   display: grid;
   grid-template-columns:
-    82px
+    72px
     minmax(0, 1fr)
     auto;
 
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 
   min-height: 91px;
-  padding: 15px 22px;
+  padding: 15px 18px;
 
   border-bottom: 1px solid #e6eaf1;
 
@@ -282,7 +317,7 @@
   align-items: center;
   justify-content: center;
 
-  min-width: 67px;
+  min-width: 62px;
   min-height: 33px;
   padding: 0 9px;
 
@@ -456,12 +491,12 @@
   justify-content: center;
   gap: 8px;
 
-  min-width: 112px;
+  min-width: 92px;
   min-height: 42px;
-  padding: 0 17px;
+  padding: 0 13px;
 
   color: #ffffff;
-  background: #1e4279;
+  background: #2b5fae;
 
   border: none;
   border-radius: 17px;
@@ -478,6 +513,268 @@
     box-shadow 0.2s;
 }
 
+
+/* ==================================================
+   AI Tool · 모델 신청 현황
+================================================== */
+
+.compliance-model-application-panel {
+  min-width: 0;
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #dfe5ef;
+  border-radius: 16px;
+
+  box-shadow:
+    0 7px 24px rgba(20, 35, 70, 0.04);
+}
+
+.compliance-model-application-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  min-height: 62px;
+  padding: 0 20px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #eef4ff 0%,
+      #f4f1ff 100%
+    );
+
+  border-bottom: 1px solid #dfe4f0;
+}
+
+.compliance-model-application-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  min-width: 0;
+}
+
+.compliance-model-application-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 30px;
+  height: 30px;
+
+  color: #315fb0;
+  background: #ffffff;
+  border: 1px solid #cedcf5;
+  border-radius: 9px;
+}
+
+.compliance-model-application-title h3 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: #233653;
+  font-size: 14px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compliance-model-application-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  min-height: 27px;
+  padding: 0 9px;
+
+  color: #315fb0;
+  background: #ffffff;
+  border: 1px solid #cbd9f2;
+  border-radius: 9px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.compliance-model-application-header > button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  flex-shrink: 0;
+  padding: 5px;
+
+  color: #315b99;
+  background: transparent;
+  border: none;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.compliance-model-application-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.compliance-model-application-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: 11px;
+
+  min-height: 91px;
+  padding: 15px 18px;
+
+  color: inherit;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #e6eaf1;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.compliance-model-application-item:last-child {
+  border-bottom: none;
+}
+
+.compliance-model-application-item:hover {
+  background: #fafcff;
+}
+
+.compliance-model-application-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  color: #466ca8;
+  background: #edf3fd;
+  border-radius: 10px;
+}
+
+.compliance-model-application-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  min-width: 0;
+}
+
+.compliance-model-application-primary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  min-width: 0;
+}
+
+.compliance-model-application-primary strong {
+  overflow: hidden;
+
+  color: #223654;
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compliance-model-application-primary > span {
+  flex-shrink: 0;
+  padding: 4px 7px;
+
+  color: #5c6f91;
+  background: #eef1f7;
+  border-radius: 5px;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.compliance-model-application-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  color: #7888a1;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.compliance-model-application-meta i {
+  color: #a4afbf;
+  font-style: normal;
+}
+
+.compliance-model-application-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  min-width: 58px;
+  min-height: 27px;
+  padding: 0 8px;
+
+  border-radius: 6px;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.compliance-model-application-status.pending {
+  color: #a8610a;
+  background: #fff5dc;
+  border: 1px solid #f0d18d;
+}
+
+.compliance-model-application-status.reviewing {
+  color: #2863c5;
+  background: #eaf2ff;
+  border: 1px solid #bed4ff;
+}
+
+.compliance-model-application-status.approved {
+  color: #07815f;
+  background: #e9f9f3;
+  border: 1px solid #a9e5d2;
+}
+
+.compliance-model-application-item > svg {
+  color: #9aa8ba;
+}
+
+.compliance-model-application-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 110px;
+  padding: 24px;
+
+  color: #7b8aa2;
+  font-size: 12px;
+}
+
 /* 조치하기 버튼 아이콘 */
 .compliance-action-item-button svg {
   flex-shrink: 0;
@@ -485,7 +782,7 @@
 
 /* 버튼에 마우스를 올렸을 때 */
 .compliance-action-item-button:hover {
-  background: #153866;
+  background: #1e559c;
 
   box-shadow:
     0 7px 16px rgba(24, 61, 113, 0.18);
@@ -1020,6 +1317,10 @@
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
+
+  .compliance-issue-application-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 
@@ -1036,7 +1337,12 @@
     padding: 17px 18px;
   }
 
-  .compliance-action-required-header > p {
+  .compliance-action-required-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .compliance-action-required-header-actions > p {
     text-align: left;
   }
 
