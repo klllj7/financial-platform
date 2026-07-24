@@ -21,7 +21,9 @@ const PAGE_TITLES = {
 
   "/compliance/dashboard": "전사 대시보드",
   "/compliance/notices": "공지사항",
-  
+  "/policies": "정책 관리",
+  "/compliance/evidence": "상시평가 증빙자료",
+
   "/admin/accounts": "계정 관리",
 };
 

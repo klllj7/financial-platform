@@ -28,6 +28,9 @@ import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDash
 // 컴플라이언스 담당자용 공지사항 페이지
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
 
+// 정책 관리 페이지
+import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -41,7 +44,6 @@ function App() {
         {/* ==================================================
             로그인 및 회원가입
         ================================================== */}
-
         <Route
           path="/login"
           element={<LoginPage />}
@@ -88,13 +90,30 @@ function App() {
             element={<AiToolsPage />}
           />
 
-          {/* 컴플라이언스 대시보드 */}
+          {/* 상시평가 증빙자료 */}
+          <Route
+            path="/report/evidence"
+            element={<EvidenceChecklistPage />}
+          />
+
+          {/* 관리자 - 계정 관리 */}
+          <Route
+            path="/admin/accounts"
+            element={<AdminAccountPage />}
+          />
+
+          {/* 컴플라이언스 전사 대시보드 */}
           <Route
             path="/compliance/dashboard"
             element={<ComplianceDashboardPage />}
           />
 
-          {/* 컴플라이언스 공지사항 */}
+          {/*
+            컴플라이언스 담당자용 공지사항
+
+            공지사항 조회뿐만 아니라
+            새로운 공지 작성 기능도 포함된다.
+          */}
           <Route
             path="/compliance/notices"
             element={<ComplianceNoticePage />}
@@ -106,16 +125,16 @@ function App() {
             element={<EventListPage />}
           />
 
-          {/* 상시평가 증빙자료 */}
+          {/* 정책 관리 페이지 */}
           <Route
-            path="/report/evidence"
-            element={<EvidenceChecklistPage />}
+            path="/policies"
+            element={<PolicyManagementPage />}
           />
 
-          {/* 관리자 - 계정 관리 */}
+          {/* 상시평가 증빙자료 (컴플라이언스) */}
           <Route
-            path="/admin/accounts"
-            element={<AdminAccountPage />}
+            path="/compliance/evidence"
+            element={<EvidenceChecklistPage />}
           />
         </Route>
 
