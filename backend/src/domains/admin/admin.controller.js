@@ -17,6 +17,35 @@ const getUsers = async (req, res) => {
   }
 };
 
+// 관리자 - 사용자 권한 변경
+const updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { roleCode } = req.body;
+
+    if (!roleCode) {
+      return fail(
+        res,
+        "ADMIN_ROLE_CODE_REQUIRED",
+        "변경할 권한을 선택해주세요.",
+        400
+      );
+    }
+
+    const updatedUser = await adminService.updateUserRole(userId, roleCode);
+
+    return success(res, updatedUser, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "ADMIN_UPDATE_ROLE_FAILED",
+      error.message || "사용자 권한 변경에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   getUsers,
+  updateUserRole,
 };
