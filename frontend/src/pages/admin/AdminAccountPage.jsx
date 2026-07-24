@@ -1,54 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { getAdminUsers } from "../../api/adminApi";
+import { getAdminUsers, updateAdminUserRole, } from "../../api/adminApi";
 import "./AdminAccountPage.css";
-
-/*
-  백엔드 연동 전 화면 확인용 Mock 데이터
-  나중에 GET /api/admin/users 같은 API로 교체
-*/
-// const MOCK_USERS = [
-//   {
-//     id: 1,
-//     name: "장현지",
-//     department: "IT보안팀",
-//     role: "ADMIN",
-//     lastLoginAt: "2026-07-23 09:42",
-//     status: "ACTIVE",
-//   },
-//   {
-//     id: 2,
-//     name: "이영아",
-//     department: "준법감시팀",
-//     role: "COMPLIANCE_MANAGER",
-//     lastLoginAt: "2026-07-22 18:10",
-//     status: "ACTIVE",
-//   },
-//   {
-//     id: 3,
-//     name: "이지윤",
-//     department: "여신심사팀",
-//     role: "EMPLOYEE",
-//     lastLoginAt: "2026-07-21 14:25",
-//     status: "ACTIVE",
-//   },
-//   {
-//     id: 4,
-//     name: "김정욱",
-//     department: "마케팅팀",
-//     role: "EMPLOYEE",
-//     lastLoginAt: "2026-07-18 11:03",
-//     status: "INACTIVE",
-//   },
-//   {
-//     id: 5,
-//     name: "이민주",
-//     department: "고객지원팀",
-//     role: "EMPLOYEE",
-//     lastLoginAt: "2026-07-20 16:44",
-//     status: "ACTIVE",
-//   },
-// ];
 
 const ROLE_LABEL_MAP = {
   ADMIN: "관리자",
@@ -105,6 +58,36 @@ function AdminAccountPage() {
     setSelectedRole(user.role?.code || "");
 
     console.log("권한 변경 대상 사용자: ", user);
+  };
+
+  const handleSaveRoleChange = async () => {
+    if (!selectedUser) {
+      return;
+    }
+
+    if (!selectedRole) {
+      alert("변경할 권한을 선택해주세요.");
+      return;
+    }
+
+    try {
+      const result = await updateAdminUserRole(selectedUser.id, selectedRole);
+
+      console.log("권한 변경 성공: ", result);
+      alert("권한이 변경되었습니다.");
+
+      // 모달 닫기
+      setSelectedUser(null);
+
+      // DB에서 사용자 목록 다시 조회해서 화면 갱신
+      await fetchUsers();
+    } catch (error) {
+      console.error("권한 변경 실패: ", error);
+
+      alert(
+        error.response?.data?.error?.message || "권한 변경에 실패했습니다."
+      );
+    }
   };
 
   useEffect(() => {
@@ -335,6 +318,7 @@ function AdminAccountPage() {
               <button
                 type="button"
                 className="admin-modal-save-button"
+                onClick={handleSaveRoleChange}
               >
                 저장
               </button>
