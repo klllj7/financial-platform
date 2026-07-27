@@ -9,6 +9,7 @@ import {
 // 로그인과 회원가입 페이지
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import FindIdPage from "./pages/auth/FindIdPage";
 
 // 임직원용 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
@@ -55,6 +56,11 @@ function App() {
         <Route
           path="/signup"
           element={<SignupPage />}
+        />
+
+        <Route
+          path="/find-id"
+          element={<FindIdPage />}
         />
 
         {/* ==================================================
