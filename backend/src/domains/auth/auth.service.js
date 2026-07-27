@@ -100,6 +100,15 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
     throw error;
   }
 
+  // 계정 상태 확인
+  // 관리자가 비활성화한 계정은 비밀번호가 맞아도 로그인할 수 없음
+  if (user.status === "INACTIVE") {
+    const error = new Error("비활성화된 계정입니다. 관리자에게 문의해주세요.");
+    error.statusCode = 403;
+    error.code = "AUTH_ACCOUNT_INACTIVE";
+    throw error;
+  }
+
   // 로그인 성공 이력 저장
   // 사용자가 정상적으로 로그인했을 때 로그인 시각, IP, 접속 환경을 기록
   await LoginHistory.create({
