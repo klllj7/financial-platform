@@ -7,15 +7,15 @@ const { fail } = require("../../common/utils/response");
 const router = express.Router();
 router.use(authenticate);
 
-/* 컴플라이언스 담당자는 전사 30일 AI 사용 추이를 조회한다. */
+/* 컴플라이언스 담당자와 관리자는 전사 대시보드를 조회한다. */
 router.get(
   "/compliance/trend",
-  authorize("COMPLIANCE_MANAGER"),
+  authorize("COMPLIANCE_MANAGER", "ADMIN"),
   controller.complianceTrend,
 );
 router.get(
   "/compliance/summary",
-  authorize("COMPLIANCE_MANAGER"),
+  authorize("COMPLIANCE_MANAGER", "ADMIN"),
   controller.complianceSummary,
 );
 

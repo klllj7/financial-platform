@@ -293,6 +293,17 @@ function ComplianceDashboardPage() {
     navigate("/compliance/notices");
   };
 
+  /* 위험 이벤트 전체 보기와 개별 이벤트 상세 페이지 이동에 사용한다. */
+  const handleRiskEventViewAll = () => {
+    navigate("/compliance/risk-events");
+  };
+
+  const handleRiskEventClick = (eventId) => {
+    navigate("/compliance/risk-events", {
+      state: { selectedEventId: eventId },
+    });
+  };
+
 
   return (
     <div className="compliance-dashboard-page">
@@ -487,6 +498,13 @@ function ComplianceDashboardPage() {
 
           <div className="compliance-action-required-header-actions">
             <p><strong>HIGH 등급 우선 정렬</strong></p>
+            <button
+              type="button"
+              onClick={handleRiskEventViewAll}
+            >
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
           </div>
         </header>
 
@@ -508,6 +526,15 @@ function ComplianceDashboardPage() {
                 <article
                   key={item.id}
                   className="compliance-action-required-item"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleRiskEventClick(item.id)}
+                  onKeyDown={(event) => {
+                    if (["Enter", " "].includes(event.key)) {
+                      event.preventDefault();
+                      handleRiskEventClick(item.id);
+                    }
+                  }}
                 >
                   {/* 위험 등급 */}
                   <div className="compliance-action-risk-area">

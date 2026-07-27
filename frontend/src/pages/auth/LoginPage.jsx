@@ -75,9 +75,9 @@ function LoginPage() {
 
       const roleCode = user?.role?.code || user?.role;
 
-      // 권한별 화면 이동은 나중에 실제 대시보드 만들면 연결
+      // 로그인한 역할에 맞는 기본 대시보드로 이동한다.
       if (roleCode === "ADMIN") {
-        navigate("/admin/accounts", {
+        navigate("/admin/dashboard", {
           replace: true,
         });
       } else if (roleCode === "COMPLIANCE_MANAGER") {
@@ -92,6 +92,68 @@ function LoginPage() {
     } catch (error) {
       console.error("로그인 실패: ", error);
       alert(error.response?.data?.error?.message || "로그인에 실패했습니다.");
+    }
+  };
+
+  // TODO: 개발/시연용 역할별 빠른 이동. 추후 삭제 필요
+  // 코치님 또는 팀원이 회원가입/로그인 과정을 거치지 않고
+  // 각 권한 화면을 바로 확인할 수 있도록 임시 사용자 정보를 저장한다.
+  const handleDevRoleAccess = async (roleCode) => {
+    const demoAccounts = {
+      EMPLOYEE: {
+        email: "hbb@gmail.com",
+        password: "1234",
+        redirectPath: "/my-dashboard",
+      },
+
+      COMPLIANCE_MANAGER: {
+        email: "security_test@gmail.com",
+        password: "1234",
+        redirectPath: "/compliance/dashboard",
+      },
+
+      ADMIN: {
+        email: "jang@gmail.com",
+        password: "1234",
+        redirectPath: "/admin/dashboard",
+      },
+    };
+
+    const demoAccount = demoAccounts[roleCode];
+
+    if (!demoAccount) {
+      alert("존재하지 않는 데모 권한입니다.");
+      return;
+    }
+
+    try {
+      /*
+        기존에는 임시 토큰(dev-demo-token)을 저장했지만,
+        관리자 API는 실제 JWT 토큰이 있어야 접근 가능하다.
+        그래서 데모 계정으로 실제 로그인 API를 호출한 뒤
+        백엔드에서 발급한 토큰을 localStorage에 저장한다.
+      */
+      const result = await login({
+        email: demoAccount.email,
+        password: demoAccount.password,
+      });
+
+      const token = result.data.token;
+      const user = result.data.user;
+
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      navigate(demoAccount.redirectPath, {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("데모 로그인 실패:", error);
+
+      alert(
+        error.response?.data?.error?.message ||
+          "데모 로그인에 실패했습니다. 데모 계정이 DB에 있는지 확인해주세요."
+      );
     }
   };
 
@@ -243,6 +305,35 @@ function LoginPage() {
                 회원가입
               </button>
             </div>
+
+            {/* TODO: 개발/시연용 역할별 빠른 이동. 추후 삭제 필요 */}
+            <div className="login-dev-access">
+              <p>개발/시연용 빠른 화면 이동</p>
+
+              <div className="login-dev-access-buttons">
+                <button
+                  type="button"
+                  onClick={() => handleDevRoleAccess("EMPLOYEE")}
+                >
+                  임직원 화면
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDevRoleAccess("COMPLIANCE_MANAGER")}
+                >
+                  보안/컴플라이언스 화면
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDevRoleAccess("ADMIN")}
+                >
+                  관리자 화면
+                </button>
+              </div>
+            </div>
+            
           </div>
         </section>
       </section>

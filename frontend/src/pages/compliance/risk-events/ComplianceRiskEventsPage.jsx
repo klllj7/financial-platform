@@ -43,9 +43,9 @@ const getLoggedInUserId = () => {
 
 // 조치 시 백엔드로 보낼 action_type 값과 화면에 보여줄 한글 라벨
 const ACTION_FORM_TYPES = [
-  { value: "reviewed", label: "모니터링 (확인함)" },
-  { value: "escalated", label: "조치 중 (상급보고)" },
-  { value: "dismissed", label: "조치 완료 (오탐/기각)" },
+  { value: "reviewed", label: "모니터링" },
+  { value: "escalated", label: "조치 중" },
+  { value: "dismissed", label: "조치 완료" },
 ];
 
 function ComplianceRiskEventsPage() {
@@ -64,6 +64,7 @@ function ComplianceRiskEventsPage() {
 
   const fetchEvents = () => {
     setLoading(true);
+
     getEvents()
       .then((res) => {
         const mapped = res.data.map((event) => {
@@ -88,7 +89,8 @@ function ComplianceRiskEventsPage() {
   };
 
   useEffect(() => {
-    fetchEvents();
+    // 첫 화면 진입 시 DLP 백엔드의 실제 위험 이벤트를 조회한다.
+    queueMicrotask(fetchEvents);
   }, []);
 
   const filteredEvents = useMemo(() => {
