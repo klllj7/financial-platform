@@ -9,6 +9,16 @@ const POLICY_STATUS_LABEL_MAP = {
   REJECTED: "반려",
 };
 
+// 기본 정렬 우선순위: 승인대기 -> 승인완료 -> 반려
+const STATUS_SORT_ORDER = {
+  PENDING: 0,
+  APPROVED: 1,
+  REJECTED: 2,
+};
+
+// 한 페이지에 보여줄 개수 선택지
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
 // 날짜를 "YYYY-MM-DD" 형태로 보여준다.
 const formatDate = (isoString) => (isoString ? isoString.slice(0, 10) : "-");
 
@@ -48,6 +58,10 @@ function AdminPolicyPage() {
   const [rejectReasonInput, setRejectReasonInput] = useState("");
   const [rejectDetailInput, setRejectDetailInput] = useState("");
   const [revisionRequestInput, setRevisionRequestInput] = useState("");
+
+  // 페이지네이션: 한 페이지에 보여줄 개수, 현재 페이지 번호
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 서버에서 정책 목록을 받아와서, 이 페이지가 쓰는 필드 이름으로 변환한다.
   const fetchPolicies = async () => {
