@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { findEmail } from "../../api/authApi";
 import "./FindIdPage.css";
 
 function FindIdPage() {
@@ -14,6 +15,9 @@ function FindIdPage() {
   // 화면에 보여줄 안내 메시지
   const [resultMessage, setResultMessage] = useState("");
 
+  // API 요청 중인지 확인하는 상태
+  const [isLoading, setIsLoading] = useState(false);
+
   // input, select 값 변경 처리
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,7 +29,7 @@ function FindIdPage() {
   };
 
   // 아이디 찾기 버튼 클릭
-  const handleFindIdSubmit = (e) => {
+  const handleFindIdSubmit = async (e) => {
     e.preventDefault();
 
     if (!findIdForm.name || !findIdForm.department) {
@@ -33,14 +37,31 @@ function FindIdPage() {
       return;
     }
 
-    /*
-      지금은 화면 구현 단계라 실제 DB 조회는 하지 않는다.
-      나중에 POST /api/auth/find-email API를 붙이면
-      여기에서 백엔드로 name, department를 보내고 결과를 받아오면 된다.
-    */
-    setResultMessage(
-      "입력하신 정보와 일치하는 계정이 있는 경우, 가입된 이메일 정보가 표시됩니다."
-    );
+    try {
+      setIsLoading(true);
+      setResultMessage("");
+
+      /*
+        이름과 부서 코드를 백엔드로 보내서
+        일치하는 사용자 이메일을 조회한다.
+        백엔드는 개인정보 보호를 위해 마스킹된 이메일만 반환한다.
+      */
+      const result = await findEmail({
+        name: findIdForm.name,
+        department: findIdForm.department,
+      });
+
+      setResultMessage(`가입된 이메일: ${result.data.maskedEmail}`);
+    } catch (error) {
+      console.error("아이디 찾기 실패:", error);
+
+      setResultMessage(
+        error.response?.data?.error?.message ||
+          "아이디 찾기에 실패했습니다."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,8 +110,12 @@ function FindIdPage() {
             </div>
           )}
 
-          <button type="submit" className="find-id-submit-button">
-            아이디 찾기
+          <button 
+            type="submit" 
+            className="find-id-submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "조회 중..." : "아이디 찾기"}
           </button>
         </form>
 

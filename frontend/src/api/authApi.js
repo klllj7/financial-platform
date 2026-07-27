@@ -20,3 +20,10 @@ export const getMe = async () => {
   const response = await axiosInstance.get("/auth/me");
   return response.data;
 };
+
+// 아이디 찾기 API
+// 실제 요청 주소: POST /api/auth/find-email
+export const findEmail = async (payload) => {
+  const response = await axiosInstance.post("/auth/find-email", payload);
+  return response.data;
+};
