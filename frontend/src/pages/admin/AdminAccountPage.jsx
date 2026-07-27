@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { getAdminUsers, updateAdminUserRole, } from "../../api/adminApi";
+import { getAdminUsers, updateAdminUserRole, updateAdminUserStatus, } from "../../api/adminApi";
 import "./AdminAccountPage.css";
 
 const ROLE_LABEL_MAP = {
@@ -86,6 +86,43 @@ function AdminAccountPage() {
 
       alert(
         error.response?.data?.error?.message || "권한 변경에 실패했습니다."
+      );
+    }
+  };
+
+  // 사용자 활성/비활성 상태 변경
+  const handleToggleUserStatus = async (user) => {
+    // 현재 ACTIVE면 INACTIVE로, INACTIVE면 ACTIVE로 변경
+    const nextStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+
+    const confirmMessage =
+      nextStatus === "INACTIVE"
+        ? `${user.name} 계정을 비활성화하시겠습니까?`
+        : `${user.name} 계정을 활성화하시겠습니까?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const result = await updateAdminUserStatus(user.id, nextStatus);
+
+      console.log("계정 상태 변경 성공:", result);
+
+      alert(
+        nextStatus === "INACTIVE"
+          ? "계정이 비활성화되었습니다."
+          : "계정이 활성화되었습니다."
+      );
+
+      // DB에서 사용자 목록을 다시 불러와 화면 갱신
+      await fetchUsers();
+    } catch (error) {
+      console.error("계정 상태 변경 실패:", error);
+
+      alert(
+        error.response?.data?.error?.message ||
+          "계정 상태 변경에 실패했습니다."
       );
     }
   };
@@ -213,9 +250,26 @@ function AdminAccountPage() {
                     <td>{lastLoginText}</td>
 
                     <td>
-                      <span className={`admin-status-badge ${status}`}>
-                        {statusName}
-                      </span>
+                      {/* 활성/비활성 상태를 변경하는 토글 스위치 */}
+                      <div clasName="admin-status-toggle-cell">
+                        <button
+                          type="button"
+                          className={
+                            status === "ACTIVE"
+                              ? "admin-account-switch active"
+                              : "admin-account-switch inactive"
+                          }
+                          onClick={() => handleToggleUserStatus(user)}
+                          title={status === "ACTIVE" ? "활성 계정" : "비활성 계정"}
+                          aria-label={
+                            status === "ACTIVE"
+                              ? "계정 비활성화"
+                              : "계정 활성화"
+                          }
+                        >
+                          <span className="admin-account-switch-thumb" />
+                        </button>
+                      </div>
                     </td>
 
                     <td>

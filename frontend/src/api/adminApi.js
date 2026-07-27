@@ -14,3 +14,13 @@ export const updateAdminUserRole = async (userId, roleCode) => {
 
   return response.data;
 };
+
+// 관리자 - 사용자 상태 변경 API
+// 실제 요청 주소: PATCH /api/admin/users/:userId/status
+export const updateAdminUserStatus = async (userId, status) => {
+  const response = await axiosInstance.patch(`/admin/users/${userId}/status`, {
+    status,
+  });
+
+  return response.data;
+};
