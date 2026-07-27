@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { User, Role, Department } = require("./auth.models");
+const { User, Role, Department, LoginHistory } = require("./auth.models");
 
 // 회원가입
 const signup = async ({ name, email, password, department, role }) => {
@@ -65,7 +65,7 @@ const signup = async ({ name, email, password, department, role }) => {
 };
 
 // 로그인
-const login = async ({ email, password }) => {
+const login = async ({ email, password, ipAddress, userAgent }) => {
   // 이메일로 사용자 조회
   const user = await User.findOne({
     where: { email },
@@ -99,6 +99,15 @@ const login = async ({ email, password }) => {
     error.code = "AUTH_004";
     throw error;
   }
+
+  // 로그인 성공 이력 저장
+  // 사용자가 정상적으로 로그인했을 때 로그인 시각, IP, 접속 환경을 기록
+  await LoginHistory.create({
+    userId: user.id,
+    status: "SUCCESS",
+    ipAddress,
+    userAgent,
+  });
 
   // JWT 토큰 발급
   const token = jwt.sign(

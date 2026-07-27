@@ -45,7 +45,37 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+// 관리자 - 사용자 상태 변경 Controller
+const updateUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.body;
+
+    // status 값이 없으면 요청 실패 처리
+    if (!status) {
+      return fail(
+        res,
+        "ADMIN_STATUS_REQUIRED",
+        "변경할 계정 상태를 선택해주세요.",
+        400
+      );
+    }
+
+    const updatedUser = await adminService.updateUserStatus(userId, status);
+
+    return success(res, updatedUser, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "ADMIN_UPDATE_STATUS_FAILED",
+      error.message || "사용자 상태 변경에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   getUsers,
   updateUserRole,
+  updateUserStatus,
 };

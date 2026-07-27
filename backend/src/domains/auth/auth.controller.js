@@ -20,10 +20,24 @@ const signup = async (req, res) => {
 // 로그인 Controller
 const login = async (req, res) => {
   try {
-    const result = await authService.login(req.body);
+    // 로컬 개발 환경에서는 req.ip가 ::1로 들어올 수 있음
+    // ::1은 localhost라는 뜻이므로 보기 쉬운 127.0.0.1로만 변환
+    const ipAddress = req.ip === "::1" ? "127.0.0.1" : req.ip;
+
+    const result = await authService.login({
+      ...req.body,
+
+      // 로그인 요청 IP 주소
+      ipAddress,
+
+      // 브라우저/OS 등 접속 환경 정보
+      userAgent: req.headers["user-agent"],
+    });
 
     return success(res, result, 200);
   } catch (error) {
+    console.error("로그인 실패 상세:", error);
+
     return fail(
       res,
       error.code || "AUTH_LOGIN_FAILED",
