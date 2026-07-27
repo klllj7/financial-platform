@@ -24,12 +24,8 @@ import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 // 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
-<<<<<<< HEAD
- 
-=======
 import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
 
->>>>>>> 35e2da071f011ab8d78b78c58bd439303dc8446a
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
 import AdminModelPage from "./pages/admin/AdminModelPage";
@@ -101,9 +97,6 @@ function App() {
             path="/ai-tools"
             element={<AiToolsPage />}
           />
-<<<<<<< HEAD
- 
-=======
 
           {/* 컴플라이언스 위험 이벤트 전체 관리 */}
           <Route
@@ -111,7 +104,6 @@ function App() {
             element={<ComplianceRiskEventsPage />}
           />
 
->>>>>>> 35e2da071f011ab8d78b78c58bd439303dc8446a
           {/* 상시평가 증빙자료 */}
           <Route
             path="/report/evidence"
@@ -183,8 +175,4 @@ function App() {
   );
 }
  
-<<<<<<< HEAD
 export default App;
-=======
-export default App;
->>>>>>> 35e2da071f011ab8d78b78c58bd439303dc8446a
