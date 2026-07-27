@@ -160,3 +160,11 @@
 .find-id-footer button:hover {
   color: #2f6df6;
 }
+
+/* 아이디 찾기 요청 중 버튼 비활성화 */
+.find-id-submit-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+  box-shadow: none;
+}

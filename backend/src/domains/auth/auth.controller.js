@@ -64,8 +64,25 @@ const getMe = async (req, res) => {
   }
 };
 
+// 아이디 찾기 Controller
+const findEmail = async (req, res) => {
+  try {
+    const result = await authService.findEmail(req.body);
+
+    return success(res, result, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "AUTH_FIND_EMAIL_FAILED",
+      error.message || "아이디 찾기에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   signup,
   login,
   getMe,
+  findEmail,
 };
