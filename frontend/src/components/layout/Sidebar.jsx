@@ -4,6 +4,7 @@ import {
   Bot,
   Boxes,
   ClipboardCheck,
+  FileText,
   LayoutDashboard,
   LogOut,
   ShieldAlert,
@@ -78,6 +79,16 @@ const ROLE_MENUS = {
       to: "/admin/accounts",
       label: "계정 관리",
       icon: UsersRound,
+    },
+    {
+      to: "/admin/models",
+      label: "AI 모델 관리",
+      icon: Bot,
+    },
+    {
+      to: "/admin/policies",
+      label: "정책 승인 관리",
+      icon: FileText,
     },
   ],
 };
