@@ -308,6 +308,100 @@
 }
 
 /* =========================================================
+   페이지네이션 바
+   - 왼쪽에 페이지당 개수 선택, 가운데에 번호 이동 버튼
+========================================================= */
+.admin-policy-pagination-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  padding: 14px 22px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.admin-policy-page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-policy-page-size label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-policy-page-size select {
+  height: 32px;
+  padding: 0 10px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 12px;
+
+  outline: none;
+}
+
+.admin-policy-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  grid-column: 2;
+}
+
+.admin-policy-pagination button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+
+  color: var(--color-muted);
+  background: #f4f7fc;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.admin-policy-pagination button:hover:not(:disabled):not(.active) {
+  background: #eaf0fb;
+}
+
+.admin-policy-pagination button.active {
+  color: #ffffff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.admin-policy-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-policy-pagination-ellipsis {
+  color: var(--color-muted);
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+/* =========================================================
    정책명 버튼
    - 정책명과 요약을 표시하며 클릭하면 상세 모달을 엽니다.
 ========================================================= */
