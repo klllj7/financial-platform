@@ -31,7 +31,8 @@ dist-ssr
 .idea/
 node_modules/
 CLAUDE.md
-
+.claude/
 venv/
 __pycache__/
 *.pyc
+
