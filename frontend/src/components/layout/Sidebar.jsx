@@ -7,6 +7,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  ShieldAlert,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -45,6 +46,11 @@ const ROLE_MENUS = {
       to: "/compliance/dashboard",
       label: "전사 대시보드",
       icon: LayoutDashboard,
+    },
+    {
+      to: "/compliance/risk-events",
+      label: "위험 이벤트 관리",
+      icon: ShieldAlert,
     },
     {
       to: "/ai-chat",
