@@ -55,9 +55,6 @@ function PolicyManagementPage() {
   // 지금 클릭해서 상세 모달로 열어본 정책 (null이면 모달 닫힌 상태)
   const [selectedPolicy, setSelectedPolicy] = useState(null);
 
-  // 모달 안에서 반려 사유를 입력받는 값
-  const [rejectReasonInput, setRejectReasonInput] = useState("");
-
   // 모달을 "수정 모드"로 볼지 여부, 그리고 수정 폼 입력값
   const [isEditing, setIsEditing] = useState(false);
   const [editRuleContent, setEditRuleContent] = useState("");
@@ -135,20 +132,6 @@ function PolicyManagementPage() {
     fetchPolicies(); // 정책 요청 후 목록 갱신
   };
 
-  // "승인" 버튼 클릭 시: 해당 정책을 승인 처리하고 모달을 닫는다.
-  const handleApprove = async (id) => {
-    await approvePolicy(id);
-    setSelectedPolicy(null);
-    fetchPolicies(); // 정책 승인 후 목록 갱신
-  };
-
-  // "반려" 버튼 클릭 시: 입력한 사유와 함께 반려 처리하고 모달을 닫는다.
-  const handleReject = async (id) => {
-    await rejectPolicy(id, rejectReasonInput);
-    setRejectReasonInput(""); // 반려 사유 초기화
-    setSelectedPolicy(null);
-    fetchPolicies(); // 정책 반려 후 목록 갱신
-  };
 
   // "수정" 버튼 클릭 시: 현재 정책 값을 수정 폼에 채워넣고 수정 모드로 전환한다.
   const handleEditClick = () => {
@@ -173,7 +156,6 @@ function PolicyManagementPage() {
   const closeModal = () => {
     setSelectedPolicy(null);
     setIsEditing(false);
-    setRejectReasonInput("");
   };
 
   // 지금 화면에 보여줄 활성여부 값: 편집 중 바꾼 게 있으면 그 값, 없으면 서버에 저장된 값
@@ -313,11 +295,11 @@ function PolicyManagementPage() {
                   <td>{policy.requested_by || "-"}</td>
                   <td>v{policy.version}</td>
                   <td>
-                    {/* 토글 스위치: 편집 모드가 아니면 클릭이 안 먹히도록 막는다. */}
+                    {/* 토글 스위치: 편집 모드가 아니거나, 승인완료 상태가 아니면 클릭이 안 먹히도록 막는다. */}
                     <button
                       type="button"
                       className={`policy-toggle-switch ${getDisplayedActive(policy) ? "on" : "off"}`}
-                      disabled={!isEditMode}
+                      disabled={!isEditMode || policy.approval_status !== "approved"}
                       onClick={(e) => {
                         e.stopPropagation(); // 행 클릭(상세 모달 열기)으로 안 퍼지게
                         handleToggleActive(policy);
@@ -473,31 +455,6 @@ function PolicyManagementPage() {
                 <p className="policy-reject-reason">
                   반려 사유: {selectedPolicy.reject_reason || "-"}
                 </p>
-              )}
-
-              {/* 승인대기 상태일 때만 승인/반려 버튼과 반려 사유 입력창을 보여준다. */}
-              {selectedPolicy.approval_status === "pending" && (
-                <div className="policy-approve-area">
-                  <textarea
-                    placeholder="반려 사유 (반려할 경우에만 입력)"
-                    value={rejectReasonInput}
-                    onChange={(e) => setRejectReasonInput(e.target.value)}
-                  />
-                  <div className="policy-approve-buttons">
-                    <button
-                      className="policy-reject-button"
-                      onClick={() => handleReject(selectedPolicy.id)}
-                    >
-                      반려
-                    </button>
-                    <button
-                      className="policy-approve-button"
-                      onClick={() => handleApprove(selectedPolicy.id)}
-                    >
-                      승인
-                    </button>
-                  </div>
-                </div>
               )}
 
               {/* 수정 모드가 아니면 "수정" 버튼만, 수정 모드면 수정 폼을 보여준다. */}

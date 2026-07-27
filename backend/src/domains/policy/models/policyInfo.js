@@ -36,6 +36,22 @@ const PolicyInfo = sequelize.define("PolicyInfo", {
   requested_by: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  reject_detail: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  revision_request: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  rejected_by: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  rejected_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
   }
 }, {
   tableName: "policy_info",

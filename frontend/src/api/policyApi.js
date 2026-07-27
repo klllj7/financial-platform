@@ -21,10 +21,10 @@ export const approvePolicy = async (id) => {
   }
 };
 
-// 정책 반려 (사유 포함)
-export const rejectPolicy = async (id, reject_reason) => {
+// 정책 반려 (사유/상세내용/보완요청사항/처리자 포함)
+export const rejectPolicy = async (id, rejectPayload) => {
   try {
-    const response = await axiosInstance.patch(`/policies/${id}/reject`, { reject_reason });
+    const response = await axiosInstance.patch(`/policies/${id}/reject`, rejectPayload);
     return response.data;
   } catch (error) {
     throw error;
