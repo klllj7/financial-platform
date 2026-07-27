@@ -547,6 +547,67 @@
   box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
 }
 
+/* 상태 컬럼 안에서 토글을 가운데 정렬 */
+.admin-status-switch-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 계정 활성/비활성 스위치 */
+.admin-account-switch {
+  position: relative;
+
+  width: 46px;
+  height: 26px;
+  padding: 0;
+
+  border: none;
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+
+/* 스위치 안쪽 동그라미 */
+.admin-account-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+
+  width: 20px;
+  height: 20px;
+
+  background: #ffffff;
+
+  border-radius: 50%;
+
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+
+  transition: transform 0.2s;
+}
+
+/* 활성 상태: 파란색 + 동그라미 오른쪽 */
+.admin-account-switch.active {
+  background: var(--color-primary);
+}
+
+.admin-account-switch.active .admin-account-switch-thumb {
+  transform: translateX(20px);
+}
+
+/* 비활성 상태: 회색 + 동그라미 왼쪽 */
+.admin-account-switch.inactive {
+  background: #cbd5e1;
+}
+
+.admin-account-switch:hover {
+  box-shadow: 0 0 0 4px rgba(47, 109, 246, 0.12);
+}
+
 /* 반응형 */
 @media (max-width: 760px) {
   .admin-account-page {

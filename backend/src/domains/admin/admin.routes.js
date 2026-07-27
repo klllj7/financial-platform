@@ -12,4 +12,8 @@ router.get("/users", authenticate, authorize("ADMIN"), adminController.getUsers)
 
 // 관리자 - 사용자 권한 변경
 router.patch("/users/:userId/role", authenticate, authorize("ADMIN"), adminController.updateUserRole);
+
+// 관리자 - 사용자 상태 변경
+router.patch("/users/:userId/status", authenticate, authorize("ADMIN"), adminController.updateUserStatus);
+
 module.exports = router;
