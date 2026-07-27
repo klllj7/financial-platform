@@ -116,7 +116,6 @@ function ComplianceDashboardPage() {
             applicantName: application.applicantName,
             department: application.departmentName || "-",
             requestName: application.toolName,
-            requestType: "AI Tool",
             requestedAt: new Date(
               application.createdAt,
             ).toLocaleDateString("ko-KR"),
@@ -552,7 +551,7 @@ function ComplianceDashboardPage() {
       </section>
 
       {/* ==================================================
-          AI Tool · 모델 신청 현황
+          AI Tool 신청 현황
       ================================================== */}
       <section className="compliance-model-application-panel">
         <header className="compliance-model-application-header">
@@ -561,7 +560,7 @@ function ComplianceDashboardPage() {
               <Cuboid size={17} />
             </span>
 
-            <h3>AI Tool · 모델 신청 현황</h3>
+            <h3>AI Tool 신청 현황</h3>
 
             <span className="compliance-model-application-count">
               {modelApplications.length}건
@@ -596,8 +595,6 @@ function ComplianceDashboardPage() {
                 <span className="compliance-model-application-content">
                   <span className="compliance-model-application-primary">
                     <strong>{application.requestName}</strong>
-
-                    <span>{application.requestType}</span>
                   </span>
 
                   <span className="compliance-model-application-meta">

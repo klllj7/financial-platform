@@ -16,6 +16,7 @@ const evidenceRoutes = require("./domains/report/evidence/evidence.routes");
 const chatRoutes = require("./domains/chat/chat.routes");
 const noticeRoutes = require("./domains/notices/notice.routes");
 const aiToolApplicationRoutes = require("./domains/ai-tools/ai-tool-application.routes");
+const dashboardRoutes = require("./domains/dashboard/dashboard.routes");
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/notices", noticeRoutes);
 app.use("/api/ai-tool", aiToolApplicationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 // report/evidence API 연결
 app.use("/api/report/evidence", evidenceRoutes);
 

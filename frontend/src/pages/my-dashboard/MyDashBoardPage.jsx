@@ -25,17 +25,15 @@ import {
   YAxis,
 } from "recharts";
 
-/* 아직 API가 연결되지 않은 사용량·위험 통계용 Mock 데이터 */
-import {
-  dashboardSummary,
-  modelAllocationData,
-  recentUsageData,
-  usageTrendData,
-} from "../../mocks/dashboardMock";
-
 /* 공지사항과 AI Tool 신청 현황을 백엔드에서 조회한다. */
 import { getNotices } from "../../api/noticeApi";
 import { getAiToolApplications } from "../../api/aiToolApi";
+import {
+  getMyDashboardModels,
+  getMyDashboardRecent,
+  getMyDashboardSummary,
+  getMyDashboardTrend,
+} from "../../api/dashboardApi";
 
 /* 대시보드 전용 CSS */
 import "./MyDashboardPage.css";
@@ -52,6 +50,21 @@ const MONTH_OPTIONS = [
   "2026년 05월",
   "2026년 04월",
 ];
+
+const EMPTY_SUMMARY = {
+  riskEventCount: 0,
+  mediumOrHigherCount: 0,
+  usageCount: 0,
+  previousMonthDifference: 0,
+  totalTokens: 0,
+  totalCostKrw: 0,
+};
+
+const MODEL_COLORS = ["#2f6fed", "#7a5af8", "#30b795", "#f5a623"];
+
+/* 화면의 한글 월 표시를 API에서 사용하는 YYYY-MM 형식으로 변환한다. */
+const toMonthQuery = (monthLabel) =>
+  monthLabel.replace("년 ", "-").replace("월", "");
 
 /*
   위험 등급에 맞는 CSS 클래스 이름을 반환
@@ -99,6 +112,67 @@ function MyDashboardPage() {
   const [notices, setNotices] = useState([]);
   const [toolApplications, setToolApplications] =
     useState([]);
+  const [usageTrendData, setUsageTrendData] = useState([]);
+  const [dashboardSummary, setDashboardSummary] =
+    useState(EMPTY_SUMMARY);
+  const [modelAllocationData, setModelAllocationData] =
+    useState([]);
+  const [recentUsageData, setRecentUsageData] = useState([]);
+
+  /*
+    정해진 개인 대시보드 API 명세에 따라 요약·추이·모델·최근 이력을 조회한다.
+    선택 월이 바뀌면 월간 요약과 모델 비율도 함께 갱신한다.
+  */
+  useEffect(() => {
+    const fetchPersonalDashboard = async () => {
+      const month = toMonthQuery(selectedMonth);
+
+      try {
+        const [summaryResponse, trendResponse, modelsResponse, recentResponse] =
+          await Promise.all([
+            getMyDashboardSummary(month),
+            getMyDashboardTrend(7),
+            getMyDashboardModels(month),
+            getMyDashboardRecent(5),
+          ]);
+
+        setDashboardSummary(summaryResponse.data || EMPTY_SUMMARY);
+        setUsageTrendData(
+          Array.isArray(trendResponse.data?.items)
+            ? trendResponse.data.items.map((item) => ({
+              ...item,
+              date: new Date(`${item.date}T00:00:00`).toLocaleDateString(
+                "ko-KR",
+                { month: "numeric", day: "numeric" },
+              ),
+              riskCount: item.riskEventCount,
+            }))
+            : [],
+        );
+        setModelAllocationData(
+          Array.isArray(modelsResponse.data?.models)
+            ? modelsResponse.data.models
+            : [],
+        );
+        setRecentUsageData(
+          Array.isArray(recentResponse.data?.items)
+            ? recentResponse.data.items.map((item) => ({
+              ...item,
+              occurredAt: new Date(item.occurredAt).toLocaleString("ko-KR"),
+            }))
+            : [],
+        );
+      } catch (error) {
+        console.error("개인 대시보드 조회 실패", error);
+        setDashboardSummary(EMPTY_SUMMARY);
+        setUsageTrendData([]);
+        setModelAllocationData([]);
+        setRecentUsageData([]);
+      }
+    };
+
+    fetchPersonalDashboard();
+  }, [selectedMonth]);
 
   /*
     백엔드 응답을 기존 대시보드 카드가 사용하는 표시 형식으로 변환한다.
@@ -270,12 +344,13 @@ function MyDashboardPage() {
             </span>
 
             <strong className="summary-value">
-              {dashboardSummary.totalUsageCount}회
+              {dashboardSummary.usageCount}회
             </strong>
 
             <small>
-              전월 대비 +
-              {dashboardSummary.usageIncrease}회
+              전월 대비{" "}
+              {dashboardSummary.previousMonthDifference >= 0 ? "+" : ""}
+              {dashboardSummary.previousMonthDifference}회
             </small>
           </div>
         </article>
@@ -297,6 +372,24 @@ function MyDashboardPage() {
                 className="model-donut-chart"
                 role="img"
                 aria-label="모델별 사용 비율"
+                style={{
+                  background: modelAllocationData.length
+                    ? `conic-gradient(${modelAllocationData
+                      .reduce(
+                        (result, model, index) => {
+                          const start = result.total;
+                          const end = start + model.ratio;
+                          result.parts.push(
+                            `${MODEL_COLORS[index % MODEL_COLORS.length]} ${start}% ${end}%`,
+                          );
+                          result.total = end;
+                          return result;
+                        },
+                        { parts: [], total: 0 },
+                      )
+                      .parts.join(", ")})`
+                    : "#e5eaf3",
+                }}
               />
 
               {/* 모델별 사용 비율 범례 */}
@@ -315,7 +408,7 @@ function MyDashboardPage() {
 
                       <span>
                         <strong>{model.modelName}</strong>{" "}
-                        {model.percentage}%
+                        {model.ratio}%
                       </span>
                     </div>
                   ),

@@ -23,8 +23,19 @@ const sendMessage = async (req, res) => {
     const message = typeof req.body.message === "string" ? req.body.message.trim() : "";
     if (!message) return fail(res, "CHAT_MESSAGE_REQUIRED", "질문을 입력해 주세요.", 400);
     if (message.length > 5000) return fail(res, "CHAT_MESSAGE_TOO_LONG", "질문은 5,000자 이하로 입력해 주세요.", 400);
-    return success(res, await service.sendMessage({ userId: req.user.userId, sessionId: req.body.sessionId, message }), 201);
+    return success(res, await service.sendMessage({
+      userId: req.user.userId,
+      roleCode: req.user.roleCode,
+      sessionId: req.body.sessionId,
+      aiToolApplicationId: req.body.aiToolApplicationId,
+      message,
+    }), 201);
   } catch (error) { return fail(res, error.code || "CHAT_SEND_FAILED", error.message, error.statusCode || 500); }
 };
 
-module.exports = { getSessions, getMessages, updatePin, sendMessage };
+module.exports = {
+  getSessions,
+  getMessages,
+  updatePin,
+  sendMessage,
+};

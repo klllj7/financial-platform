@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Bot,
+  Boxes,
   Eraser,
   LockKeyhole,
   MessageSquareText,
@@ -15,6 +16,7 @@ import {
   sendChatMessage,
   updateChatPin,
 } from "../../api/chatApi";
+import { getAiToolApplications } from "../../api/aiToolApi";
 
 // AI 사용하기 화면에만 적용되는 스타일이다.
 import "./AiChatPage.css";
@@ -53,6 +55,10 @@ function AiChatPage() {
   // Mock/API 호출 실패 시 화면에 보여줄 오류 문구다.
   const [error, setError] = useState("");
 
+  // 로그인 사용자가 선택할 수 있는 승인 완료 AI Tool 목록이다.
+  const [approvedTools, setApprovedTools] = useState([]);
+  const [selectedToolId, setSelectedToolId] = useState(null);
+
   /* Sequelize 날짜와 역할 코드를 화면 메시지 형식으로 변환한다. */
   const formatMessage = (message) => ({
     id: message.id,
@@ -81,6 +87,46 @@ function AiChatPage() {
     fetchSessions();
   }, []);
 
+  /*
+    승인 완료된 AI Tool만 가져와 토글 목록으로 표시한다.
+    담당자·관리자에게 전체 신청이 반환되는 경우에는 같은 Tool을 하나로 합친다.
+  */
+  useEffect(() => {
+    const fetchApprovedTools = async () => {
+      try {
+        const response = await getAiToolApplications();
+        const applications = Array.isArray(response.data)
+          ? response.data
+          : [];
+        const uniqueTools = [];
+        const seenToolKeys = new Set();
+
+        applications
+          .filter((application) => application.status === "APPROVED")
+          .forEach((application) => {
+            const key = `${application.provider}:${application.toolName}`;
+            if (seenToolKeys.has(key)) return;
+            seenToolKeys.add(key);
+            uniqueTools.push(application);
+          });
+
+        setApprovedTools(uniqueTools);
+        setSelectedToolId((currentId) =>
+          uniqueTools.some((tool) => tool.id === currentId)
+            ? currentId
+            : uniqueTools[0]?.id ?? null,
+        );
+      } catch (requestError) {
+        console.error("승인 AI Tool 목록 조회 실패", requestError);
+        setApprovedTools([]);
+        setSelectedToolId(null);
+        setError("승인된 AI Tool 목록을 불러오지 못했습니다.");
+      }
+    };
+
+    fetchApprovedTools();
+  }, []);
+
   /* 핀으로 고정된 대화를 먼저 보여주고 나머지는 최신순으로 유지한다. */
   const sortedChatHistory = useMemo(
     () => [...chatHistory].sort((a, b) => Number(b.isPinned) - Number(a.isPinned)),
@@ -92,7 +138,7 @@ function AiChatPage() {
   const handleSend = async () => {
     const trimmedPrompt = prompt.trim();
 
-    if (!trimmedPrompt || isLoading) {
+    if (!trimmedPrompt || isLoading || !selectedToolId) {
       return;
     }
 
@@ -104,6 +150,7 @@ function AiChatPage() {
       const response = await sendChatMessage({
         message: trimmedPrompt,
         sessionId: activeChatId,
+        aiToolApplicationId: selectedToolId,
       });
       const { session, userMessage, assistantMessage } = response.data;
 
@@ -268,6 +315,37 @@ function AiChatPage() {
             <span><i /> 보안 연결</span>
           </header>
 
+          {/* 승인 완료된 AI Tool 중 대화에 사용할 Tool을 선택한다. */}
+          <div className="ai-chat-tool-selector">
+            <div>
+              <Boxes size={16} />
+              <strong>사용할 AI Tool</strong>
+            </div>
+
+            {approvedTools.length > 0 ? (
+              <div className="ai-chat-tool-toggle-list">
+                {approvedTools.map((tool) => (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    className={
+                      selectedToolId === tool.id ? "active" : ""
+                    }
+                    aria-pressed={selectedToolId === tool.id}
+                    onClick={() => setSelectedToolId(tool.id)}
+                  >
+                    <strong>{tool.toolName}</strong>
+                    <span>{tool.provider}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p>
+                승인된 AI Tool이 없습니다. 먼저 AI Tool 사용을 신청해 주세요.
+              </p>
+            )}
+          </div>
+
           <div className="ai-chat-message-list">
             {messages.length === 0 ? (
               <div className="ai-chat-empty-state">
@@ -351,7 +429,7 @@ function AiChatPage() {
               <span>Enter 전송 · Shift+Enter 줄바꿈</span>
               <button
                 type="button"
-                disabled={!prompt.trim() || isLoading}
+                disabled={!prompt.trim() || isLoading || !selectedToolId}
                 onClick={handleSend}
               >
                 <Send size={16} />

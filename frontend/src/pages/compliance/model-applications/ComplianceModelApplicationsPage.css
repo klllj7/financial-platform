@@ -35,9 +35,7 @@
 .applications-table td strong { color: #2b3e5c; font-size: 11px; }
 .applications-table td small { margin-top: 4px; color: #8794a8; font-size: 9px; }
 .application-purpose { display: block; max-width: 280px; overflow: hidden; color: #63758f; text-overflow: ellipsis; white-space: nowrap; }
-.application-type, .application-status { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 0 8px; border-radius: 6px; font-size: 9px; font-weight: 800; }
-.application-type.tool { color: #315fb0; background: #edf3ff; border: 1px solid #c9d9f5; }
-.application-type.model { color: #6c4bb5; background: #f3efff; border: 1px solid #d8cdf5; }
+.application-status { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 0 8px; border-radius: 6px; font-size: 9px; font-weight: 800; }
 .application-status.pending { color: #a8610a; background: #fff5dc; border: 1px solid #f0d18d; }
 .application-status.reviewing { color: #2863c5; background: #eaf2ff; border: 1px solid #bed4ff; }
 .application-status.approved { color: #07815f; background: #e9f9f3; border: 1px solid #a9e5d2; }

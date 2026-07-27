@@ -1,5 +1,6 @@
 const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
+const AiToolApplication = require("../ai-tools/ai-tool-application.model");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -31,7 +32,53 @@ const inspectPrompt = (message) => ({
   maskApplied: /주민등록번호|계좌번호|전화번호/i.test(message),
 });
 
-const sendMessage = async ({ userId, sessionId, message }) => {
+/* 선택한 AI Tool 신청이 승인 상태이고 현재 사용자가 사용할 수 있는지 확인한다. */
+const findApprovedTool = async ({
+  userId,
+  roleCode,
+  aiToolApplicationId,
+}) => {
+  if (!aiToolApplicationId) {
+    throw serviceError(
+      "CHAT_AI_TOOL_REQUIRED",
+      "사용할 AI Tool을 선택해 주세요.",
+      400,
+    );
+  }
+
+  const application = await AiToolApplication.findOne({
+    where: {
+      id: aiToolApplicationId,
+      status: "APPROVED",
+      ...(["COMPLIANCE_MANAGER", "ADMIN"].includes(roleCode)
+        ? {}
+        : { userId }),
+    },
+  });
+
+  if (!application) {
+    throw serviceError(
+      "CHAT_AI_TOOL_NOT_APPROVED",
+      "승인되지 않았거나 사용할 수 없는 AI Tool입니다.",
+      403,
+    );
+  }
+  return application;
+};
+
+const sendMessage = async ({
+  userId,
+  roleCode,
+  sessionId,
+  aiToolApplicationId,
+  message,
+}) => {
+  const approvedTool = await findApprovedTool({
+    userId,
+    roleCode,
+    aiToolApplicationId,
+  });
+
   const session = sessionId
     ? await findOwnedSession(userId, sessionId)
     : await ChatSession.create({
@@ -51,11 +98,16 @@ const sendMessage = async ({ userId, sessionId, message }) => {
     content: reply,
     blocked: inspection.blocked,
     maskApplied: inspection.maskApplied,
-    modelName: inspection.blocked ? null : "MOCK_MODEL",
+    modelName: inspection.blocked ? null : approvedTool.toolName,
   });
 
   await session.update({ updatedAt: new Date() }, { silent: false });
   return { session, userMessage, assistantMessage };
 };
 
-module.exports = { getSessions, getMessages, updatePin, sendMessage };
+module.exports = {
+  getSessions,
+  getMessages,
+  updatePin,
+  sendMessage,
+};
