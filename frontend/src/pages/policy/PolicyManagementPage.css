@@ -74,7 +74,7 @@
 /* "필터" 아이콘 + 텍스트, 드롭다운 라벨과 같은 높이(맨 위)로 정렬 */
 .policy-filter-icon-label {
   display: flex;
-  align-items: hight;
+  align-items: center;
   gap: 6px;
 
   height: 38px;
@@ -120,21 +120,60 @@
   box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
 }
 
-/* 필터 바 오른쪽 끝: 건수 + "+ 요청" 버튼. margin-left: auto로 오른쪽에 붙는다. */
+/* 필터 바 오른쪽 끝: 위에는 건수 + "+ 요청", 그 아래 작게 "편집" 버튼. margin-left: auto로 오른쪽에 붙는다. */
 .policy-filter-bar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+
+  margin-left: auto;
+}
+
+.policy-filter-bar-right-top {
   display: flex;
   align-items: center;
   gap: 14px;
-
-  margin-left: auto;
-
-  padding-bottom: 9px;
 }
 
 .policy-filter-count {
   color: var(--color-text-sub);
   font-size: 13px;
   font-weight: 700;
+}
+
+/* "+ 요청" 아래 작은 "편집" 버튼: outline 스타일 */
+.policy-outline-button {
+  min-height: 30px;
+  padding: 0 14px;
+
+  color: var(--color-primary);
+  background: transparent;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.policy-outline-button:hover:not(:disabled) {
+  background: rgba(47, 109, 246, 0.08);
+}
+
+.policy-outline-button.active,
+.policy-outline-button:disabled {
+  color: #ffffff;
+  background: var(--color-primary);
+
+  cursor: default;
 }
 
 /* 테이블이 화면보다 넓어지면 가로 스크롤이 생기게 함 */
@@ -184,6 +223,92 @@
 
 .policy-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* 테이블 하단 바: 왼쪽 여백 / 가운데 페이지 번호 / 오른쪽 저장·취소 버튼, 3등분 grid */
+.policy-table-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  padding: 14px 22px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.policy-table-footer-side {
+  display: flex;
+}
+
+.policy-table-footer-actions {
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.policy-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  color: var(--color-text-sub);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.policy-pagination button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  color: var(--color-text-sub);
+  background: #f4f7fc;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.policy-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.policy-save-button,
+.policy-cancel-button {
+  min-height: 34px;
+  padding: 0 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.policy-save-button {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+.policy-save-button:hover {
+  box-shadow: 0 8px 18px rgba(47, 109, 246, 0.24);
+}
+
+.policy-cancel-button {
+  color: var(--color-text-sub);
+  background: #f1f5f9;
+}
+
+.policy-cancel-button:hover {
+  background: #e2e8f0;
 }
 
 /* 필터 결과가 없을 때 보여주는 안내 문구 */
@@ -248,22 +373,53 @@
   background: #fee2e2;
 }
 
-/* 활성여부를 색 점 하나로 표시 (active_yn true/false) */
-.policy-active-dot {
-  display: inline-block;
+/* 활성여부 토글 스위치 (편집 모드가 아니면 잠긴 채로 회색조로 보임) */
+.policy-toggle-switch {
+  appearance: none;
+  -webkit-appearance: none;
 
-  width: 10px;
-  height: 10px;
+  position: relative;
 
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+
+  width: 40px;
+  height: 22px;
+  padding: 2px;
+
+  background: #d9e1ef;
+
+  border: none;
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  transition: background-color 0.15s;
 }
 
-.policy-active-dot.on {
+.policy-toggle-switch.on {
   background: var(--color-primary);
 }
 
-.policy-active-dot.off {
-  background: #d9e1ef;
+.policy-toggle-switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.policy-toggle-knob {
+  width: 18px;
+  height: 18px;
+
+  background: #ffffff;
+
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+
+  transition: transform 0.15s;
+}
+
+.policy-toggle-switch.on .policy-toggle-knob {
+  transform: translateX(18px);
 }
 
 /* 정책 요청(생성) 모달, 정책 수정 폼에서 같이 쓰는 입력 폼 레이아웃 */

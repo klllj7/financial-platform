@@ -549,60 +549,66 @@
 }
 
 /* =========================================================
-   정책 기본 정보 카드 영역
-   - 유형, 요청자, 부서, 버전 등을 4열로 표시합니다.
+   정책 메타 정보 (요청자 / 적용 부서 / 요청일 / 현재 상태) 2x2 그리드
 ========================================================= */
-.admin-policy-detail-grid {
+.admin-policy-meta-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 24px;
 
   margin-bottom: 18px;
 }
 
-/* 개별 정책 정보 카드 */
-.admin-policy-detail-grid div {
-  padding: 12px;
-
-  background: #f8faff;
-
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+.admin-policy-meta-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* 정보 항목명 */
-.admin-policy-detail-grid span {
-  display: block;
-
+.admin-policy-meta-grid span {
   color: var(--color-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
-/* 정보 값 */
-.admin-policy-detail-grid strong {
-  display: block;
-
-  margin-top: 5px;
-
+.admin-policy-meta-grid strong {
   color: var(--color-text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 850;
 }
 
-/* 정책 내용, 요청 사유, 변경사항 영역 */
-.admin-policy-detail-section {
-  margin-top: 16px;
+/* 정책 개요: 연한 회색 배경 박스 */
+.admin-policy-summary-box {
+  margin-bottom: 16px;
   padding: 16px;
 
-  background: #ffffff;
+  background: #f8faff;
 
-  border: 1px solid var(--color-border);
   border-radius: 14px;
 }
 
-/* 상세 영역 제목 */
-.admin-policy-detail-section h4 {
+.admin-policy-summary-box h4 {
+  margin: 0 0 8px;
+
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-policy-summary-box p {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 정책 규칙: 번호가 붙은 목록 */
+.admin-policy-rules-section {
+  margin-bottom: 16px;
+}
+
+.admin-policy-rules-section h4 {
   margin: 0 0 10px;
 
   color: var(--color-text);
@@ -610,13 +616,216 @@
   font-weight: 850;
 }
 
-/* 정책 내용 및 요청 사유 본문 */
-.admin-policy-detail-section p {
+.admin-policy-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
   margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.admin-policy-rules-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 
   color: #475569;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.6;
+}
+
+.admin-policy-rule-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* 반려 내용 박스: 붉은색 계열 경고 스타일 */
+.admin-policy-rejection-box {
+  margin-bottom: 16px;
+  padding: 16px;
+
+  background: #fef2f2;
+
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+}
+
+.admin-policy-rejection-box h4 {
+  margin: 0 0 12px;
+
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.admin-policy-rejection-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  margin-bottom: 12px;
+}
+
+.admin-policy-rejection-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-policy-rejection-meta span,
+.admin-policy-rejection-field span {
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.admin-policy-rejection-meta strong {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-policy-rejection-field {
+  margin-bottom: 10px;
+}
+
+.admin-policy-rejection-field strong,
+.admin-policy-rejection-field p {
+  margin: 4px 0 0;
+
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 수정/보완 요청사항: 노란색 계열 강조 박스 */
+.admin-policy-revision-box {
+  padding: 12px 14px;
+
+  background: #fffbeb;
+
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+}
+
+.admin-policy-revision-box span {
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-policy-revision-box p {
+  margin: 4px 0 0;
+
+  color: #78350f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 반려 입력 폼 (반려 버튼을 눌렀을 때만 보임) */
+.admin-policy-reject-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-top: 16px;
+  padding: 16px;
+
+  background: #f8faff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.admin-policy-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-policy-form-group label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-policy-form-group input,
+.admin-policy-form-group textarea {
+  padding: 10px 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+}
+
+.admin-policy-form-group textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.admin-policy-form-group input:focus,
+.admin-policy-form-group textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+/* 목록의 정책명(더 이상 버튼이 아니라 일반 텍스트) */
+.admin-policy-name-text {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+/* 목록의 "상세" 링크 버튼 */
+.admin-policy-detail-link {
+  appearance: none;
+  -webkit-appearance: none;
+
+  padding: 0;
+
+  color: var(--color-primary);
+  background: transparent;
+
+  border: none;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.admin-policy-detail-link:hover {
+  text-decoration: underline;
+}
+
+.admin-policy-reject-reason-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
 }
 
 /* 주요 변경사항 목록 */

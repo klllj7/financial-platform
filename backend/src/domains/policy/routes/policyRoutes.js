@@ -12,4 +12,6 @@ router.put("/:id", policyController.updatePolicy);
 router.patch("/:id/approve", policyController.approvePolicy);
 //Patch /api/policies/:id/reject
 router.patch("/:id/reject", policyController.rejectPolicy);
+//Patch /api/policies/:id/active
+router.patch("/:id/active", policyController.setPolicyActive);
 module.exports = router;
