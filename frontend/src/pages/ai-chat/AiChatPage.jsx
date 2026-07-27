@@ -29,10 +29,11 @@ const ROLE_LABELS = {
   ADMIN: "관리자",
 };
 
-const DEFAULT_CLAUDE_TOOL = {
-  id: "CLAUDE_DEFAULT",
-  toolName: "Claude",
-  provider: "Anthropic",
+const DEFAULT_SOLAR_TOOL = {
+  id: "default-solar",
+  toolName: "Solar Pro 3",
+  provider: "Upstage",
+  toolKey: "DEFAULT_SOLAR",
   isDefault: true,
 };
 
@@ -63,9 +64,9 @@ function AiChatPage() {
 
   // 로그인 사용자가 선택할 수 있는 승인 완료 AI Tool 목록이다.
   const [approvedTools, setApprovedTools] =
-    useState([DEFAULT_CLAUDE_TOOL]);
+    useState([DEFAULT_SOLAR_TOOL]);
   const [selectedToolId, setSelectedToolId] =
-    useState(DEFAULT_CLAUDE_TOOL.id);
+    useState(DEFAULT_SOLAR_TOOL.id);
 
   /* Sequelize 날짜와 역할 코드를 화면 메시지 형식으로 변환한다. */
   const formatMessage = (message) => ({
@@ -118,18 +119,18 @@ function AiChatPage() {
             uniqueTools.push(application);
           });
 
-        const selectableTools = [DEFAULT_CLAUDE_TOOL, ...uniqueTools];
+        const selectableTools = [DEFAULT_SOLAR_TOOL, ...uniqueTools];
         setApprovedTools(selectableTools);
         setSelectedToolId((currentId) =>
           selectableTools.some((tool) => tool.id === currentId)
             ? currentId
-            : DEFAULT_CLAUDE_TOOL.id,
+            : DEFAULT_SOLAR_TOOL.id,
         );
       } catch (requestError) {
         console.error("승인 AI Tool 목록 조회 실패", requestError);
-        // 승인 목록 조회가 실패해도 기본 Claude는 계속 선택할 수 있다.
-        setApprovedTools([DEFAULT_CLAUDE_TOOL]);
-        setSelectedToolId(DEFAULT_CLAUDE_TOOL.id);
+        // 승인 목록 조회가 실패해도 기본 Solar는 계속 선택할 수 있다.
+        setApprovedTools([DEFAULT_SOLAR_TOOL]);
+        setSelectedToolId(DEFAULT_SOLAR_TOOL.id);
       }
     };
 
@@ -160,11 +161,11 @@ function AiChatPage() {
         message: trimmedPrompt,
         sessionId: activeChatId,
         toolKey:
-          selectedToolId === DEFAULT_CLAUDE_TOOL.id
-            ? DEFAULT_CLAUDE_TOOL.id
+          selectedToolId === DEFAULT_SOLAR_TOOL.id
+            ? DEFAULT_SOLAR_TOOL.toolKey
             : undefined,
         aiToolApplicationId:
-          selectedToolId === DEFAULT_CLAUDE_TOOL.id
+          selectedToolId === DEFAULT_SOLAR_TOOL.id
             ? undefined
             : selectedToolId,
       });

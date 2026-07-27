@@ -1,9 +1,9 @@
 const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
 const AiToolApplication = require("../ai-tools/ai-tool-application.model");
-const { createClaudeMessage } = require("./anthropic.client");
+const { createSolarMessage } = require("./solar.client");
 
-const DEFAULT_CLAUDE_TOOL_KEY = "CLAUDE_DEFAULT";
+const DEFAULT_SOLAR_TOOL_KEY = "DEFAULT_SOLAR";
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -42,11 +42,11 @@ const findApprovedTool = async ({
   aiToolApplicationId,
   toolKey,
 }) => {
-  if (toolKey === DEFAULT_CLAUDE_TOOL_KEY) {
+  if (toolKey === DEFAULT_SOLAR_TOOL_KEY) {
     return {
-      toolName: "Claude",
-      provider: "Anthropic",
-      isDefaultClaude: true,
+      toolName: "Solar Pro 3",
+      provider: "Upstage",
+      isDefaultSolar: true,
     };
   }
 
@@ -118,15 +118,15 @@ const sendMessage = async ({
 
   if (inspection.blocked) {
     reply = "보안 정책에 의해 요청이 차단되었습니다. 인증정보나 기밀정보를 제거해 주세요.";
-  } else if (approvedTool.isDefaultClaude) {
-    const claudeResponse = await createClaudeMessage([
+  } else if (approvedTool.isDefaultSolar) {
+    const solarResponse = await createSolarMessage([
       ...previousMessages,
       userMessage,
     ]);
-    reply = claudeResponse.content;
-    modelName = claudeResponse.modelName;
-    inputTokens = claudeResponse.inputTokens;
-    outputTokens = claudeResponse.outputTokens;
+    reply = solarResponse.content;
+    modelName = solarResponse.modelName;
+    inputTokens = solarResponse.inputTokens;
+    outputTokens = solarResponse.outputTokens;
   } else {
     throw serviceError(
       "CHAT_TOOL_PROVIDER_NOT_CONFIGURED",
