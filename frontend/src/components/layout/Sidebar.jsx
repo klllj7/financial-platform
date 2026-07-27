@@ -7,7 +7,6 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
-  ShieldAlert,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -48,16 +47,6 @@ const ROLE_MENUS = {
       icon: LayoutDashboard,
     },
     {
-      to: "/compliance/risk-events",
-      label: "위험 이벤트 관리",
-      icon: ShieldAlert,
-    },
-    {
-      to: "/compliance/model-applications",
-      label: "AI Tool·모델 신청 현황",
-      icon: Boxes,
-    },
-    {
       to: "/ai-chat",
       label: "AI 사용하기",
       icon: Bot,
@@ -81,6 +70,11 @@ const ROLE_MENUS = {
       icon: UsersRound,
     },
     {
+      to: "/ai-chat",
+      label: "AI 사용하기",
+      icon: Bot,
+    },
+    {
       to: "/admin/models",
       label: "AI 모델 관리",
       icon: Bot,
@@ -93,13 +87,31 @@ const ROLE_MENUS = {
   ],
 };
 
+/*
+  로그인 사용자 정보가 손상되거나 이전 형식으로 저장된 경우에도
+  사이드바 전체가 멈추지 않도록 안전하게 JSON을 변환한다.
+*/
+const getStoredUser = () => {
+  const storedUser = localStorage.getItem("user");
+
+  if (!storedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser);
+  } catch (error) {
+    console.error("저장된 로그인 사용자 정보를 읽지 못했습니다.", error);
+    return null;
+  }
+};
+
 function Sidebar() {
   // 함수 안에서 페이지를 이동하기 위해 사용한다.
   const navigate = useNavigate();
 
-  // localStorage에 저장된 로그인 사용자 정보 가져오기
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  // localStorage에 저장된 로그인 사용자 정보를 안전하게 가져온다.
+  const user = getStoredUser();
   
 
   const roleCode = user?.role?.code || user?.role || "EMPLOYEE";  // 사용자 역할
