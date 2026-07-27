@@ -1,6 +1,7 @@
 const User = require("./user.model");
 const Role = require("./role.model");
 const Department = require("./department.model");
+const LoginHistory = require("./loginHistory.model");
 
 // User N : 1 Department
 // 한 부서에 여러 사용자가 소속
@@ -32,8 +33,27 @@ Role.hasMany(User, {
   as: "users",
 });
 
+// user 1 : N LoginHistory
+// 한 사용자는 여러 번 로그인할 수 있으므로 로그인 이력을 여러 개 가짐
+User.hasMany(LoginHistory, {
+  foreignKey: {
+    name: "userId",
+    allowNull: false,
+  },
+  as: "loginHistories",
+});
+
+LoginHistory.belongsTo(User, {
+  foreignKey: {
+    name: "userId",
+    allowNull: false,
+  },
+  as: "user",
+});
+
 module.exports = {
   User,
   Role,
   Department,
+  LoginHistory,
 };
