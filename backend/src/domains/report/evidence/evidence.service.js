@@ -1,15 +1,35 @@
-// [뼈대 단계] 실제 체크리스트 테이블이 아직 없어서
-// 배관 확인용 placeholder 데이터만 반환한다.
-// 다음 단계에서 이 함수 내부를 실제 DB 조회 또는
-// 목데이터 143개 항목으로 채운다.
+// const getEvidenceChecklist = async () => {
+//     return {
+//         categoryMeta: [],
+//         naCategories: [],
+//         items: []
+//     };
+// };
+// module.exports = {
+//     getEvidenceChecklist
+// };
 
-const getEvidenceChecklist = async () => {
+
+const { EvidenceFile } = require("../../../db/models");
+const CHECKLIST_ITEMS = require("./checklistItems"); // 38개 마스터 목록 (프론트 mock에서 이식)
+
+const getEvidenceChecklist = async ({ departmentId, targetYear }) => {
+  // 부서+연도에 해당하는 실제 업로드 현황 조회
+  const uploaded = await EvidenceFile.findAll({
+    where: { departmentId, targetYear },
+  });
+
+  // 마스터 목록에 실제 업로드 여부를 매칭
+  const items = CHECKLIST_ITEMS.map((item) => {
+    const match = uploaded.find((f) => f.itemNo === item.no);
     return {
-        categoryMeta: [],
-        naCategories: [],
-        items: []
+      ...item,
+      evidence: match ? "준비완료" : "미준비",
+      file: match?.fileName ?? null,
     };
+  });
+
+  return { categoryMeta: CATEGORY_META, naCategories: NA_CATEGORIES, items };
 };
-module.exports = {
-    getEvidenceChecklist
-};
+
+module.exports = { getEvidenceChecklist };

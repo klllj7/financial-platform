@@ -24,11 +24,14 @@ module.exports = (sequelize, DataTypes) => {
     fileType: DataTypes.STRING,
     filePath: DataTypes.STRING,
     sourceType: DataTypes.STRING,
-    uploadedBy: DataTypes.INTEGER
+    uploadedBy: DataTypes.INTEGER, 
+    itemNo: DataTypes.STRING,
+    itemTitle: DataTypes.STRING,
+    itemResult: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'EvidenceFile',
-    tableName: 'evidencefile', 
+    tableName: 'evidence_file', 
     underscored: true
   });
   return EvidenceFile;
