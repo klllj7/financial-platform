@@ -14,12 +14,13 @@ const RegulationClause = sequelize.define("RegulationClause", {
     title: {
     type: DataTypes.STRING,
     allowNull: false,
-},
-description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-},
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
 }, {
     tableName: "regulation_clause",
-    undersocred: true,
+    underscored: true,
 });
+module.exports = RegulationClause;
