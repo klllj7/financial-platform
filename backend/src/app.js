@@ -10,6 +10,7 @@ const sequelize = require("./common/config/db");  // PostgreSQL 연결 설정 �
 const seedBasicData = require("./db/init");
 const authRoutes = require("./domains/auth/auth.routes");
 const adminRoutes = require("./domains/admin/admin.routes");
+const evidenceRoutes = require("./domains/report/evidence/evidence.routes");
 
 /* 새 기능은 기존 도메인 코드를 수정하지 않고 독립 라우터로 연결한다. */
 const chatRoutes = require("./domains/chat/chat.routes");
@@ -44,6 +45,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/notices", noticeRoutes);
 app.use("/api/ai-tool", aiToolApplicationRoutes);
+// report/evidence API 연결
+app.use("/api/report/evidence", evidenceRoutes);
 
 const PORT = process.env.PORT || 8080;
 

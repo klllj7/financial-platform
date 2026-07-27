@@ -78,6 +78,11 @@ const ROLE_MENUS = {
       label: "AI 사용하기",
       icon: Bot,
     },
+    {
+      to: "/admin/models",
+      label: "AI 모델",
+      icon: Bot,
+    },
   ],
 };
 

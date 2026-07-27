@@ -21,10 +21,12 @@ const PAGE_TITLES = {
 
   "/compliance/dashboard": "전사 대시보드",
   "/compliance/notices": "공지사항",
+  "/compliance/risk-events": "위험 이벤트 관리",
   "/policies": "정책 관리",
   "/compliance/evidence": "상시평가 증빙자료",
 
   "/admin/accounts": "계정 관리",
+  "/admin/models": "AI 모델 관리",
 };
 
 function AppLayout() {
