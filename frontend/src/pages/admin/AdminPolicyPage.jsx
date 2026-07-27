@@ -1,10 +1,6 @@
-import { useMemo, useState } from "react";
-import {
-  CheckCircle,
-  FileText,
-  Search,
-  XCircle,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CheckCircle, FileText, Search, XCircle } from "lucide-react";
+import { getPolicies, approvePolicy, rejectPolicy } from "../../api/policyApi";
 import "./AdminPolicyPage.css";
 
 const POLICY_STATUS_LABEL_MAP = {
@@ -13,193 +9,126 @@ const POLICY_STATUS_LABEL_MAP = {
   REJECTED: "반려",
 };
 
-const POLICY_TYPE_LABEL_MAP = {
-  AI_USAGE: "AI 사용 정책",
-  DLP: "민감정보 정책",
-  MODEL: "모델 사용 정책",
-  AUDIT: "감사/증적 정책",
-};
+// 날짜를 "YYYY-MM-DD" 형태로 보여준다.
+const formatDate = (isoString) => (isoString ? isoString.slice(0, 10) : "-");
 
-const PRIORITY_LABEL_MAP = {
-  HIGH: "높음",
-  NORMAL: "보통",
-  LOW: "낮음",
-};
+// rule_content(줄바꿈 포함 텍스트)를 "개요(첫 줄)" + "규칙 목록(나머지 줄)"로 나눈다.
+const parseRuleContent = (ruleContent) => {
+  const lines = (ruleContent || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
-/* 서버 연동 전 화면 테스트에 사용하는 초기 정책 승인 요청 MOCK 데이터 */
-const INITIAL_POLICIES = [
-  {
-    id: 1,
-    policyName: "개인정보 포함 프롬프트 차단 정책",
-    policyType: "DLP",
-    requester: "이영아",
-    department: "준법감시팀",
-    version: "v1.2",
-    requestedAt: "2026-07-24 09:30",
-    status: "PENDING",
-    priority: "HIGH",
-    scope: "전사",
-    summary: "주민등록번호, 계좌번호, 연락처 등 민감정보가 포함된 프롬프트 입력을 제한합니다.",
-    content:
-      "사용자가 생성형 AI에 프롬프트를 입력할 때 주민등록번호, 계좌번호, 휴대폰 번호, 이메일 등 개인정보 또는 금융 민감정보가 포함된 경우 자동으로 탐지하고 사용을 제한한다. 탐지된 항목은 감사 로그에 기록하며, 필요 시 비식별 처리 후 재요청할 수 있도록 안내한다.",
-    changeReason:
-      "최근 생성형 AI 사용량 증가로 인해 개인정보가 외부 모델로 전송될 가능성이 높아져 사전 차단 정책이 필요합니다.",
-    changes: [
-      "주민등록번호 패턴 탐지 규칙 추가",
-      "계좌번호 탐지 기준 강화",
-      "민감정보 탐지 시 감사 로그 저장",
-    ],
-  },
-  {
-    id: 2,
-    policyName: "외부 LLM 사용 승인 절차 정책",
-    policyType: "AI_USAGE",
-    requester: "장현지",
-    department: "IT보안팀",
-    version: "v1.0",
-    requestedAt: "2026-07-23 15:10",
-    status: "APPROVED",
-    priority: "NORMAL",
-    scope: "전사",
-    summary: "외부 LLM 사용 전 관리자 승인을 받도록 하는 정책입니다.",
-    content:
-      "임직원이 외부 생성형 AI 모델을 업무에 사용하려는 경우 사용 목적, 입력 데이터 유형, 예상 사용 기간을 작성하여 관리자에게 신청해야 한다. 관리자는 보안 위험도와 업무 필요성을 검토한 뒤 승인 또는 반려할 수 있다.",
-    changeReason:
-      "외부 AI 모델 사용 요청이 증가함에 따라 승인 절차를 표준화하기 위함입니다.",
-    changes: [
-      "외부 모델 신청 프로세스 정의",
-      "승인 전 사용 제한 기준 추가",
-      "신청 이력 보관 기준 추가",
-    ],
-  },
-  {
-    id: 3,
-    policyName: "AI 출력 결과 검토 의무 정책",
-    policyType: "AUDIT",
-    requester: "이지윤",
-    department: "여신심사팀",
-    version: "v2.0",
-    requestedAt: "2026-07-22 11:45",
-    status: "PENDING",
-    priority: "NORMAL",
-    scope: "여신심사팀",
-    summary: "AI가 생성한 결과를 업무에 반영하기 전 담당자가 검토하도록 합니다.",
-    content:
-      "AI가 생성한 분석 결과, 보고서 초안, 고객 응대 문구 등은 최종 업무 반영 전 담당자가 사실 여부와 규정 위반 가능성을 검토해야 한다. 검토 완료 여부는 사용 로그에 함께 기록한다.",
-    changeReason:
-      "AI 출력 결과를 그대로 사용하는 경우 잘못된 판단이나 규정 위반 가능성이 있어 검토 절차가 필요합니다.",
-    changes: [
-      "AI 출력 결과 검토 단계 추가",
-      "검토자 기록 항목 추가",
-      "검토 미완료 결과 사용 제한",
-    ],
-  },
-  {
-    id: 4,
-    policyName: "미승인 모델 사용 제한 정책",
-    policyType: "MODEL",
-    requester: "김정욱",
-    department: "마케팅팀",
-    version: "v1.1",
-    requestedAt: "2026-07-21 17:20",
-    status: "REJECTED",
-    priority: "LOW",
-    scope: "마케팅팀",
-    summary: "승인되지 않은 AI 모델 사용을 제한하는 정책입니다.",
-    content:
-      "관리자가 승인하지 않은 AI 모델은 업무용 포털에서 선택할 수 없으며, 승인 요청 이력이 없는 모델 사용은 시스템에서 차단한다.",
-    changeReason:
-      "마케팅팀 내 비공식 AI 모델 사용을 줄이고 승인된 모델 중심으로 사용을 통제하기 위함입니다.",
-    changes: [
-      "미승인 모델 목록 숨김",
-      "모델 신청 이력 확인 조건 추가",
-      "반려 모델 재신청 기준 추가",
-    ],
-  },
-];
+  return {
+    summary: lines[0] || "",
+    rules: lines.slice(1),
+  };
+};
 
 function AdminPolicyPage() {
-  // 전체 정책 목록 상태
-  const [policies, setPolicies] = useState(INITIAL_POLICIES);
+  // 로그인한 관리자 이름 (Sidebar.jsx와 같은 방식) — 반려 처리자로 기록한다.
+  const storedUser = localStorage.getItem("user");
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
+  const currentUserName = currentUser?.name || "관리자";
 
-  // 승인 상태 필터와 정책 유형 필터
+  // 전체 정책 목록 상태
+  const [policies, setPolicies] = useState([]);
+
+  // 승인 상태 필터
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [typeFilter, setTypeFilter] = useState("ALL");
-  
-  // 정책명, 요청자, 부서를 검색하기 위한 검색어
+
+  // 정책명, 요청자를 검색하기 위한 검색어
   const [keyword, setKeyword] = useState("");
 
   // 상세 모달에 표시할 현재 선택 정책
   const [selectedPolicy, setSelectedPolicy] = useState(null);
 
-  /* 상태, 정책 유형, 검색어 조건에 맞는 정책만 추출 */
+  // 반려 입력 폼이 열려있는지, 그리고 입력값 3가지
+  const [isRejectFormOpen, setIsRejectFormOpen] = useState(false);
+  const [rejectReasonInput, setRejectReasonInput] = useState("");
+  const [rejectDetailInput, setRejectDetailInput] = useState("");
+  const [revisionRequestInput, setRevisionRequestInput] = useState("");
+
+  // 서버에서 정책 목록을 받아와서, 이 페이지가 쓰는 필드 이름으로 변환한다.
+  const fetchPolicies = async () => {
+    const result = await getPolicies();
+    const mapped = result.data.map((policy) => ({
+      id: policy.id,
+      policyName: policy.name,
+      requester: policy.requested_by || "-",
+      departmentName: policy.department_name || "-",
+      version: `v${policy.version}`,
+      requestedAt: formatDate(policy.createdAt),
+      status: policy.approval_status.toUpperCase(), // pending -> PENDING
+      content: policy.rule_content,
+      rejectReason: policy.reject_reason,
+      rejectDetail: policy.reject_detail,
+      revisionRequest: policy.revision_request,
+      rejectedBy: policy.rejected_by,
+      rejectedAt: formatDate(policy.rejected_at),
+    }));
+    setPolicies(mapped);
+  };
+
+  // 페이지가 처음 열릴 때 한 번 정책 목록을 불러온다.
+  useEffect(() => {
+    fetchPolicies();
+  }, []);
+
+  /* 상태, 검색어 조건에 맞는 정책만 추출 */
   const filteredPolicies = useMemo(() => {
     return policies.filter((policy) => {
       const matchesStatus = statusFilter === "ALL" || policy.status === statusFilter;
-      const matchesType = typeFilter === "ALL" || policy.policyType === typeFilter;
 
       // 대소문자 구분 없이 검색하기 위해 검색어를 소문자로 변환
       const lowerKeyword = keyword.toLowerCase();
 
-      const matchesKeyword = 
+      const matchesKeyword =
         policy.policyName.toLowerCase().includes(lowerKeyword) ||
-        policy.requester.toLowerCase().includes(lowerKeyword) ||
-        policy.department.toLowerCase().includes(lowerKeyword);
+        policy.requester.toLowerCase().includes(lowerKeyword);
 
-      return matchesStatus && matchesType && matchesKeyword;
+      return matchesStatus && matchesKeyword;
     });
-  }, [policies, statusFilter, typeFilter, keyword]);
+  }, [policies, statusFilter, keyword]);
 
   const pendingCount = policies.filter((policy) => policy.status === "PENDING").length;   // 승인대기 정책 수
   const approvedCount = policies.filter((policy) => policy.status === "APPROVED").length; // 승인완료 정책 수
   const rejectedCount = policies.filter((policy) => policy.status === "REJECTED").length; // 반려된 정책 수
 
-  /* 선택한 정책의 상태를 승인완료로 변경 */
-  const handleApprove = (policyId) => {
-    // 전체 정책 목록에서 해당 ID의 정책만 찾아 상태 변경
-    setPolicies((prev) =>
-      prev.map((policy) =>
-        policy.id === policyId
-          ? {
-              ...policy,
-              status: "APPROVED",
-            }
-          : policy
-      )
-    );
-
-    // 상세 모달이 열려 있다면 모달 내부 상태도 함께 동기화
-    setSelectedPolicy((prev) =>
-      prev
-        ? {
-            ...prev,
-            status: "APPROVED",
-          }
-        : prev
-    );
+  // 상세 모달을 닫을 때는 반려 폼 입력값도 같이 초기화한다.
+  const closeModal = () => {
+    setSelectedPolicy(null);
+    setIsRejectFormOpen(false);
+    setRejectReasonInput("");
+    setRejectDetailInput("");
+    setRevisionRequestInput("");
   };
 
-  /* 선택한 정책의 상태를 반려로 변경 */
-  const handleReject = (policyId) => {
-    setPolicies((prev) =>
-      prev.map((policy) =>
-        policy.id === policyId
-          ? {
-              ...policy,
-              status: "REJECTED",
-            }
-          : policy
-      )
-    );
+  /* 선택한 정책을 승인 처리 */
+  const handleApprove = async (policyId) => {
+    await approvePolicy(policyId);
+    closeModal();
+    fetchPolicies();
+  };
 
-    setSelectedPolicy((prev) =>
-      prev
-        ? {
-            ...prev,
-            status: "REJECTED",
-          }
-        : prev
-    );
+  // "반려" 버튼 클릭 시: 바로 반려하지 않고 입력 폼을 연다.
+  const openRejectForm = () => {
+    setIsRejectFormOpen(true);
+  };
+
+  /* 반려 폼 제출 시: 사유/상세내용/보완요청사항과 함께 반려 처리 (사유는 필수) */
+  const handleRejectSubmit = async () => {
+    if (!rejectReasonInput.trim()) {
+      return;
+    }
+    await rejectPolicy(selectedPolicy.id, {
+      reject_reason: rejectReasonInput,
+      reject_detail: rejectDetailInput,
+      revision_request: revisionRequestInput,
+      rejected_by: currentUserName,
+    });
+    closeModal();
+    fetchPolicies();
   };
 
   return (
@@ -210,7 +139,7 @@ function AdminPolicyPage() {
           <p className="admin-policy-eyebrow">Admin Console</p>
           <h2>정책 승인</h2>
           <p>
-            임직원 또는 보안 담당자가 요청한 AI 사용 정책을 검토하고,
+            컴플라이언스 담당자가 요청한 AI 사용 정책을 검토하고,
             승인 또는 반려 처리합니다.
           </p>
         </div>
@@ -238,15 +167,15 @@ function AdminPolicyPage() {
         </div>
       </div>
 
-      {/* 검색어 및 상태/유형 필터 영역 */}
+      {/* 검색어 및 상태 필터 영역 */}
       <div className="admin-policy-filter-card">
-        {/* 정책명, 요청자, 부서를 대상으로 검색 */}
+        {/* 정책명, 요청자를 대상으로 검색 */}
         <div className="admin-policy-search-box">
           <Search size={16} />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="정책명, 요청자, 부서 검색"
+            placeholder="정책명, 요청자 검색"
           />
         </div>
 
@@ -264,21 +193,6 @@ function AdminPolicyPage() {
           </select>
         </div>
 
-        <div className="admin-policy-filter-group">
-          <label htmlFor="policyTypeFilter">정책 유형</label>
-          <select
-            id="policyTypeFilter"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <option value="ALL">전체 유형</option>
-            <option value="AI_USAGE">AI 사용 정책</option>
-            <option value="DLP">민감정보 정책</option>
-            <option value="MODEL">모델 사용 정책</option>
-            <option value="AUDIT">감사/증적 정책</option>
-          </select>
-        </div>
-
         <div className="admin-policy-filter-result">
           총 <strong>{filteredPolicies.length}</strong>건
         </div>
@@ -288,7 +202,7 @@ function AdminPolicyPage() {
       <div className="admin-policy-table-card">
         <div className="admin-policy-table-header">
           <h3>정책 승인 요청 목록</h3>
-          <span>정책명을 클릭하면 상세 내용과 변경 사유를 확인할 수 있습니다.</span>
+          <span>"상세"를 클릭하면 상세 내용을 확인할 수 있습니다.</span>
         </div>
 
         <div className="admin-policy-table-wrapper">
@@ -296,14 +210,12 @@ function AdminPolicyPage() {
             <thead>
               <tr>
                 <th>정책명</th>
-                <th>유형</th>
                 <th>요청자</th>
                 <th>부서</th>
                 <th>버전</th>
                 <th>요청일</th>
                 <th>상태</th>
-                <th>우선순위</th>
-                <th>관리</th>
+                <th>상세</th>
               </tr>
             </thead>
 
@@ -312,20 +224,10 @@ function AdminPolicyPage() {
               {filteredPolicies.map((policy) => (
                 <tr key={policy.id}>
                   <td>
-                    <button
-                      type="button"
-                      className="admin-policy-title-button"
-                      /* 정책명을 클릭하면 선택한 정책을 상세 모달에 표시 */
-                      onClick={() => setSelectedPolicy(policy)}
-                    >
-                      <strong>{policy.policyName}</strong>
-                      <span>{policy.summary}</span>
-                    </button>
+                    <strong className="admin-policy-name-text">{policy.policyName}</strong>
                   </td>
-
-                  <td>{POLICY_TYPE_LABEL_MAP[policy.policyType]}</td>
                   <td>{policy.requester}</td>
-                  <td>{policy.department}</td>
+                  <td>{policy.departmentName}</td>
                   <td>{policy.version}</td>
                   <td>{policy.requestedAt}</td>
 
@@ -336,31 +238,13 @@ function AdminPolicyPage() {
                   </td>
 
                   <td>
-                    <span className={`admin-policy-priority-badge ${policy.priority}`}>
-                      {PRIORITY_LABEL_MAP[policy.priority]}
-                    </span>
-                  </td>
-
-                  <td>
-                    <div className="admin-policy-action-buttons">
-                      <button
-                        type="button"
-                        className="admin-policy-approve-button"
-                        onClick={() => handleApprove(policy.id)}
-                        disabled={policy.status === "APPROVED"}
-                      >
-                        승인
-                      </button>
-
-                      <button
-                        type="button"
-                        className="admin-policy-reject-button"
-                        onClick={() => handleReject(policy.id)}
-                        disabled={policy.status === "REJECTED"}
-                      >
-                        반려
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="admin-policy-detail-link"
+                      onClick={() => setSelectedPolicy(policy)}
+                    >
+                      상세
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -368,7 +252,7 @@ function AdminPolicyPage() {
               {/* 필터 결과가 없을 때 안내 문구 표시 */}
               {filteredPolicies.length === 0 && (
                 <tr>
-                  <td colSpan="9" className="admin-policy-empty-message">
+                  <td colSpan="7" className="admin-policy-empty-message">
                     조건에 맞는 정책 승인 요청이 없습니다.
                   </td>
                 </tr>
@@ -379,122 +263,193 @@ function AdminPolicyPage() {
       </div>
 
       {/* 선택한 정책이 있을 때만 상세 모달 표시 */}
-      {selectedPolicy && (
-        <div className="admin-policy-modal-backdrop">
-          <div className="admin-policy-modal">
-            <div className="admin-policy-modal-header">
-              <div>
-                <p>정책 상세</p>
-                <h3>{selectedPolicy.policyName}</h3>
+      {selectedPolicy && (() => {
+        const { summary, rules } = parseRuleContent(selectedPolicy.content);
+
+        return (
+          <div className="admin-policy-modal-backdrop" onClick={closeModal}>
+            <div className="admin-policy-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="admin-policy-modal-header">
+                <div>
+                  <h3>{selectedPolicy.policyName}</h3>
+                  <p>버전 {selectedPolicy.version}</p>
+                </div>
+
+                <button type="button" className="admin-policy-modal-close" onClick={closeModal}>
+                  ×
+                </button>
               </div>
 
-              <button
-                type="button"
-                className="admin-policy-modal-close"
-                onClick={() => setSelectedPolicy(null)}
-              >
-                ×
-              </button>
-            </div>
-
-            {/* 정책의 기본 정보, 내용, 요청 사유, 변경사항 */}
-            <div className="admin-policy-modal-body">
-              <div className="admin-policy-detail-grid">
-                <div>
-                  <span>정책 유형</span>
-                  <strong>{POLICY_TYPE_LABEL_MAP[selectedPolicy.policyType]}</strong>
+              <div className="admin-policy-modal-body">
+                {/* 요청자 / 적용 부서 / 요청일 / 현재 상태 2x2 메타 정보 */}
+                <div className="admin-policy-meta-grid">
+                  <div>
+                    <span>요청자</span>
+                    <strong>{selectedPolicy.requester}</strong>
+                  </div>
+                  <div>
+                    <span>적용 부서</span>
+                    <strong>{selectedPolicy.departmentName}</strong>
+                  </div>
+                  <div>
+                    <span>요청일</span>
+                    <strong>{selectedPolicy.requestedAt}</strong>
+                  </div>
+                  <div>
+                    <span>현재 상태</span>
+                    <span className={`admin-policy-status-badge ${selectedPolicy.status}`}>
+                      {POLICY_STATUS_LABEL_MAP[selectedPolicy.status]}
+                    </span>
+                  </div>
                 </div>
 
-                <div>
-                  <span>요청자</span>
-                  <strong>{selectedPolicy.requester}</strong>
+                {/* 정책 개요: 연한 회색 배경 박스 */}
+                <div className="admin-policy-summary-box">
+                  <h4>정책 개요</h4>
+                  <p>{summary || "-"}</p>
                 </div>
 
-                <div>
-                  <span>부서</span>
-                  <strong>{selectedPolicy.department}</strong>
-                </div>
+                {/* 정책 규칙: 번호가 붙은 목록 */}
+                {rules.length > 0 && (
+                  <div className="admin-policy-rules-section">
+                    <h4>정책 규칙</h4>
+                    <ol className="admin-policy-rules-list">
+                      {rules.map((rule, index) => (
+                        <li key={index}>
+                          <span className="admin-policy-rule-number">{index + 1}</span>
+                          <span>{rule}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
 
-                <div>
-                  <span>버전</span>
-                  <strong>{selectedPolicy.version}</strong>
-                </div>
+                {/* 반려된 정책이면 반려 내용 박스를 보여준다. */}
+                {selectedPolicy.status === "REJECTED" && (
+                  <div className="admin-policy-rejection-box">
+                    <h4>⚠ 반려 내용</h4>
 
-                <div>
-                  <span>요청일</span>
-                  <strong>{selectedPolicy.requestedAt}</strong>
-                </div>
+                    <div className="admin-policy-rejection-meta">
+                      <div>
+                        <span>반려 처리자</span>
+                        <strong>{selectedPolicy.rejectedBy || "-"}</strong>
+                      </div>
+                      <div>
+                        <span>반려 일시</span>
+                        <strong>{selectedPolicy.rejectedAt}</strong>
+                      </div>
+                    </div>
 
-                <div>
-                  <span>상태</span>
-                  <strong>{POLICY_STATUS_LABEL_MAP[selectedPolicy.status]}</strong>
-                </div>
+                    <div className="admin-policy-rejection-field">
+                      <span>반려 사유</span>
+                      <strong>{selectedPolicy.rejectReason || "-"}</strong>
+                    </div>
 
-                <div>
-                  <span>우선순위</span>
-                  <strong>{PRIORITY_LABEL_MAP[selectedPolicy.priority]}</strong>
-                </div>
+                    <div className="admin-policy-rejection-field">
+                      <span>반려 상세 내용</span>
+                      <p>{selectedPolicy.rejectDetail || "-"}</p>
+                    </div>
 
-                <div>
-                  <span>적용 범위</span>
-                  <strong>{selectedPolicy.scope}</strong>
-                </div>
+                    {selectedPolicy.revisionRequest && (
+                      <div className="admin-policy-revision-box">
+                        <span>수정 / 보완 요청사항</span>
+                        <p>{selectedPolicy.revisionRequest}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* "반려" 버튼을 눌렀을 때만 보이는 반려 입력 폼 */}
+                {isRejectFormOpen && (
+                  <div className="admin-policy-reject-form">
+                    <div className="admin-policy-form-group">
+                      <label>반려 사유</label>
+                      <input
+                        type="text"
+                        value={rejectReasonInput}
+                        onChange={(e) => setRejectReasonInput(e.target.value)}
+                        placeholder="예: 보존 기간 산정 근거 불명확"
+                      />
+                    </div>
+
+                    <div className="admin-policy-form-group">
+                      <label>반려 상세 내용</label>
+                      <textarea
+                        value={rejectDetailInput}
+                        onChange={(e) => setRejectDetailInput(e.target.value)}
+                        placeholder="구체적인 반려 사유를 작성하세요"
+                      />
+                    </div>
+
+                    <div className="admin-policy-form-group">
+                      <label>수정 / 보완 요청사항</label>
+                      <textarea
+                        value={revisionRequestInput}
+                        onChange={(e) => setRevisionRequestInput(e.target.value)}
+                        placeholder="재신청 시 보완해야 할 점을 작성하세요"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="admin-policy-detail-section">
-                <h4>정책 내용</h4>
-                <p>{selectedPolicy.content}</p>
+              {/* 상세 모달 하단 버튼 영역 */}
+              <div className="admin-policy-modal-footer">
+                {isRejectFormOpen ? (
+                  <>
+                    <button
+                      type="button"
+                      className="admin-policy-modal-cancel-button"
+                      onClick={() => setIsRejectFormOpen(false)}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-policy-modal-reject-button"
+                      onClick={handleRejectSubmit}
+                      disabled={!rejectReasonInput.trim()}
+                    >
+                      <XCircle size={15} />
+                      반려 제출
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="admin-policy-modal-cancel-button"
+                      onClick={closeModal}
+                    >
+                      닫기
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-policy-modal-reject-button"
+                      onClick={openRejectForm}
+                      disabled={selectedPolicy.status === "REJECTED"}
+                    >
+                      <XCircle size={15} />
+                      반려
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-policy-modal-approve-button"
+                      onClick={() => handleApprove(selectedPolicy.id)}
+                      disabled={selectedPolicy.status === "APPROVED"}
+                    >
+                      <CheckCircle size={15} />
+                      승인
+                    </button>
+                  </>
+                )}
               </div>
-
-              <div className="admin-policy-detail-section">
-                <h4>요청 사유</h4>
-                <p>{selectedPolicy.changeReason}</p>
-              </div>
-
-              <div className="admin-policy-detail-section">
-                <h4>주요 변경사항</h4>
-                <ul>
-                  {/* 주요 변경사항 배열을 목록으로 출력 */}
-                  {selectedPolicy.changes.map((change) => (
-                    <li key={change}>{change}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* 상세 모달 하단 닫기/반려/승인 버튼 */}
-            <div className="admin-policy-modal-footer">
-              <button
-                type="button"
-                className="admin-policy-modal-cancel-button"
-                onClick={() => setSelectedPolicy(null)}
-              >
-                닫기
-              </button>
-
-              <button
-                type="button"
-                className="admin-policy-modal-reject-button"
-                onClick={() => handleReject(selectedPolicy.id)}
-                disabled={selectedPolicy.status === "REJECTED"}
-              >
-                <XCircle size={15} />
-                반려
-              </button>
-
-              <button
-                type="button"
-                className="admin-policy-modal-approve-button"
-                onClick={() => handleApprove(selectedPolicy.id)}
-                disabled={selectedPolicy.status === "APPROVED"}
-              >
-                <CheckCircle size={15} />
-                승인
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </section>
   );
 }
