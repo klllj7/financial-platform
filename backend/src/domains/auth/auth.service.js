@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const { User, Role, Department, LoginHistory } = require("./auth.models");
 
 // 회원가입
-const signup = async ({ name, email, password, department, role }) => {
+const signup = async ({ name, email, password, department }) => {
   // 이미 가입된 이메일인지 확인
   const existingUser = await User.findOne({
     where: { email },
@@ -28,18 +28,17 @@ const signup = async ({ name, email, password, department, role }) => {
     throw error;
   }
 
-  // 권한 코드로 권한 조회
-  // role이 없으면 기본값은 EMPLOYEE
-  const roleCode = role || "EMPLOYEE";
-
+  // 회원가입 시 일반 사용자는 무조건 EMPLOYEE 권한으로 가입된다.
+  // ADMIN, COMPLIANCE_MANAGER 권한은 회원가입 단계에서 선택하지 않고,
+  // 가입 후 관리자가 계정 관리 화면에서 변경한다.
   const foundRole = await Role.findOne({
-    where: { code: roleCode },
+    where: { code: "EMPLOYEE" },
   });
 
   if (!foundRole) {
-    const error = new Error("존재하지 않는 권한입니다.");
-    error.statusCode = 400;
-    error.code = "AUTH_003";
+    const error = new Error("기본 권한 정보를 찾을 수 없습니다.");
+    error.statusCode = 500;
+    error.code = "AUTH_DEFAULT_ROLE_NOT_FOUND";
     throw error;
   }
 
@@ -97,6 +96,15 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
     const error = new Error("이메일 또는 비밀번호가 올바르지 않습니다.");
     error.statusCode = 401;
     error.code = "AUTH_004";
+    throw error;
+  }
+
+  // 계정 상태 확인
+  // 관리자가 비활성화한 계정은 비밀번호가 맞아도 로그인할 수 없음
+  if (user.status === "INACTIVE") {
+    const error = new Error("비활성화된 계정입니다. 관리자에게 문의해주세요.");
+    error.statusCode = 403;
+    error.code = "AUTH_ACCOUNT_INACTIVE";
     throw error;
   }
 
