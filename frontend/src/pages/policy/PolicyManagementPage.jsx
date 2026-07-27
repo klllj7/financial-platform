@@ -3,8 +3,6 @@ import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import {
   getPolicies,
   createPolicy,
-  approvePolicy,
-  rejectPolicy,
   updatePolicy,
   setPolicyActive,
 } from "../../api/policyApi";
@@ -71,6 +69,13 @@ function PolicyManagementPage() {
     approved: "승인완료",
     rejected: "반려",
   };
+  // rule_content가 문자열이면 그대로, 객체면 JSON으로 보여준다 (예전 데이터 호환용)
+  const displayRuleContent = (ruleContent) => {
+    if (typeof ruleContent === "string") {
+    return ruleContent;
+  }
+  return JSON.stringify(ruleContent);
+};
 
   // 필터 조건에 맞는 정책만 걸러낸 목록
   const filteredPolicies = policies.filter((policy) => {
@@ -122,7 +127,7 @@ function PolicyManagementPage() {
     const newPolicy = {
       department_id: Number(departmentId),
       name: name,
-      rule_content: JSON.parse(ruleContent),
+      rule_content: ruleContent,
       requested_by: currentUserName,
     };
     await createPolicy(newPolicy);
@@ -297,7 +302,7 @@ function PolicyManagementPage() {
                   <td>
                     <div className="policy-name-cell">
                       <strong>{policy.name}</strong>
-                      <span>{JSON.stringify(policy.rule_content)}</span>
+                      <span>{displayRuleContent(policy.rule_content)}</span>
                     </div>
                   </td>
                   <td>
@@ -411,9 +416,9 @@ function PolicyManagementPage() {
                 </div>
 
                 <div className="policy-form-group policy-form-group-wide">
-                  <label>규칙 (JSON)</label>
+                  <label>규칙 내용</label>
                   <textarea
-                    placeholder='{"allow_pii_input": false}'
+                    placeholder="예: 개인정보 입력 시 자동 마스킹 처리"
                     value={ruleContent}
                     onChange={(e) => setRuleContent(e.target.value)}
                   />
@@ -455,7 +460,7 @@ function PolicyManagementPage() {
                 </div>
                 <div>
                   <span>규칙 내용</span>
-                  <strong>{JSON.stringify(selectedPolicy.rule_content)}</strong>
+                  <strong>{displayRuleContent(selectedPolicy.rule_content)}</strong>
                 </div>
                 <div>
                   <span>활성 여부</span>

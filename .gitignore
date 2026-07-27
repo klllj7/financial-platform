@@ -31,3 +31,4 @@ dist-ssr
 .idea/
 node_modules/
 CLAUDE.md
+.claude/
