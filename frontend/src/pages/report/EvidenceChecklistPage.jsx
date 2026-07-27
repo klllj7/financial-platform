@@ -16,13 +16,13 @@ import {
 
 import "./EvidenceChecklistPage.css";
 
-function progressTone(pct) {
+export function progressTone(pct) {
   if (pct >= 80) return "ce-tone-good";
   if (pct >= 50) return "ce-tone-mid";
   return "ce-tone-low";
 }
 
-function resultBadgeClass(result) {
+export function resultBadgeClass(result) {
   const map = {
     이행: "ce-badge ce-badge-done",
     부분이행: "ce-badge ce-badge-partial",

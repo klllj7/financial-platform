@@ -21,12 +21,14 @@ import AiChatPage from "./pages/ai-chat/AiChatPage";
 import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
 import NoticePage from "./pages/notices/NoticePage";
 import AiToolsPage from "./pages/ai-tools/AiToolsPage";
-import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
  
 // 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
 import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
+import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
+import InternalReportPage from "./pages/report/InternalReportPage";
+
 
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
@@ -117,12 +119,24 @@ function App() {
             element={<ComplianceRiskEventsPage />}
           />
 
-          {/* 상시평가 증빙자료 */}
+          {/* 상시평가 증빙자료
           <Route
             path="/report/evidence"
             element={<EvidenceChecklistPage />}
+          /> */}
+
+          {/* 상시평가 증빙자료 (컴플라이언스) */}
+          <Route
+            path="/compliance/evidence"
+            element={<EvidenceChecklistPage />}
           />
- 
+
+          {/* 상시평가 결과 내부결재 보고서 */}
+          <Route
+            path="/compliance/report"
+            element={<InternalReportPage />}
+          />
+   
           {/* 관리자 - 계정 관리 */}
           <Route
             path="/admin/accounts"
