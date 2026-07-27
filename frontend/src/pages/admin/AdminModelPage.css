@@ -406,6 +406,18 @@
   text-align: center;
 }
 
+/* API 조회·처리 오류를 테이블 위에 안내한다. */
+.admin-model-error {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 /* =========================================================
    모델 추가 모달
 ========================================================= */

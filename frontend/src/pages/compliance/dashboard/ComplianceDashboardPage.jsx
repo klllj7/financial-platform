@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* 전사 대시보드에 표시할 아이콘 */
@@ -5,11 +6,8 @@ import {
   Activity,
   ArrowRight,
   Bell,
-  ChevronRight,
   CircleDollarSign,
   Clock3,
-  Cuboid,
-  Wrench,
 } from "lucide-react";
 
 /* 컴포넌트 */
@@ -29,21 +27,13 @@ import {
   YAxis,
 } from "recharts";
 
-/*
-  화면 구현에 사용할 Mock 데이터
-
-  현재는 임시 데이터지만
-  추후 백엔드 API 응답값으로 교체할 수 있다.
-*/
+/* 최근 공지와 위험 이벤트를 각각의 백엔드에서 조회한다. */
+import { getNotices } from "../../../api/noticeApi";
+import { getEvents } from "../../../api/dlpApi";
 import {
-  complianceActionItems,
-  complianceDashboardSummary,
-  complianceModelApplications,
-  complianceNoticeData,
-  complianceRiskChartData,
-  complianceUsageTrendData,
-  departmentRiskData,
-} from "../../../mocks/complianceDashboardMock";
+  getComplianceDashboardSummary,
+  getComplianceDashboardTrend,
+} from "../../../api/dashboardApi";
 
 /*
   전사 대시보드 전용 CSS
@@ -62,6 +52,49 @@ const formatNumber = (value) => {
   return new Intl.NumberFormat("ko-KR").format(value);
 };
 
+const EMPTY_SUMMARY = {
+  usageCount: 0,
+  previousMonthDifference: 0,
+  totalTokens: 0,
+  estimatedCostKrw: 0,
+};
+
+const EMPTY_RISK_SUMMARY = {
+  high: 0,
+  medium: 0,
+  low: 0,
+  urgentActionCount: 0,
+};
+
+/* DLP의 조치 이력 중 가장 최근 수동 조치를 화면 상태로 변환한다. */
+const getActionStatus = (actions = []) => {
+  const statusMap = {
+    reviewed: { label: "모니터링", type: "monitoring" },
+    escalated: { label: "조치 중", type: "processing" },
+    dismissed: { label: "조치 완료", type: "completed" },
+  };
+  const manualActions = actions.filter((action) =>
+    Object.hasOwn(statusMap, action.action_type),
+  );
+  const latestAction = manualActions.at(-1);
+
+  return latestAction
+    ? statusMap[latestAction.action_type]
+    : { label: "미조치", type: "none" };
+};
+
+/* DLP 이벤트의 발생 시간을 대시보드용 날짜 형식으로 표시한다. */
+const formatOccurredAt = (value) => {
+  if (!value) return "-";
+
+  return new Date(value).toLocaleString("ko-KR", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 
 function ComplianceDashboardPage() {
   /*
@@ -69,79 +102,180 @@ function ComplianceDashboardPage() {
   */
   const navigate = useNavigate();
 
-  /*
-    Mock 데이터가 배열이 아니어도
-    화면이 멈추지 않도록 빈 배열을 사용한다.
-  */
-  const notices = Array.isArray(
-    complianceNoticeData,
-  )
-    ? complianceNoticeData
-    : [];
-
-  const riskChartData = Array.isArray(
-    complianceRiskChartData,
-  )
-    ? complianceRiskChartData
-    : [];
-
-  const actionItems = Array.isArray(
-    complianceActionItems,
-  )
-    ? complianceActionItems.slice(0, 3)
-    : [];
-
-  const modelApplications = Array.isArray(
-    complianceModelApplications,
-  )
-    ? complianceModelApplications.slice(0, 3)
-    : [];
-
-  const departmentData = Array.isArray(
-    departmentRiskData,
-  )
-    ? departmentRiskData
-    : [];
-
-  const usageTrendData = Array.isArray(
-    complianceUsageTrendData,
-  )
-    ? complianceUsageTrendData
-    : [];
-
-  /* 위험 이벤트 관리 전체 목록으로 이동한다. */
-  const handleRiskEventClick = () => {
-    navigate("/compliance/risk-events");
-  };
+  /* 대시보드 카드에는 API에서 받은 최신 항목 3건만 표시한다. */
+  const [notices, setNotices] = useState([]);
+  const [actionItems, setActionItems] = useState([]);
+  const [departmentData, setDepartmentData] = useState([]);
+  const [usageTrendData, setUsageTrendData] = useState([]);
+  const [dashboardSummary, setDashboardSummary] =
+    useState(EMPTY_SUMMARY);
+  const [riskSummary, setRiskSummary] =
+    useState(EMPTY_RISK_SUMMARY);
 
   /*
-    각 위험 이벤트의 조치하기 버튼을 눌렀을 때
-    실행하는 함수다.
-
-    위험 이벤트 상세 페이지가 완성되면 다음처럼
-    실제 상세 주소로 이동하도록 변경할 수 있다.
-
-    navigate(`/compliance/risk-events/${itemId}`);
+    공지와 DLP 위험 이벤트는 서로 다른 서버이므로 독립적으로 조회한다.
+    한 요청이 실패하더라도 정상 응답을 받은 영역은 계속 표시한다.
   */
-  const handleActionItemClick = (itemId) => {
-    navigate("/compliance/risk-events", {
-      state: { selectedEventId: itemId },
-    });
-  };
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const [noticeResult, eventResult, usageTrendResult, summaryResult] =
+        await Promise.allSettled([
+        getNotices(),
+        getEvents(),
+        getComplianceDashboardTrend(30),
+        getComplianceDashboardSummary(),
+      ]);
 
-  /*
-    AI 모델 신청 현황 페이지는 아직 없으므로
-    현재는 임시 안내창을 표시한다.
-  */
-  const handleModelApplicationClick = () => {
-    navigate("/compliance/model-applications");
-  };
+      if (noticeResult.status === "fulfilled") {
+        const noticeResponse = noticeResult.value;
+        const noticeData = Array.isArray(noticeResponse.data)
+          ? noticeResponse.data
+          : [];
 
-  const handleModelApplicationItemClick = (applicationId) => {
-    navigate("/compliance/model-applications", {
-      state: { selectedApplicationId: applicationId },
-    });
-  };
+        setNotices(
+          noticeData.slice(0, 3).map((notice) => ({
+            id: notice.id,
+            category: notice.category,
+            title: notice.title,
+            date: new Date(
+              notice.createdAt,
+            ).toLocaleDateString("ko-KR"),
+          })),
+        );
+      } else {
+        console.error("최근 공지 조회 실패", noticeResult.reason);
+      }
+
+      if (eventResult.status === "fulfilled") {
+        const eventData = Array.isArray(eventResult.value.data)
+          ? eventResult.value.data
+          : [];
+
+        // 부서와 위험 등급별 이벤트 수를 누적해 막대 차트 데이터로 만든다.
+        const departmentBuckets = new Map();
+        const nextRiskSummary = { ...EMPTY_RISK_SUMMARY };
+        eventData.forEach((event) => {
+          const department = event.department_name || "미지정 부서";
+          const current = departmentBuckets.get(department) || {
+            department,
+            high: 0,
+            medium: 0,
+            low: 0,
+          };
+          const grade = String(event.grade || "LOW").toLowerCase();
+
+          if (Object.hasOwn(current, grade)) {
+            current[grade] += 1;
+            nextRiskSummary[grade] += 1;
+          }
+          if (
+            grade === "high" &&
+            getActionStatus(event.actions).type !== "completed"
+          ) {
+            nextRiskSummary.urgentActionCount += 1;
+          }
+          departmentBuckets.set(department, current);
+        });
+        setRiskSummary(nextRiskSummary);
+        setDepartmentData(
+          [...departmentBuckets.values()].sort(
+            (first, second) =>
+              second.high +
+              second.medium +
+              second.low -
+              (first.high + first.medium + first.low),
+          ),
+        );
+
+        // 최신 이벤트 3건만 대시보드 위험 이벤트 관리 영역에 표시한다.
+        setActionItems(
+          [...eventData]
+            .sort(
+              (first, second) =>
+                new Date(second.created_at).getTime() -
+                new Date(first.created_at).getTime(),
+            )
+            .slice(0, 3)
+            .map((event) => {
+              const status = getActionStatus(event.actions);
+
+              return {
+                id: event.event_id,
+                riskLevel: event.grade || "LOW",
+                userName: event.user_name || "-",
+                department: event.department_name || "-",
+                eventType: event.detection_type || "-",
+                modelName: event.ai_tool_name || "-",
+                actionStatus: status.label,
+                actionStatusType: status.type,
+                occurredAt: formatOccurredAt(event.created_at),
+              };
+            }),
+        );
+      } else {
+        console.error("위험 이벤트 조회 실패", eventResult.reason);
+      }
+
+      if (summaryResult.status === "fulfilled") {
+        setDashboardSummary({
+          ...EMPTY_SUMMARY,
+          ...(summaryResult.value.data || {}),
+        });
+      } else {
+        console.error(
+          "전사 사용 요약 조회 실패",
+          summaryResult.reason,
+        );
+      }
+
+      if (usageTrendResult.status === "fulfilled") {
+        const usageItems = Array.isArray(
+          usageTrendResult.value.data?.items,
+        )
+          ? usageTrendResult.value.data.items
+          : [];
+        const eventItems =
+          eventResult.status === "fulfilled" &&
+          Array.isArray(eventResult.value.data)
+            ? eventResult.value.data
+            : [];
+        const riskCountByDate = new Map();
+
+        // DLP 위험 이벤트도 날짜별로 집계해 전사 사용량과 합친다.
+        eventItems.forEach((event) => {
+          const date = new Date(event.created_at)
+            .toISOString()
+            .slice(0, 10);
+          riskCountByDate.set(
+            date,
+            (riskCountByDate.get(date) || 0) + 1,
+          );
+        });
+
+        setUsageTrendData(
+          usageItems.map((item) => ({
+            date: item.date.slice(5).replace("-", "/"),
+            usageCount: item.usageCount,
+            riskEventCount: riskCountByDate.get(item.date) || 0,
+          })),
+        );
+      } else {
+        console.error(
+          "전사 30일 사용 추이 조회 실패",
+          usageTrendResult.reason,
+        );
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  /* DLP 위험 등급별 건수를 도넛 차트 데이터로 변환한다. */
+  const riskChartData = [
+    { name: "HIGH", value: riskSummary.high, color: "#ff4d4f" },
+    { name: "MEDIUM", value: riskSummary.medium, color: "#f59e0b" },
+    { name: "LOW", value: riskSummary.low, color: "#10b981" },
+  ];
 
   /*
     공지사항 전체 보기 버튼을 누르면
@@ -172,7 +306,7 @@ function ComplianceDashboardPage() {
 
           {/* 대시보드 데이터 기준일 */}
           <p className="compliance-dashboard-standard-date">
-            {complianceDashboardSummary.기준Date} 기준
+            {new Date().toLocaleDateString("ko-KR")} 기준
           </p>
         </div>
 
@@ -195,18 +329,15 @@ function ComplianceDashboardPage() {
 
             <strong className="compliance-summary-value">
               {formatNumber(
-                complianceDashboardSummary.totalUsageCount,
+                dashboardSummary.usageCount,
               )}
               회
             </strong>
 
             <small>
-              전월 대비 +
-              {
-                complianceDashboardSummary
-                  .usageChangeRate
-              }
-              %
+              전월 대비{" "}
+              {dashboardSummary.previousMonthDifference >= 0 ? "+" : ""}
+              {dashboardSummary.previousMonthDifference}회
             </small>
           </div>
         </article>
@@ -259,19 +390,17 @@ function ComplianceDashboardPage() {
 
                   <strong>
                     {
-                      complianceDashboardSummary
-                        .riskCount.high
+                      riskSummary.high
                     }
                   </strong>
 
                   <button
                     type="button"
-                    onClick={handleRiskEventClick}
+                    aria-label="즉시 조치가 필요한 위험 이벤트 건수"
                   >
                     즉시 조치{" "}
                     {
-                      complianceDashboardSummary
-                        .urgentActionCount
+                      riskSummary.urgentActionCount
                     }
                     건
                   </button>
@@ -284,8 +413,7 @@ function ComplianceDashboardPage() {
 
                   <strong>
                     {
-                      complianceDashboardSummary
-                        .riskCount.medium
+                      riskSummary.medium
                     }
                   </strong>
                 </div>
@@ -297,8 +425,7 @@ function ComplianceDashboardPage() {
 
                   <strong>
                     {
-                      complianceDashboardSummary
-                        .riskCount.low
+                      riskSummary.low
                     }
                   </strong>
                 </div>
@@ -319,89 +446,31 @@ function ComplianceDashboardPage() {
             </span>
 
             <strong className="compliance-summary-value">
-              {complianceDashboardSummary.tokenUsage} 토큰
+              {formatNumber(dashboardSummary.totalTokens)} 토큰
             </strong>
 
             <small>
               ₩
               {formatNumber(
-                complianceDashboardSummary.estimatedCost,
+                dashboardSummary.estimatedCostKrw,
               )}{" "}
               / 이번 달
             </small>
 
-            {/* 현재 예산 사용 비율 */}
-            <div className="compliance-budget-progress">
-              <span
-                style={{
-                  width: `${complianceDashboardSummary.budgetUsageRate}%`,
-                }}
-              />
-            </div>
-
             <small className="compliance-budget-description">
-              예산 ₩
-              {formatNumber(
-                complianceDashboardSummary.monthlyBudget,
-              )}{" "}
-              중{" "}
-              {
-                complianceDashboardSummary
-                  .budgetUsageRate
-              }
-              % 사용
+              Claude API 응답의 실제 입·출력 토큰 합계
             </small>
           </div>
         </article>
 
-        {/* 최근 공지사항 카드 */}
-        <article className="compliance-notice-panel">
-          <div className="compliance-notice-header">
-            <div>
-              <Bell size={17} />
-
-              <h3>최근 공지사항</h3>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleNoticeViewAll}
-            >
-              전체 보기
-
-              <ArrowRight size={14} />
-            </button>
-          </div>
-
-          <div className="compliance-notice-list">
-            {notices.map((notice) => (
-              <button
-                key={notice.id}
-                type="button"
-                className="compliance-notice-item"
-                onClick={handleNoticeClick}
-              >
-                <div>
-                  <span className="compliance-notice-category">
-                    {notice.category}
-                  </span>
-
-                  <strong>{notice.title}</strong>
-                </div>
-
-                <small>{notice.date}</small>
-              </button>
-            ))}
-          </div>
-        </article>
       </section>
 
 
       {/* ==================================================
-          오늘의 조치 필요 항목
+          두 번째 줄: 위험 이벤트 관리와 최근 공지사항
       ================================================== */}
-      <div className="compliance-issue-application-grid">
-      <section className="compliance-action-required-panel">
+      <div className="compliance-dashboard-second-row">
+        <section className="compliance-action-required-panel">
         {/* 조치 필요 패널 제목 */}
         <header className="compliance-action-required-header">
           <div className="compliance-action-required-title">
@@ -418,10 +487,6 @@ function ComplianceDashboardPage() {
 
           <div className="compliance-action-required-header-actions">
             <p><strong>HIGH 등급 우선 정렬</strong></p>
-            <button type="button" onClick={handleRiskEventClick}>
-              전체 보기
-              <ArrowRight size={14} />
-            </button>
           </div>
         </header>
 
@@ -496,18 +561,6 @@ function ComplianceDashboardPage() {
                     </div>
                   </div>
 
-                  {/* 조치하기 버튼 */}
-                  <button
-                    type="button"
-                    className="compliance-action-item-button"
-                    onClick={() =>
-                      handleActionItemClick(item.id)
-                    }
-                  >
-                    확인하기
-
-                    <ChevronRight size={17} />
-                  </button>
                 </article>
               );
             })
@@ -520,85 +573,54 @@ function ComplianceDashboardPage() {
             </div>
           )}
         </div>
-      </section>
+        </section>
 
-      {/* ==================================================
-          AI Tool · 모델 신청 현황
-      ================================================== */}
-      <section className="compliance-model-application-panel">
-        <header className="compliance-model-application-header">
-          <div className="compliance-model-application-title">
-            <span className="compliance-model-application-icon">
-              <Cuboid size={17} />
-            </span>
+        {/* 최근 공지사항을 위험 이벤트 관리 오른쪽에 표시한다. */}
+        <article className="compliance-notice-panel">
+          <div className="compliance-notice-header">
+            <div>
+              <Bell size={17} />
 
-            <h3>AI Tool · 모델 신청 현황</h3>
+              <h3>최근 공지사항</h3>
+            </div>
 
-            <span className="compliance-model-application-count">
-              {modelApplications.length}건
-            </span>
+            <button
+              type="button"
+              onClick={handleNoticeViewAll}
+            >
+              전체 보기
+
+              <ArrowRight size={14} />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleModelApplicationClick}
-          >
-            전체 보기
-
-            <ArrowRight size={14} />
-          </button>
-        </header>
-
-        <div className="compliance-model-application-list">
-          {modelApplications.length > 0 ? (
-            modelApplications.map((application) => (
-              <button
-                key={application.id}
-                type="button"
-                className="compliance-model-application-item"
-                onClick={() =>
-                  handleModelApplicationItemClick(application.id)
-                }
-              >
-                <span className="compliance-model-application-item-icon">
-                  <Wrench size={16} />
-                </span>
-
-                <span className="compliance-model-application-content">
-                  <span className="compliance-model-application-primary">
-                    <strong>{application.requestName}</strong>
-
-                    <span>{application.requestType}</span>
-                  </span>
-
-                  <span className="compliance-model-application-meta">
-                    {application.applicantName}
-                    <i aria-hidden="true">·</i>
-                    {application.department}
-                    <i aria-hidden="true">·</i>
-                    {application.requestedAt}
-                  </span>
-                </span>
-
-                <span
-                  className={`
-                    compliance-model-application-status
-                    ${application.statusType}
-                  `}
+          <div className="compliance-notice-list">
+            {notices.length > 0 ? (
+              notices.map((notice) => (
+                <button
+                  key={notice.id}
+                  type="button"
+                  className="compliance-notice-item"
+                  onClick={handleNoticeClick}
                 >
-                  {application.status}
-                </span>
+                  <div>
+                    <span className="compliance-notice-category">
+                      {notice.category}
+                    </span>
 
-                <ChevronRight size={16} />
-              </button>
-            ))
-          ) : (
-            <div className="compliance-model-application-empty">
-              접수된 신청이 없습니다.
-            </div>
-          )}
-        </div>
-      </section>
+                    <strong>{notice.title}</strong>
+                  </div>
+
+                  <small>{notice.date}</small>
+                </button>
+              ))
+            ) : (
+              <div className="compliance-notice-empty">
+                등록된 공지사항이 없습니다.
+              </div>
+            )}
+          </div>
+        </article>
       </div>
 
 
@@ -649,7 +671,6 @@ function ComplianceDashboardPage() {
                 left: -10,
                 bottom: 20,
               }}
-              onClick={handleRiskEventClick}
             >
               <CartesianGrid
                 strokeDasharray="4 4"

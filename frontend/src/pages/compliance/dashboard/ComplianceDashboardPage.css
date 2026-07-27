@@ -67,51 +67,6 @@
 
 
 /* ==================================================
-   AI 모델 신청 현황 버튼
-================================================== */
-
-.compliance-model-application-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  flex-shrink: 0;
-
-  min-height: 38px;
-  padding: 0 15px;
-
-  color: #314f7f;
-  background: #ffffff;
-
-  border: 1px solid #dce3ee;
-  border-radius: 20px;
-
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  box-shadow:
-    0 5px 14px rgba(23, 48, 90, 0.04);
-
-  transition:
-    color 0.2s,
-    border-color 0.2s,
-    transform 0.2s;
-}
-
-/* 버튼에 마우스를 올렸을 때 */
-.compliance-model-application-button:hover {
-  color: #2f6fed;
-  border-color: #bad0f7;
-
-  transform: translateY(-1px);
-}
-
-
-/* ==================================================
    오늘의 조치 필요 항목 전체 패널
 ================================================== */
 
@@ -128,19 +83,6 @@
     0 7px 24px rgba(20, 35, 70, 0.04);
 
   overflow: hidden;
-}
-
-
-/* ==================================================
-   최근 이슈 · AI Tool/모델 신청 현황 2열 배치
-================================================== */
-
-.compliance-issue-application-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-
-  margin-bottom: 18px;
 }
 
 
@@ -515,7 +457,7 @@
 
 
 /* ==================================================
-   AI Tool · 모델 신청 현황
+   AI Tool 신청 현황
 ================================================== */
 
 .compliance-model-application-panel {
@@ -816,11 +758,27 @@
 .compliance-summary-grid {
   display: grid;
   grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+    repeat(3, minmax(0, 1fr));
 
   gap: 16px;
 
   margin-bottom: 18px;
+}
+
+/* 두 번째 줄에서 위험 이벤트와 공지사항을 같은 너비로 배치한다. */
+.compliance-dashboard-second-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.compliance-dashboard-second-row .compliance-action-required-panel {
+  margin-bottom: 0;
+}
+
+.compliance-dashboard-second-row .compliance-notice-panel {
+  min-height: 0;
 }
 
 
@@ -1187,6 +1145,17 @@
   font-size: 8px;
 }
 
+/* 공지사항이 없을 때도 위험 이벤트 카드와 균형을 유지한다. */
+.compliance-notice-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+  padding: 24px;
+  color: #7b8aa2;
+  font-size: 12px;
+}
+
 
 /* ==================================================
    그래프 패널 공통
@@ -1318,9 +1287,6 @@
       repeat(2, minmax(0, 1fr));
   }
 
-  .compliance-issue-application-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 
@@ -1410,8 +1376,9 @@
     padding: 18px 13px 25px;
   }
 
-  .compliance-model-application-button {
-    width: 100%;
+  /* 휴대전화 화면에서만 두 패널을 세로로 표시한다. */
+  .compliance-dashboard-second-row {
+    grid-template-columns: 1fr;
   }
 
   /* 조치 패널 제목을 여러 줄로 표시한다. */
