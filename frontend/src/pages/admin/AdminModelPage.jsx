@@ -1,243 +1,156 @@
-import { useMemo, useState } from "react";
-import { Bot, CheckCircle, Plus, XCircle, } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bot, CheckCircle, XCircle } from "lucide-react";
+
+import {
+  getAiToolApplications,
+  reviewAiToolApplication,
+} from "../../api/aiToolApi";
 import "./AdminModelPage.css";
 
-const APPROVAL_STATUS_LABEL_MAP = {
+const STATUS_LABELS = {
   PENDING: "승인대기",
   APPROVED: "승인완료",
   REJECTED: "반려",
 };
 
-const PLATFORM_LABEL_MAP = {
-  OpenAI: "OpenAI",
-  Azure: "Azure OpenAI",
-  Anthropic: "Anthropic",
-  Google: "Google AI",
-  Internal: "사내 모델",
-};
-
-/* MOCK 데이터 추후 삭제 */
-const INITIAL_MODELS = [
-  {
-    id: 1,
-    modelName: "GPT-4o",
-    platform: "OpenAI",
-    requester: "장현지",
-    approvalStatus: "APPROVED",
-    isActive: true,
-    requestedAt: "2026-07-22 10:30",
-    description: "일반 업무 문서 요약 및 질의응답용 모델",
-  },
-  {
-    id: 2,
-    modelName: "Claude 3.5 Sonnet",
-    platform: "Anthropic",
-    requester: "이영아",
-    approvalStatus: "PENDING",
-    isActive: false,
-    requestedAt: "2026-07-23 14:15",
-    description: "리스크 검토 문서 분석용 모델",
-  },
-  {
-    id: 3,
-    modelName: "Gemini 1.5 Pro",
-    platform: "Google",
-    requester: "이지윤",
-    approvalStatus: "PENDING",
-    isActive: false,
-    requestedAt: "2026-07-24 09:20",
-    description: "마케팅 자료 초안 생성용 모델",
-  },
-  {
-    id: 4,
-    modelName: "Internal-KoLLM",
-    platform: "Internal",
-    requester: "관리자",
-    approvalStatus: "APPROVED",
-    isActive: true,
-    requestedAt: "2026-07-20 16:00",
-    description: "사내 문서 기반 한국어 특화 모델",
-  },
-];
+const formatDate = (value) =>
+  value ? new Date(value).toLocaleString("ko-KR") : "-";
 
 function AdminModelPage() {
-  // 전체 AI 모델 목록 상태
-  // setModels를 통해 승인, 반려, 활성화, 모델 추가 결과를 반영
-  const [models, setModels] = useState(INITIAL_MODELS);
-  
-  // 승인 상태 필터와 플랫폼 필터의 현재 선택값
+  // 임직원이 /api/ai-tool로 등록한 실제 신청 목록을 보관한다.
+  const [applications, setApplications] = useState([]);
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [platformFilter, setPlatformFilter] = useState("ALL");
+  const [providerFilter, setProviderFilter] = useState("ALL");
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [reviewingId, setReviewingId] = useState(null);
 
-  // 모델 추가 모달의 열림 여부를 관리
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  // 반려 사유를 입력받을 팝업 상태다.
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
 
-  // 모델 추가 폼의 입력값을 하나의 객체로 관리
-  const [newModelForm, setNewModelForm] = useState({
-    modelName: "",
-    platform: "OpenAI",
-    description: "",
-  });
+  // 관리자 페이지 진입 시 전체 AI Tool 신청 내역을 조회한다.
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const response = await getAiToolApplications();
+        setApplications(
+          Array.isArray(response.data) ? response.data : [],
+        );
+      } catch (error) {
+        console.error("AI Tool 신청 목록 조회 실패", error);
+        setErrorMessage(
+          error.response?.data?.error?.message ||
+            "AI Tool 신청 목록을 불러오지 못했습니다.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // 현재 선택된 승인 상태와 플랫폼 조건에 맞는 모델만 추려냄
-  const filteredModels = useMemo(() => {
-    return models.filter((model) => {
-      const matchesStatus = statusFilter === "ALL" || model.approvalStatus === statusFilter;
-      const matchesPlatform = platformFilter === "ALL" || model.platform === platformFilter;
+    fetchApplications();
+  }, []);
 
-      return matchesStatus && matchesPlatform;
-    });
-  }, [models, statusFilter, platformFilter]);
+  const providers = useMemo(
+    () =>
+      [...new Set(applications.map((item) => item.provider).filter(Boolean))],
+    [applications],
+  );
 
-  // 전체 모델 중 승인 대기 상태인 모델의 개수
-  const pendingCount = models.filter((model) => model.approvalStatus === "PENDING").length;
+  // 승인 상태와 공급사 조건을 모두 만족하는 신청만 테이블에 표시한다.
+  const filteredApplications = useMemo(
+    () =>
+      applications.filter(
+        (item) =>
+          (statusFilter === "ALL" || item.status === statusFilter) &&
+          (providerFilter === "ALL" || item.provider === providerFilter),
+      ),
+    [applications, providerFilter, statusFilter],
+  );
 
-  // 전체 모델 중 현재 활성화된 모델의 개수
-  const activeCount = models.filter((model) => model.isActive).length;
+  const pendingCount = applications.filter(
+    (item) => item.status === "PENDING",
+  ).length;
+  const approvedCount = applications.filter(
+    (item) => item.status === "APPROVED",
+  ).length;
 
-  // 특정 모델의 활성/비활성 상태를 반대로 변경
-  const handleToggleActive = (modelId) => {
-    setModels((prev) =>
-      prev.map((model) =>
-        //클릭한 모델만 새로운 객체로 만들어 isActive 값을 변경
-        model.id === modelId 
-        ? {
-            ...model,
-            isActive: !model.isActive,
-          }
-        : model
-      )
-    );
+  // 승인·반려 API 처리 결과를 목록에도 즉시 반영한다.
+  const submitReview = async (application, status, reviewComment) => {
+    if (reviewingId) return;
+
+    setReviewingId(application.id);
+    setErrorMessage("");
+
+    try {
+      const response = await reviewAiToolApplication(application.id, {
+        status,
+        reviewComment,
+      });
+
+      setApplications((current) =>
+        current.map((item) =>
+          item.id === application.id ? response.data : item,
+        ),
+      );
+      setRejectTarget(null);
+      setRejectReason("");
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.error?.message ||
+          "신청 처리 결과를 저장하지 못했습니다.",
+      );
+    } finally {
+      setReviewingId(null);
+    }
   };
 
-  // 특정 모델을 승인 상태로 변경하고 바로 활성화
-  const handleApprove = (modelId) => {
-    setModels((prev) =>
-      prev.map((model) =>
-        model.id === modelId
-          ? {
-              ...model,
-              approvalStatus: "APPROVED",
-              isActive: true,
-            }
-          : model
-      )
-    );
-  };
+  const handleReject = (event) => {
+    event.preventDefault();
 
-  // 특정 모델을 반려 상태로 변경하고 비활성화
-  const handleReject = (modelId) => {
-    setModels((prev) =>
-      prev.map((model) =>
-        model.id === modelId
-          ? {
-              ...model,
-              approvalStatus: "REJECTED",
-              isActive: false,
-            }
-          :model
-      )
-    );
-  };
-
-  // 모델 추가 폼의 input, select, textarea 값을 공통으로 처리
-  const handleNewModelChange = (e) => {
-    const { name, value } = e.target;
-
-    setNewModelForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // 모델 추가 폼 제출 시 실행됨
-  const handleAddModel = (e) => {
-    // form 제출 시 페이지가 새로고침되는 기본 동작을 막음
-    e.preventDefault();
-
-    if (!newModelForm.modelName.trim()) {
-      alert("모델명을 입력해주세요.");
+    if (!rejectReason.trim()) {
+      setErrorMessage("반려 사유를 입력해 주세요.");
       return;
     }
 
-    const newModel = {
-      // 현재 시간을 임시 고유 ID로 사용
-      // 실제 백엔드 연동 시에는 서버가 생성한 ID를 사용할 예정
-      id: Date.now(),
-      modelName: newModelForm.modelName,
-      platform: newModelForm.platform,
-      requester: "관리자",
-
-      // 관리자가 직접 등록한 모델은 승인 및 활성 상태로 바로 추가
-      approvalStatus: "APPROVED",
-      isActive: true,
-
-      requestedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
-      description: newModelForm.description || "관리자가 직접 추가한 모델",
-    };
-
-    // 새 모델을 배열 맨 앞에 추가해 최신 항목이 먼저 보이도록 함
-    setModels((prev) => [newModel, ...prev]);
-
-    setNewModelForm({
-      modelName: "",
-      platform: "OpenAI",
-      description: "",
-    });
-
-    setIsAddModalOpen(false);
+    submitReview(rejectTarget, "REJECTED", rejectReason.trim());
   };
 
   return (
     <section className="admin-model-page">
-      {/* 페이지 상단 제목과 모델 추가 버튼 영역 */}
       <div className="admin-model-header">
         <div>
           <p className="admin-model-eyebrow">Admin Console</p>
           <h2>AI 모델 관리</h2>
           <p>
-            조직에서 사용할 수 있는 AI 모델을 등록하고,
-            임직원의 모델 사용 신청을 승인 또는 반려합니다.
+            임직원이 신청한 AI Tool을 확인하고 사용 승인 또는 반려를
+            처리합니다.
           </p>
         </div>
-
-        {/* 클릭하면 모델 추가 모달을 연다. */}
-        <button
-          type="button"
-          className="admin-model-add-button"
-          onClick={() => setIsAddModalOpen(true)}
-        >
-          <Plus size={18} />
-          모델 추가
-        </button>
       </div>
 
-      {/* 전체, 승인 대기, 활성 모델 개수를 보여주는 요약 카드 영역 */}
       <div className="admin-model-summary-grid">
         <div className="admin-model-summary-card">
-          <span>전체 모델</span>
-          <strong>{models.length}</strong>
+          <span>전체 신청</span>
+          <strong>{applications.length}</strong>
         </div>
-
         <div className="admin-model-summary-card">
           <span>승인대기</span>
           <strong>{pendingCount}</strong>
         </div>
-
         <div className="admin-model-summary-card">
-          <span>활성 모델</span>
-          <strong>{activeCount}</strong>
+          <span>승인완료</span>
+          <strong>{approvedCount}</strong>
         </div>
       </div>
 
-      {/* 승인 상태와 플랫폼을 기준으로 목록을 필터링하는 영역 */}
       <div className="admin-model-filter-card">
         <div className="admin-model-filter-group">
           <label htmlFor="statusFilter">승인상태</label>
           <select
             id="statusFilter"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(event) => setStatusFilter(event.target.value)}
           >
             <option value="ALL">전체 상태</option>
             <option value="PENDING">승인대기</option>
@@ -247,115 +160,104 @@ function AdminModelPage() {
         </div>
 
         <div className="admin-model-filter-group">
-          <label htmlFor="platformFilter">플랫폼</label>
-          <select 
-            id="platformFilter"
-            value={platformFilter}
-            onChange={(e) => setPlatformFilter(e.target.value)}
+          <label htmlFor="providerFilter">공급사</label>
+          <select
+            id="providerFilter"
+            value={providerFilter}
+            onChange={(event) => setProviderFilter(event.target.value)}
           >
-            <option value="ALL">전체 플랫폼</option>
-            <option value="OpenAI">OpenAI</option>
-            <option value="Azure">Azure OpenAI</option>
-            <option value="Anthropic">Anthropic</option>
-            <option value="Google">Google AI</option>
-            <option value="Internal">사내 모델</option>
+            <option value="ALL">전체 공급사</option>
+            {providers.map((provider) => (
+              <option key={provider} value={provider}>
+                {provider}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* 현재 필터 조건에 해당하는 모델 개수를 표시 */}
         <div className="admin-model-filter-result">
-          총 <strong>{filteredModels.length}</strong>건
+          총 <strong>{filteredApplications.length}</strong>건
         </div>
       </div>
 
-      {/* AI 모델 신청 및 등록 현황 테이블 영역 */}
+      {errorMessage && (
+        <p className="admin-model-error" role="alert">
+          {errorMessage}
+        </p>
+      )}
+
       <div className="admin-model-table-card">
         <div className="admin-model-table-header">
-          <h3>AI 모델 신청 및 등록 현황</h3>
-          <span>승인된 모델만 활성화할 수 있습니다.</span>
+          <h3>AI Tool 신청 현황</h3>
+          <span>승인된 Tool은 신청 임직원의 AI 사용하기에 표시됩니다.</span>
         </div>
 
         <div className="admin-model-table-wrapper">
           <table className="admin-model-table">
             <thead>
               <tr>
-                <th>모델명</th>
-                <th>플랫폼</th>
+                <th>AI Tool</th>
+                <th>공급사</th>
                 <th>신청자</th>
+                <th>부서</th>
                 <th>승인상태</th>
-                <th>활성여부</th>
                 <th>신청일시</th>
                 <th>관리</th>
               </tr>
             </thead>
-
             <tbody>
-              {/* 필터링된 모델 목록을 한 줄씩 렌더링 */}
-              {filteredModels.map((model) => (
-                <tr key={model.id}>
-                  {/* 모델 아이콘, 모델명, 설명 */}
+              {filteredApplications.map((application) => (
+                <tr key={application.id}>
                   <td>
                     <div className="admin-model-name-cell">
                       <div className="admin-model-icon">
                         <Bot size={17} />
                       </div>
-
                       <div>
-                        <strong>{model.modelName}</strong>
-                        <span>{model.description}</span>
+                        <strong>{application.toolName}</strong>
+                        <span>{application.purpose}</span>
                       </div>
                     </div>
                   </td>
-
-                  {/* 플랫폼 코드값을 화면용 이름으로 변환해 표시 */}
-                  <td>{PLATFORM_LABEL_MAP[model.platform]}</td>
-
-                  <td>{model.requester}</td>
-
-                  {/* 승인 상태에 따라 배지 문구와 CSS 클래스가 달라짐 */}
+                  <td>{application.provider}</td>
+                  <td>{application.applicantName}</td>
+                  <td>{application.departmentName || "-"}</td>
                   <td>
-                    <span className={`admin-model-status-badge ${model.approvalStatus}`}>
-                      {APPROVAL_STATUS_LABEL_MAP[model.approvalStatus]}
+                    <span
+                      className={`admin-model-status-badge ${application.status}`}
+                    >
+                      {STATUS_LABELS[application.status] || application.status}
                     </span>
                   </td>
-
-                  {/* 승인된 모델만 활성/비활성 토글을 조작할 수 있다. */}
-                  <td>
-                    <button
-                      type="button"
-                      className={
-                        model.isActive ? "admin-model-toggle active" : "admin-model-toggle"
-                      }
-                      onClick={() => handleToggleActive(model.id)}
-                      disabled={model.approvalStatus !== "APPROVED"}
-                    >
-                      {/* 실제 스위치 원형 손잡이 역할 하는 요소 */}
-                      <span />
-                    </button>
-                  </td>
-
-                  <td>{model.requestedAt}</td>
-
-                  {/* 승인 및 반려 처리 버튼 */}
+                  <td>{formatDate(application.createdAt)}</td>
                   <td>
                     <div className="admin-model-action-buttons">
-                      {/* 이미 승인된 모델은 승인 버튼을 다시 누를 수 없다. */}
-                      <button 
+                      <button
                         type="button"
                         className="admin-model-approve-button"
-                        onClick={() => handleApprove(model.id)}
-                        disabled={model.approvalStatus === "APPROVED"}
+                        onClick={() =>
+                          submitReview(application, "APPROVED", "승인 처리")
+                        }
+                        disabled={
+                          application.status !== "PENDING" ||
+                          reviewingId === application.id
+                        }
                       >
                         <CheckCircle size={14} />
                         승인
                       </button>
-
-                      {/* 이미 반려된 모델은 반려 버튼을 다시 누를 수 없다. */}
                       <button
                         type="button"
                         className="admin-model-reject-button"
-                        onClick={() => handleReject(model.id)}
-                        disabled={model.approvalStatus === "REJECTED"}
+                        onClick={() => {
+                          setRejectTarget(application);
+                          setRejectReason("");
+                          setErrorMessage("");
+                        }}
+                        disabled={
+                          application.status !== "PENDING" ||
+                          reviewingId === application.id
+                        }
                       >
                         <XCircle size={14} />
                         반려
@@ -365,11 +267,17 @@ function AdminModelPage() {
                 </tr>
               ))}
 
-              {/* 필터 결과가 없을 때 보여주는 빈 목록 안내 문구 */}
-              {filteredModels.length === 0 && (
+              {!isLoading && filteredApplications.length === 0 && (
                 <tr>
                   <td colSpan="7" className="admin-model-empty-message">
-                    조건에 맞는 모델 신청 내역이 없습니다.
+                    접수된 AI Tool 신청 내역이 없습니다.
+                  </td>
+                </tr>
+              )}
+              {isLoading && (
+                <tr>
+                  <td colSpan="7" className="admin-model-empty-message">
+                    신청 내역을 불러오는 중입니다.
                   </td>
                 </tr>
               )}
@@ -378,87 +286,50 @@ function AdminModelPage() {
         </div>
       </div>
 
-      {/* isAddModalOpen이 true일 때만 모델 추가 모달을 렌더링 */}
-      {/* 모달 뒤쪽 화면을 덮는 반투명 배경 */}
-      {isAddModalOpen && (
+      {rejectTarget && (
         <div className="admin-model-modal-backdrop">
           <div className="admin-model-modal">
-            {/* 모달 제목과 닫기 버튼 영역 */}
             <div className="admin-model-modal-header">
               <div>
-                <p>모델 추가</p>
-                <h3>관리자 직접 모델 등록</h3>
+                <p>AI Tool 신청 반려</p>
+                <h3>{rejectTarget.toolName}</h3>
               </div>
-
-              <button 
+              <button
                 type="button"
                 className="admin-model-modal-close"
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => setRejectTarget(null)}
+                aria-label="닫기"
               >
                 ×
               </button>
             </div>
 
-            {/* 제출 시 handleAddModel 함수가 실행 */}
-            <form onSubmit={handleAddModel}>
+            <form onSubmit={handleReject}>
               <div className="admin-model-modal-body">
-                {/* 모델명 입력 */}
                 <div className="admin-model-form-group">
-                  <label htmlFor="modelName">모델명</label>
-                  <input
-                    id="modelName"
-                    name="modelName"
-                    value={newModelForm.modelName}
-                    onChange={handleNewModelChange}
-                    placeholder="예: GPT-4o mini"
-                  />
-                </div>
-
-                {/* 플랫폼 선택 */}
-                <div className="admin-model-form-group">
-                  <label htmlFor="platform">플랫폼</label>
-                  <select
-                    id="platform"
-                    name="platform"
-                    value={newModelForm.platform}
-                    onChange={handleNewModelChange}
-                  >
-                    <option value="OpenAI">OpenAI</option>
-                    <option value="Azure">Azure OpenAI</option>
-                    <option value="Anthropic">Anthropic</option>
-                    <option value="Google">Google AI</option>
-                    <option value="Internal">사내 모델</option>
-                  </select>
-                </div>
-
-                {/* 모델 사용 목적 또는 설명 입력 */}
-                <div className="admin-model-form-group">
-                  <label htmlFor="description">설명</label>
+                  <label htmlFor="rejectReason">반려 사유</label>
                   <textarea
-                    id="description"
-                    name="description"
-                    value={newModelForm.description}
-                    onChange={handleNewModelChange}
-                    placeholder="모델 사용 목적이나 설명을 입력해주세요."
+                    id="rejectReason"
+                    value={rejectReason}
+                    onChange={(event) => setRejectReason(event.target.value)}
+                    placeholder="신청자에게 안내할 반려 사유를 입력해 주세요."
                   />
                 </div>
               </div>
-
-              {/* 모달 하단 취소 및 추가 버튼 */}
               <div className="admin-model-modal-footer">
                 <button
                   type="button"
                   className="admin-model-cancel-button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => setRejectTarget(null)}
                 >
                   취소
                 </button>
-
-                <button 
+                <button
                   type="submit"
                   className="admin-model-save-button"
+                  disabled={reviewingId === rejectTarget.id}
                 >
-                  추가
+                  반려 처리
                 </button>
               </div>
             </form>

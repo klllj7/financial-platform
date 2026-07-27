@@ -21,10 +21,10 @@ export const approvePolicy = async (id) => {
   }
 };
 
-// 정책 반려 (사유 포함)
-export const rejectPolicy = async (id, reject_reason) => {
+// 정책 반려 (사유/상세내용/보완요청사항/처리자 포함)
+export const rejectPolicy = async (id, rejectPayload) => {
   try {
-    const response = await axiosInstance.patch(`/policies/${id}/reject`, { reject_reason });
+    const response = await axiosInstance.patch(`/policies/${id}/reject`, rejectPayload);
     return response.data;
   } catch (error) {
     throw error;
@@ -34,5 +34,11 @@ export const rejectPolicy = async (id, reject_reason) => {
 // 정책 수정
 export const updatePolicy = async (id, data) => {
  const response = await axiosInstance.put(`/policies/${id}`, data);
+  return response.data;
+};
+
+// 정책 활성화 여부만 변경 (규칙/버전은 그대로)
+export const setPolicyActive = async (id, active_yn) => {
+  const response = await axiosInstance.patch(`/policies/${id}/active`, { active_yn });
   return response.data;
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // 아이콘
 import {
@@ -8,13 +8,10 @@ import {
   X,
 } from "lucide-react";
 
-/*
-  대시보드와 AI Tool 신청 페이지에서 함께 사용할
-  AI Tool 신청 현황 Mock 데이터를 가져온다.
-*/
 import {
-  aiToolApplicationData,
-} from "../../mocks/dashboardMock";
+  createAiToolApplication,
+  getAiToolApplications,
+} from "../../api/aiToolApi";
 
 // AI Tool 신청 페이지 전용 CSS
 import "./AiToolsPage.css";
@@ -35,11 +32,7 @@ function AiToolsPage() {
     신청 현황 데이터가 배열이 아닌 경우에도
     화면 전체가 멈추지 않도록 빈 배열을 사용한다.
   */
-  const [applications, setApplications] = useState(
-    Array.isArray(aiToolApplicationData)
-      ? aiToolApplicationData
-      : [],
-  );
+  const [applications, setApplications] = useState([]);
 
   const [isApplyModalOpen, setIsApplyModalOpen] =
     useState(false);
@@ -50,6 +43,42 @@ function AiToolsPage() {
       provider: "",
       purpose: "",
     });
+
+  /* 백엔드 상태 코드를 기존 카드에서 사용하는 표시 형식으로 변환한다. */
+  const formatApplication = (application) => ({
+    id: application.id,
+    toolName: application.toolName,
+    provider: application.provider,
+    purpose: application.purpose,
+    requestedAt: new Date(application.createdAt).toLocaleDateString("ko-KR"),
+    status: application.status === "APPROVED"
+      ? "승인 완료"
+      : application.status === "REJECTED"
+        ? "반려"
+        : "검토 중",
+    statusKey: application.status === "APPROVED"
+      ? "approved"
+      : application.status === "REJECTED"
+        ? "rejected"
+        : "pending",
+  });
+
+  /* 페이지 진입 시 로그인 사용자의 신청 내역을 DB에서 조회한다. */
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const response = await getAiToolApplications();
+        setApplications(
+          Array.isArray(response.data)
+            ? response.data.map(formatApplication)
+            : [],
+        );
+      } catch (error) {
+        console.error("AI Tool 신청 내역 조회 실패", error);
+      }
+    };
+    fetchApplications();
+  }, []);
 
   /*
     현재 검토 중인 신청 건수를 계산한다.
@@ -81,25 +110,19 @@ function AiToolsPage() {
     }));
   };
 
-  const handleApplicationSubmit = (event) => {
+  const handleApplicationSubmit = async (event) => {
     event.preventDefault();
 
-    const today = new Intl.DateTimeFormat("en-CA").format(
-      new Date(),
-    );
-
-    setApplications((currentApplications) => [
-      {
-        id: Date.now(),
-        ...applicationForm,
-        requestedAt: today,
-        status: "검토 중",
-        statusKey: "pending",
-      },
-      ...currentApplications,
-    ]);
-
-    handleApplyModalClose();
+    try {
+      const response = await createAiToolApplication(applicationForm);
+      setApplications((currentApplications) => [
+        formatApplication(response.data),
+        ...currentApplications,
+      ]);
+      handleApplyModalClose();
+    } catch (error) {
+      alert(error.response?.data?.error?.message || "AI Tool 신청에 실패했습니다.");
+    }
   };
 
   return (
