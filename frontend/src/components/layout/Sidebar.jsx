@@ -53,11 +53,6 @@ const ROLE_MENUS = {
       icon: ShieldAlert,
     },
     {
-      to: "/compliance/model-applications",
-      label: "AI Tool·모델 신청 현황",
-      icon: Boxes,
-    },
-    {
       to: "/ai-chat",
       label: "AI 사용하기",
       icon: Bot,

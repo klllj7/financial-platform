@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 // 아이콘
 import {
+  AlertCircle,
   Bot,
   ClipboardList,
   Plus,
@@ -37,6 +38,10 @@ function AiToolsPage() {
   const [isApplyModalOpen, setIsApplyModalOpen] =
     useState(false);
 
+  // 반려 카드를 클릭했을 때 상세 팝업에 표시할 신청 건이다.
+  const [selectedRejectedApplication, setSelectedRejectedApplication] =
+    useState(null);
+
   const [applicationForm, setApplicationForm] =
     useState({
       toolName: "",
@@ -50,6 +55,10 @@ function AiToolsPage() {
     toolName: application.toolName,
     provider: application.provider,
     purpose: application.purpose,
+    reviewComment: application.reviewComment,
+    reviewedAt: application.reviewedAt
+      ? new Date(application.reviewedAt).toLocaleString("ko-KR")
+      : null,
     requestedAt: new Date(application.createdAt).toLocaleDateString("ko-KR"),
     status: application.status === "APPROVED"
       ? "승인 완료"
@@ -210,7 +219,33 @@ function AiToolsPage() {
             {applications.map((application) => (
               <article
                 key={application.id}
-                className="ai-tools-application-card"
+                className={`ai-tools-application-card ${
+                  application.statusKey === "rejected"
+                    ? "is-clickable"
+                    : ""
+                }`}
+                role={
+                  application.statusKey === "rejected"
+                    ? "button"
+                    : undefined
+                }
+                tabIndex={
+                  application.statusKey === "rejected" ? 0 : undefined
+                }
+                onClick={() => {
+                  if (application.statusKey === "rejected") {
+                    setSelectedRejectedApplication(application);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    application.statusKey === "rejected" &&
+                    ["Enter", " "].includes(event.key)
+                  ) {
+                    event.preventDefault();
+                    setSelectedRejectedApplication(application);
+                  }
+                }}
               >
                 {/* AI Tool 이름과 신청 상태 */}
                 <div className="ai-tools-application-top">
@@ -246,6 +281,9 @@ function AiToolsPage() {
                   <span>
                     신청일 {application.requestedAt}
                   </span>
+                  {application.statusKey === "rejected" && (
+                    <strong>카드를 눌러 반려 사유 확인</strong>
+                  )}
                 </div>
               </article>
             ))}
@@ -266,6 +304,84 @@ function AiToolsPage() {
           </div>
         )}
       </section>
+
+      {/* 반려된 신청 카드를 선택하면 관리자가 작성한 반려 사유를 보여준다. */}
+      {selectedRejectedApplication && (
+        <div
+          className="ai-tool-modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setSelectedRejectedApplication(null)}
+        >
+          <section
+            className="ai-tool-apply-modal ai-tool-rejection-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-tool-rejection-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header className="ai-tool-modal-header rejection">
+              <div>
+                <span className="ai-tool-modal-icon">
+                  <AlertCircle size={20} />
+                </span>
+                <div>
+                  <h3 id="ai-tool-rejection-modal-title">
+                    AI Tool 신청 반려 사유
+                  </h3>
+                  <p>{selectedRejectedApplication.toolName}</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                aria-label="반려 사유 팝업 닫기"
+                onClick={() => setSelectedRejectedApplication(null)}
+              >
+                <X size={19} />
+              </button>
+            </header>
+
+            <div className="ai-tool-rejection-detail">
+              <dl>
+                <div>
+                  <dt>AI Tool</dt>
+                  <dd>{selectedRejectedApplication.toolName}</dd>
+                </div>
+                <div>
+                  <dt>공급사</dt>
+                  <dd>{selectedRejectedApplication.provider}</dd>
+                </div>
+                <div className="wide">
+                  <dt>신청 목적</dt>
+                  <dd>{selectedRejectedApplication.purpose}</dd>
+                </div>
+                <div className="wide rejection-reason">
+                  <dt>반려 사유</dt>
+                  <dd>
+                    {selectedRejectedApplication.reviewComment ||
+                      "등록된 반려 사유가 없습니다."}
+                  </dd>
+                </div>
+              </dl>
+
+              {selectedRejectedApplication.reviewedAt && (
+                <p>
+                  처리일 {selectedRejectedApplication.reviewedAt}
+                </p>
+              )}
+            </div>
+
+            <footer className="ai-tool-rejection-footer">
+              <button
+                type="button"
+                onClick={() => setSelectedRejectedApplication(null)}
+              >
+                확인
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
 
       {isApplyModalOpen && (
         <div
