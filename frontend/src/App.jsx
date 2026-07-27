@@ -115,6 +115,12 @@ function App() {
             path="/admin/accounts"
             element={<AdminAccountPage />}
           />
+
+          {/* 관리자 - 컴플라이언스와 동일한 전사 대시보드 */}
+          <Route
+            path="/admin/dashboard"
+            element={<ComplianceDashboardPage />}
+          />
  
           {/* 관리자 - AI 모델 관리 */}
           <Route

@@ -75,9 +75,9 @@ function LoginPage() {
 
       const roleCode = user?.role?.code || user?.role;
 
-      // 권한별 화면 이동은 나중에 실제 대시보드 만들면 연결
+      // 로그인한 역할에 맞는 기본 대시보드로 이동한다.
       if (roleCode === "ADMIN") {
-        navigate("/admin/accounts", {
+        navigate("/admin/dashboard", {
           replace: true,
         });
       } else if (roleCode === "COMPLIANCE_MANAGER") {
@@ -115,7 +115,7 @@ function LoginPage() {
       ADMIN: {
         email: "jang@gmail.com",
         password: "1234",
-        redirectPath: "/admin/accounts",
+        redirectPath: "/admin/dashboard",
       },
     };
 
