@@ -15,6 +15,13 @@ const sequelize = new Sequelize(
 
     // 개발 중 SQL 로그를 보고 싶으면 console.log로 변경 가능
     logging: false,
+
+    // Neon 같은 공유(원격) DB는 SSL 연결이 필수라 DB_SSL=true일 때만 켠다.
+    // 로컬 Docker Postgres는 SSL이 없어서 기본값(false)일 땐 영향 없음.
+    dialectOptions:
+      process.env.DB_SSL === "true"
+        ? { ssl: { require: true, rejectUnauthorized: false } }
+        : {},
   }
 );
 
