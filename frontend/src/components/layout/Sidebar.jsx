@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
-
+ 
 /*
   NavLink는 메뉴 이동과 활성 메뉴 표시를 담당
   useNavigate는 로그아웃 후 로그인 페이지 이동에 사용한다.
@@ -20,7 +20,7 @@ import {
   NavLink,
   useNavigate,
 } from "react-router-dom";
-
+ 
 /* 역할별 사이드바 메뉴 */
 const ROLE_MENUS = {
   EMPLOYEE: [
@@ -40,7 +40,7 @@ const ROLE_MENUS = {
       icon: Boxes,
     },
   ],
-
+ 
   COMPLIANCE_MANAGER: [
     {
       to: "/compliance/dashboard",
@@ -68,7 +68,7 @@ const ROLE_MENUS = {
       icon: ShieldCheck,
     },
   ],
-
+ 
   ADMIN: [
     {
       to: "/admin/accounts",
@@ -92,18 +92,18 @@ const ROLE_MENUS = {
     },
   ],
 };
-
+ 
 /*
   로그인 사용자 정보가 손상되거나 이전 형식으로 저장된 경우에도
   사이드바 전체가 멈추지 않도록 안전하게 JSON을 변환한다.
 */
 const getStoredUser = () => {
   const storedUser = localStorage.getItem("user");
-
+ 
   if (!storedUser) {
     return null;
   }
-
+ 
   try {
     return JSON.parse(storedUser);
   } catch (error) {
@@ -111,47 +111,47 @@ const getStoredUser = () => {
     return null;
   }
 };
-
+ 
 function Sidebar() {
   // 함수 안에서 페이지를 이동하기 위해 사용한다.
   const navigate = useNavigate();
-
+ 
   // localStorage에 저장된 로그인 사용자 정보를 안전하게 가져온다.
   const user = getStoredUser();
   
-
+ 
   const roleCode = user?.role?.code || user?.role || "EMPLOYEE";  // 사용자 역할
   const userName = user?.name || "사용자";     // 사용자 이름
-
+ 
   // 사용자 이름 첫 글자
   const userInitial = userName.charAt(0);
-
+ 
   // 부서명
   // department가 객체일 수도 있고 문자열일 수도 있어서 둘다 대응
   const departmentName = user?.department?.name || user?.department || "-";
-
+ 
   
   // 등록되지 않은 역할이 들어오면 임직원 메뉴를 기본값으로 사용
   const menus = ROLE_MENUS[roleCode] ?? ROLE_MENUS.EMPLOYEE;
-
+ 
   const noticePath =
     roleCode === "COMPLIANCE_MANAGER"
       ? "/compliance/notices"
       : roleCode === "EMPLOYEE"
         ? "/notices"
         : null;
-
+ 
   // 로그아웃 버튼 클릭 시 실행되는 함수
   const handleLogout = () => {
     // 로그인 토큰과 사용자 정보 삭제
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
-
+ 
     navigate("/login", {
       replace: true,
     });
   };
-
+ 
   return (
     <aside className="sidebar">
       {/* 서비스 로고 영역 */}
@@ -159,18 +159,18 @@ function Sidebar() {
         <div className="sidebar-logo-icon">
           <ShieldCheck size={22} />
         </div>
-
+ 
         <div className="sidebar-logo-text">
           <strong>ComplianceAI</strong>
           <span>AI 거버넌스 플랫폼</span>
         </div>
       </div>
-
+ 
       {/* 상단 주요 메뉴 */}
       <nav className="sidebar-menu">
         {menus.map((menu) => {
           const Icon = menu.icon;
-
+ 
           return (
             <NavLink
               key={menu.to}
@@ -185,7 +185,7 @@ function Sidebar() {
           );
         })}
       </nav>
-
+ 
       {/* 사이드바 하단 고정 영역 */}
       <div className="sidebar-bottom">
         {/* 공지사항 전체 목록으로 이동한다. */}
@@ -199,11 +199,11 @@ function Sidebar() {
             }
           >
             <Bell size={18} />
-
+ 
             <span className="sidebar-bottom-notice-text">
               공지사항
             </span>
-
+ 
             <span className="notice-dot" />
           </NavLink>
         )}
@@ -212,13 +212,13 @@ function Sidebar() {
         <div className="sidebar-account">
           <div className="sidebar-user">
             <div className="sidebar-avatar">{userInitial}</div>
-
+ 
             <div className="sidebar-user-text">
               <strong>{userName}</strong>
               <span>{departmentName}</span>
             </div>
           </div>
-
+ 
           <button
             type="button"
             className="logout-button"
@@ -232,5 +232,5 @@ function Sidebar() {
     </aside>
   );
 }
-
+ 
 export default Sidebar;

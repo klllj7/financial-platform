@@ -13,7 +13,6 @@ function SignupPage() {
     password: "",
     passwordConfirm: "",
     department: "",
-    role: "EMPLOYEE",
   });
 
   // 에러 메시지 표시용 state
@@ -60,7 +59,6 @@ function SignupPage() {
         email: signupForm.email,
         password: signupForm.password,
         department: signupForm.department,
-        role: signupForm.role,
       };
 
       const result = await signup(payload);
@@ -180,16 +178,9 @@ function SignupPage() {
             {/* 직무/권한 */}
             <div className="form-group">
               <label htmlFor="role">직무/권한</label>
-              <select
-                id="role"
-                name="role"
-                value={signupForm.role}
-                onChange={handleInputChange}
-              >
-                <option value="EMPLOYEE">임직원</option>
-                <option value="COMPLIANCE_MANAGER">보안/컴플라이언스 담당자</option>
-                <option value="ADMIN">관리자</option>
-              </select>
+              <p className="signup-role-notice">
+                가입 후 기본 권한은 임직원으로 설정되며, 필요한 경우 관리자가 권한을 변경합니다.
+              </p>
             </div>
 
             {/* 에러 메시지 */}

@@ -9,7 +9,8 @@ import {
 // 로그인과 회원가입 페이지
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
- 
+import FindIdPage from "./pages/auth/FindIdPage";
+
 // 임직원용 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
  
@@ -24,7 +25,7 @@ import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
 import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
- 
+
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
 import AdminModelPage from "./pages/admin/AdminModelPage";
@@ -55,7 +56,12 @@ function App() {
           path="/signup"
           element={<SignupPage />}
         />
- 
+
+        <Route
+          path="/find-id"
+          element={<FindIdPage />}
+        />
+
         {/* ==================================================
             임직원용 페이지
  
@@ -97,7 +103,7 @@ function App() {
             path="/compliance/risk-events"
             element={<ComplianceRiskEventsPage />}
           />
- 
+
           {/* 상시평가 증빙자료 */}
           <Route
             path="/report/evidence"
