@@ -16,13 +16,13 @@ import {
 
 import "./EvidenceChecklistPage.css";
 
-function progressTone(pct) {
+export function progressTone(pct) {
   if (pct >= 80) return "ce-tone-good";
   if (pct >= 50) return "ce-tone-mid";
   return "ce-tone-low";
 }
 
-function resultBadgeClass(result) {
+export function resultBadgeClass(result) {
   const map = {
     이행: "ce-badge ce-badge-done",
     부분이행: "ce-badge ce-badge-partial",
@@ -185,7 +185,24 @@ function EvidenceChecklistPage() {
                           <td className="ce-col-no">{item.no}</td>
                           <td>{item.title}</td>
                           <td>
-                            <span className={resultBadgeClass(item.result)}>{item.result}</span>
+                            <select
+                              value={item.result}
+                              onChange={async (e) => {
+                                const newResult = e.target.value;
+                                await updateEvidenceItemResult({
+                                  departmentId: currentDepartmentId,
+                                  targetYear: currentTargetYear,
+                                  itemNo: item.no,
+                                  result: newResult,
+                                });
+                                // 저장 후 목록 다시 불러오기 (간단하게는 fetchChecklist() 재호출)
+                              }}
+                            >
+                              <option value="이행">이행</option>
+                              <option value="부분이행">부분이행</option>
+                              <option value="미이행">미이행</option>
+                            </select>
+
                           </td>
                           <td>
                             {item.evidence === "준비완료" ? (
