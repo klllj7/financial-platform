@@ -7,32 +7,32 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
+      // 실제 라이브 DB에는 FK 제약이 안 걸려있어서 그대로 일반 컬럼으로 맞춘다.
       policy_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'policy_info', key: 'id' },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
       },
       version: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       rule_snapshot: {
-        type: Sequelize.JSONB
+        type: Sequelize.JSONB,
+        allowNull: false,
       },
       created_at: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updated_at: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.dropTable('policy_history');
-  }
+  },
 };

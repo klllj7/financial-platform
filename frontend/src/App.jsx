@@ -24,6 +24,8 @@ import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 // 컴플라이언스 담당자용 전사 대시보드
 import ComplianceDashboardPage from "./pages/compliance/dashboard/ComplianceDashboardPage";
 import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePage";
+import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
+import ComplianceModelApplicationsPage from "./pages/compliance/model-applications/ComplianceModelApplicationsPage";
 
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
@@ -97,6 +99,17 @@ function App() {
             element={<AiToolsPage />}
           />
 
+          {/* 컴플라이언스 위험 이벤트 관리 */}
+          <Route
+            path="/compliance/risk-events"
+            element={<ComplianceRiskEventsPage />}
+          />
+
+          {/* 컴플라이언스 AI Tool·모델 신청 현황 */}
+          <Route
+            path="/compliance/model-applications"
+            element={<ComplianceModelApplicationsPage />}
+          />
 
           {/* 상시평가 증빙자료 */}
           <Route
