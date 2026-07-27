@@ -1,0 +1,598 @@
+/* =========================================================
+   AI 모델 관리 페이지 전체 영역
+========================================================= */
+.admin-model-page {
+  padding: 28px;
+}
+
+/* 상단 헤더: 제목/설명과 모델 추가 버튼을 양쪽에 배치 */
+.admin-model-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 26px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(20, 35, 70, 0.06);
+}
+
+/* 헤더 위의 작은 영문 라벨 */
+.admin-model-eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* 페이지 제목 */
+.admin-model-header h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+/* 페이지 설명 문구 */
+.admin-model-header p {
+  margin: 8px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 모델 추가 버튼 */
+.admin-model-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 모델 추가 버튼 hover 효과 */
+.admin-model-add-button:hover {
+  box-shadow: 0 10px 24px rgba(47, 109, 246, 0.24);
+}
+
+/* =========================================================
+   요약 카드 영역
+   - 전체 모델, 승인대기, 활성 모델을 3열로 표시
+========================================================= */
+.admin-model-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+/* 개별 요약 카드 */
+.admin-model-summary-card {
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(20, 35, 70, 0.045);
+}
+
+/* 요약 카드 항목명 */
+.admin-model-summary-card span {
+  display: block;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 요약 카드 숫자 */
+.admin-model-summary-card strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+/* =========================================================
+   필터 영역
+========================================================= */
+.admin-model-filter-card {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(20, 35, 70, 0.045);
+}
+
+/* 필터 라벨과 select를 세로 배치 */
+.admin-model-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 필터 라벨 */
+.admin-model-filter-group label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 필터 select */
+.admin-model-filter-group select {
+  min-width: 180px;
+  height: 40px;
+  padding: 0 12px;
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+/* select 포커스 효과 */
+.admin-model-filter-group select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+/* 필터 결과 건수 */
+.admin-model-filter-result {
+  margin-left: auto;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 결과 건수 숫자 강조 */
+.admin-model-filter-result strong {
+  color: var(--color-primary);
+}
+
+/* =========================================================
+   테이블 카드 영역
+========================================================= */
+.admin-model-table-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(20, 35, 70, 0.06);
+  overflow: hidden;
+}
+
+/* 테이블 상단 제목/안내 문구 */
+.admin-model-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-model-table-header h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.admin-model-table-header span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* 좁은 화면에서 테이블 가로 스크롤 허용 */
+.admin-model-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* 테이블 전체 */
+.admin-model-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 테이블 헤더 셀 */
+.admin-model-table th {
+  padding: 14px 18px;
+  color: #687386;
+  background: #f8faff;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+}
+
+/* 테이블 데이터 셀 */
+.admin-model-table td {
+  padding: 16px 18px;
+  color: var(--color-text);
+  border-bottom: 1px solid #edf1f7;
+  font-size: 13px;
+}
+
+/* 행 hover 효과 */
+.admin-model-table tbody tr:hover {
+  background: #f9fbff;
+}
+
+/* 마지막 행 하단선 제거 */
+.admin-model-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   모델명 셀
+========================================================= */
+.admin-model-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+}
+
+/* 모델명 */
+.admin-model-name-cell strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+/* 모델 설명: 길면 ... 처리 */
+.admin-model-name-cell span {
+  display: block;
+  margin-top: 3px;
+  max-width: 340px;
+  color: var(--color-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 모델 아이콘 박스 */
+.admin-model-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  color: #ffffff;
+  background: var(--color-primary);
+  border-radius: 11px;
+}
+
+/* =========================================================
+   승인 상태 배지
+========================================================= */
+.admin-model-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* 승인대기 */
+.admin-model-status-badge.PENDING {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+/* 승인완료 */
+.admin-model-status-badge.APPROVED {
+  color: #047857;
+  background: #d1fae5;
+}
+
+/* 반려 */
+.admin-model-status-badge.REJECTED {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+/* =========================================================
+   활성화 토글
+========================================================= */
+.admin-model-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #cbd5e1;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* 토글 손잡이 */
+.admin-model-toggle span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+/* 활성 상태 배경 */
+.admin-model-toggle.active {
+  background: var(--color-primary);
+}
+
+/* 활성 상태에서 손잡이를 오른쪽으로 이동 */
+.admin-model-toggle.active span {
+  transform: translateX(20px);
+}
+
+/* 비활성화된 토글 */
+.admin-model-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   승인/반려 버튼
+========================================================= */
+.admin-model-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 승인/반려 버튼 공통 */
+.admin-model-approve-button,
+.admin-model-reject-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 승인 버튼 */
+.admin-model-approve-button {
+  color: #047857;
+  background: #d1fae5;
+}
+
+/* 반려 버튼 */
+.admin-model-reject-button {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+/* 처리 완료로 클릭할 수 없는 버튼 */
+.admin-model-approve-button:disabled,
+.admin-model-reject-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 조회 결과가 없을 때 메시지 */
+.admin-model-empty-message {
+  padding: 38px 18px !important;
+  color: var(--color-muted) !important;
+  text-align: center;
+}
+
+/* =========================================================
+   모델 추가 모달
+========================================================= */
+
+/* 화면 전체를 덮는 반투명 배경 */
+.admin-model-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+/* 모달 본체 */
+.admin-model-modal {
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+  overflow: hidden;
+}
+
+/* 모달 헤더 */
+.admin-model-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 22px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 모달 작은 라벨 */
+.admin-model-modal-header p {
+  margin: 0 0 6px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 모달 제목 */
+.admin-model-modal-header h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+/* 모달 닫기 버튼 */
+.admin-model-modal-close {
+  width: 32px;
+  height: 32px;
+  color: var(--color-muted);
+  background: #f6f8fc;
+  border: none;
+  border-radius: 10px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 모달 입력 폼 영역 */
+.admin-model-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+}
+
+/* 입력 항목 그룹 */
+.admin-model-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 입력 항목 라벨 */
+.admin-model-form-group label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* input/select/textarea 공통 */
+.admin-model-form-group input,
+.admin-model-form-group select,
+.admin-model-form-group textarea {
+  width: 100%;
+  padding: 0 12px;
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+/* input/select 높이 */
+.admin-model-form-group input,
+.admin-model-form-group select {
+  height: 40px;
+}
+
+/* 설명 textarea */
+.admin-model-form-group textarea {
+  min-height: 84px;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+/* 입력 요소 포커스 효과 */
+.admin-model-form-group input:focus,
+.admin-model-form-group select:focus,
+.admin-model-form-group textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.12);
+}
+
+/* 모달 하단 버튼 영역 */
+.admin-model-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 취소/추가 버튼 공통 */
+.admin-model-cancel-button,
+.admin-model-save-button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 취소 버튼 */
+.admin-model-cancel-button {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+/* 추가 버튼 */
+.admin-model-save-button {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+/* =========================================================
+   반응형 스타일
+   - 화면 너비가 860px 이하일 때 적용
+========================================================= */
+@media (max-width: 860px) {
+  /* 페이지 여백 축소 */
+  .admin-model-page {
+    padding: 18px;
+  }
+
+  /* 헤더를 세로 배치 */
+  .admin-model-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* 요약 카드를 1열로 변경 */
+  .admin-model-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 필터를 세로 배치 */
+  .admin-model-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* 결과 건수의 오른쪽 자동 정렬 해제 */
+  .admin-model-filter-result {
+    margin-left: 0;
+  }
+}

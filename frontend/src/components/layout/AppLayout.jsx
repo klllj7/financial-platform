@@ -26,6 +26,8 @@ const PAGE_TITLES = {
   "/compliance/evidence": "상시평가 증빙자료",
 
   "/admin/accounts": "계정 관리",
+  "/admin/models": "AI 모델 관리",
+  "/admin/policies": "정책 승인 관리",
 };
 
 function AppLayout() {
