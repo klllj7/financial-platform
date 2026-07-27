@@ -10,6 +10,22 @@ export const getMyDashboardTrend = async (days = 7) => {
   return response.data;
 };
 
+/* 컴플라이언스 담당자의 전사 AI 사용 추이를 조회한다. */
+export const getComplianceDashboardTrend = async (days = 30) => {
+  const response = await axiosInstance.get("/dashboard/compliance/trend", {
+    params: { days },
+  });
+  return response.data;
+};
+
+/* 컴플라이언스 대시보드 상단의 전사 사용·토큰 요약을 조회한다. */
+export const getComplianceDashboardSummary = async (month) => {
+  const response = await axiosInstance.get("/dashboard/compliance/summary", {
+    params: { month },
+  });
+  return response.data;
+};
+
 export const getMyDashboardModels = async (month) => {
   const response = await axiosInstance.get("/dashboard/me/models", { params: { month } });
   return response.data;

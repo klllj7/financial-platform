@@ -12,7 +12,7 @@ export const createAiToolApplication = async (payload) => {
   return response.data;
 };
 
-/* 컴플라이언스 담당자 또는 관리자가 신청을 승인·반려한다. */
+/* 관리자가 신청을 승인·반려한다. */
 export const reviewAiToolApplication = async (
   applicationId,
   payload,

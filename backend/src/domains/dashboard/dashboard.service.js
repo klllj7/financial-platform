@@ -131,6 +131,89 @@ const getTrend = async ({ userId, days }) => {
   return { items: [...buckets.values()] };
 };
 
+/* 모든 임직원의 AI 응답을 날짜별로 집계해 전사 사용 추이를 반환한다. */
+const getComplianceTrend = async ({ days }) => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const end = new Date();
+  end.setDate(end.getDate() + 1);
+  end.setHours(0, 0, 0, 0);
+
+  const messages = await ChatMessage.findAll({
+    attributes: ["createdAt"],
+    where: {
+      role: "ASSISTANT",
+      createdAt: { [Op.gte]: start, [Op.lt]: end },
+    },
+  });
+  const buckets = new Map();
+
+  for (let index = 0; index < days; index += 1) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const key = date.toISOString().slice(0, 10);
+    buckets.set(key, { date: key, usageCount: 0 });
+  }
+
+  messages.forEach((message) => {
+    const key = new Date(message.createdAt).toISOString().slice(0, 10);
+    const bucket = buckets.get(key);
+    if (bucket) bucket.usageCount += 1;
+  });
+
+  return { items: [...buckets.values()] };
+};
+
+/* 이번 달 전사 AI 사용 횟수와 Claude 실제 토큰 사용량을 집계한다. */
+const getComplianceSummary = async ({ month }) => {
+  const { start, end, previousStart } = getMonthRange(month);
+  const [messages, previousUsageCount] = await Promise.all([
+    ChatMessage.findAll({
+      attributes: ["inputTokens", "outputTokens"],
+      where: {
+        role: "ASSISTANT",
+        createdAt: { [Op.gte]: start, [Op.lt]: end },
+      },
+    }),
+    ChatMessage.count({
+      where: {
+        role: "ASSISTANT",
+        createdAt: { [Op.gte]: previousStart, [Op.lt]: start },
+      },
+    }),
+  ]);
+
+  const inputTokens = messages.reduce(
+    (sum, message) => sum + Number(message.inputTokens || 0),
+    0,
+  );
+  const outputTokens = messages.reduce(
+    (sum, message) => sum + Number(message.outputTokens || 0),
+    0,
+  );
+  const inputRate = Number(
+    process.env.ANTHROPIC_INPUT_COST_USD_PER_MILLION || 0,
+  );
+  const outputRate = Number(
+    process.env.ANTHROPIC_OUTPUT_COST_USD_PER_MILLION || 0,
+  );
+  const usdToKrw = Number(process.env.USD_TO_KRW_RATE || 0);
+  const estimatedCostKrw = Math.round(
+    ((inputTokens * inputRate + outputTokens * outputRate) / 1_000_000) *
+      usdToKrw,
+  );
+
+  return {
+    usageCount: messages.length,
+    previousMonthDifference: messages.length - previousUsageCount,
+    inputTokens,
+    outputTokens,
+    totalTokens: inputTokens + outputTokens,
+    estimatedCostKrw,
+  };
+};
+
 /* 조회 월의 모델별 사용 횟수와 비율을 계산한다. */
 const getModels = async ({ userId, month }) => {
   const { start, end } = getMonthRange(month);
@@ -210,6 +293,8 @@ const getUsage = async ({
 module.exports = {
   getSummary,
   getTrend,
+  getComplianceTrend,
+  getComplianceSummary,
   getModels,
   getRecent,
   getUsage,

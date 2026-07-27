@@ -11,6 +11,9 @@ const ChatMessage = sequelize.define("ChatMessage", {
   blocked: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   maskApplied: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   modelName: { type: DataTypes.STRING(100), allowNull: true },
+  // Claude 응답 usage를 저장해 실제 토큰 통계에 사용한다.
+  inputTokens: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+  outputTokens: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 }, { tableName: "chat_messages", underscored: true });
 
 ChatSession.hasMany(ChatMessage, { foreignKey: "sessionId", as: "messages", onDelete: "CASCADE" });

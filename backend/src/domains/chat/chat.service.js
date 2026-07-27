@@ -1,6 +1,9 @@
 const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
 const AiToolApplication = require("../ai-tools/ai-tool-application.model");
+const { createClaudeMessage } = require("./anthropic.client");
+
+const DEFAULT_CLAUDE_TOOL_KEY = "CLAUDE_DEFAULT";
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -37,7 +40,16 @@ const findApprovedTool = async ({
   userId,
   roleCode,
   aiToolApplicationId,
+  toolKey,
 }) => {
+  if (toolKey === DEFAULT_CLAUDE_TOOL_KEY) {
+    return {
+      toolName: "Claude",
+      provider: "Anthropic",
+      isDefaultClaude: true,
+    };
+  }
+
   if (!aiToolApplicationId) {
     throw serviceError(
       "CHAT_AI_TOOL_REQUIRED",
@@ -71,12 +83,14 @@ const sendMessage = async ({
   roleCode,
   sessionId,
   aiToolApplicationId,
+  toolKey,
   message,
 }) => {
   const approvedTool = await findApprovedTool({
     userId,
     roleCode,
     aiToolApplicationId,
+    toolKey,
   });
 
   const session = sessionId
@@ -86,11 +100,40 @@ const sendMessage = async ({
       title: message.length > 30 ? `${message.slice(0, 30)}…` : message,
     });
 
-  const userMessage = await ChatMessage.create({ sessionId: session.id, role: "USER", content: message });
   const inspection = inspectPrompt(message);
-  const reply = inspection.blocked
-    ? "보안 정책에 의해 요청이 차단되었습니다. 인증정보나 기밀정보를 제거해 주세요."
-    : `${inspection.maskApplied ? "민감정보를 마스킹한 뒤 " : ""}요청 내용을 확인했습니다. 업무 활용 전 담당자의 검토를 거쳐 주세요.`;
+  const previousMessages = await ChatMessage.findAll({
+    where: { sessionId: session.id },
+    order: [["createdAt", "ASC"]],
+  });
+  const userMessage = await ChatMessage.create({
+    sessionId: session.id,
+    role: "USER",
+    content: message,
+  });
+
+  let reply;
+  let modelName = null;
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  if (inspection.blocked) {
+    reply = "보안 정책에 의해 요청이 차단되었습니다. 인증정보나 기밀정보를 제거해 주세요.";
+  } else if (approvedTool.isDefaultClaude) {
+    const claudeResponse = await createClaudeMessage([
+      ...previousMessages,
+      userMessage,
+    ]);
+    reply = claudeResponse.content;
+    modelName = claudeResponse.modelName;
+    inputTokens = claudeResponse.inputTokens;
+    outputTokens = claudeResponse.outputTokens;
+  } else {
+    throw serviceError(
+      "CHAT_TOOL_PROVIDER_NOT_CONFIGURED",
+      `${approvedTool.toolName} 제공자 API가 아직 연결되지 않았습니다.`,
+      503,
+    );
+  }
 
   const assistantMessage = await ChatMessage.create({
     sessionId: session.id,
@@ -98,7 +141,9 @@ const sendMessage = async ({
     content: reply,
     blocked: inspection.blocked,
     maskApplied: inspection.maskApplied,
-    modelName: inspection.blocked ? null : approvedTool.toolName,
+    modelName,
+    inputTokens,
+    outputTokens,
   });
 
   await session.update({ updatedAt: new Date() }, { silent: false });

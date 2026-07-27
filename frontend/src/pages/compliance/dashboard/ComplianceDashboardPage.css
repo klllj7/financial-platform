@@ -132,19 +132,6 @@
 
 
 /* ==================================================
-   최근 이슈 · AI Tool 신청 현황 2열 배치
-================================================== */
-
-.compliance-issue-application-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-
-  margin-bottom: 18px;
-}
-
-
-/* ==================================================
    조치 필요 항목 상단 제목 영역
 ================================================== */
 
@@ -816,11 +803,27 @@
 .compliance-summary-grid {
   display: grid;
   grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+    repeat(3, minmax(0, 1fr));
 
   gap: 16px;
 
   margin-bottom: 18px;
+}
+
+/* 두 번째 줄에서 위험 이벤트와 공지사항을 같은 너비로 배치한다. */
+.compliance-dashboard-second-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.compliance-dashboard-second-row .compliance-action-required-panel {
+  margin-bottom: 0;
+}
+
+.compliance-dashboard-second-row .compliance-notice-panel {
+  min-height: 0;
 }
 
 
@@ -1187,6 +1190,17 @@
   font-size: 8px;
 }
 
+/* 공지사항이 없을 때도 위험 이벤트 카드와 균형을 유지한다. */
+.compliance-notice-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+  padding: 24px;
+  color: #7b8aa2;
+  font-size: 12px;
+}
+
 
 /* ==================================================
    그래프 패널 공통
@@ -1318,9 +1332,6 @@
       repeat(2, minmax(0, 1fr));
   }
 
-  .compliance-issue-application-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 
@@ -1329,6 +1340,11 @@
 ================================================== */
 
 @media (max-width: 850px) {
+  /* 태블릿 이하에서는 두 번째 줄의 두 패널을 세로로 표시한다. */
+  .compliance-dashboard-second-row {
+    grid-template-columns: 1fr;
+  }
+
   /* 조치 패널 제목과 안내 문구를 세로로 배치한다. */
   .compliance-action-required-header {
     align-items: flex-start;

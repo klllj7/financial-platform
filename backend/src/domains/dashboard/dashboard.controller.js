@@ -24,6 +24,26 @@ const trend = (req, res) => {
   )(req, res);
 };
 
+/* 전사 사용 추이는 컴플라이언스 대시보드에서 최대 90일까지 조회한다. */
+const complianceTrend = (req, res) => {
+  const value = Number(req.query.days || 30);
+  const days = Number.isInteger(value)
+    ? Math.min(Math.max(value, 1), 90)
+    : 30;
+
+  return handle(
+    () => service.getComplianceTrend({ days }),
+    "DASHBOARD_COMPLIANCE_TREND_FAILED",
+  )(req, res);
+};
+
+/* 컴플라이언스 상단 카드에 사용할 이번 달 전사 사용 요약을 조회한다. */
+const complianceSummary = (req, res) =>
+  handle(
+    () => service.getComplianceSummary({ month: req.query.month }),
+    "DASHBOARD_COMPLIANCE_SUMMARY_FAILED",
+  )(req, res);
+
 const models = (req, res) =>
   handle(
     () => service.getModels({ userId: req.user.userId, month: req.query.month }),
@@ -55,4 +75,12 @@ const usage = (req, res) => {
   )(req, res);
 };
 
-module.exports = { summary, trend, models, recent, usage };
+module.exports = {
+  summary,
+  trend,
+  complianceTrend,
+  complianceSummary,
+  models,
+  recent,
+  usage,
+};

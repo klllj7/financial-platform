@@ -28,6 +28,7 @@ const sendMessage = async (req, res) => {
       roleCode: req.user.roleCode,
       sessionId: req.body.sessionId,
       aiToolApplicationId: req.body.aiToolApplicationId,
+      toolKey: req.body.toolKey,
       message,
     }), 201);
   } catch (error) { return fail(res, error.code || "CHAT_SEND_FAILED", error.message, error.statusCode || 500); }

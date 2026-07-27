@@ -29,6 +29,12 @@ const ROLE_LABELS = {
   ADMIN: "관리자",
 };
 
+const DEFAULT_CLAUDE_TOOL = {
+  id: "CLAUDE_DEFAULT",
+  toolName: "Claude",
+  provider: "Anthropic",
+  isDefault: true,
+};
 
 function AiChatPage() {
   /* 현재 로그인한 사용자의 역할을 가져와 공통 화면에 표시한다. */
@@ -56,8 +62,10 @@ function AiChatPage() {
   const [error, setError] = useState("");
 
   // 로그인 사용자가 선택할 수 있는 승인 완료 AI Tool 목록이다.
-  const [approvedTools, setApprovedTools] = useState([]);
-  const [selectedToolId, setSelectedToolId] = useState(null);
+  const [approvedTools, setApprovedTools] =
+    useState([DEFAULT_CLAUDE_TOOL]);
+  const [selectedToolId, setSelectedToolId] =
+    useState(DEFAULT_CLAUDE_TOOL.id);
 
   /* Sequelize 날짜와 역할 코드를 화면 메시지 형식으로 변환한다. */
   const formatMessage = (message) => ({
@@ -110,17 +118,18 @@ function AiChatPage() {
             uniqueTools.push(application);
           });
 
-        setApprovedTools(uniqueTools);
+        const selectableTools = [DEFAULT_CLAUDE_TOOL, ...uniqueTools];
+        setApprovedTools(selectableTools);
         setSelectedToolId((currentId) =>
-          uniqueTools.some((tool) => tool.id === currentId)
+          selectableTools.some((tool) => tool.id === currentId)
             ? currentId
-            : uniqueTools[0]?.id ?? null,
+            : DEFAULT_CLAUDE_TOOL.id,
         );
       } catch (requestError) {
         console.error("승인 AI Tool 목록 조회 실패", requestError);
-        setApprovedTools([]);
-        setSelectedToolId(null);
-        setError("승인된 AI Tool 목록을 불러오지 못했습니다.");
+        // 승인 목록 조회가 실패해도 기본 Claude는 계속 선택할 수 있다.
+        setApprovedTools([DEFAULT_CLAUDE_TOOL]);
+        setSelectedToolId(DEFAULT_CLAUDE_TOOL.id);
       }
     };
 
@@ -150,7 +159,14 @@ function AiChatPage() {
       const response = await sendChatMessage({
         message: trimmedPrompt,
         sessionId: activeChatId,
-        aiToolApplicationId: selectedToolId,
+        toolKey:
+          selectedToolId === DEFAULT_CLAUDE_TOOL.id
+            ? DEFAULT_CLAUDE_TOOL.id
+            : undefined,
+        aiToolApplicationId:
+          selectedToolId === DEFAULT_CLAUDE_TOOL.id
+            ? undefined
+            : selectedToolId,
       });
       const { session, userMessage, assistantMessage } = response.data;
 
@@ -166,7 +182,10 @@ function AiChatPage() {
       });
     } catch (requestError) {
       console.error("AI 답변 요청 실패", requestError);
-      setError("AI 답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(
+        requestError.response?.data?.error?.message ||
+          "AI 답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -335,7 +354,10 @@ function AiChatPage() {
                     onClick={() => setSelectedToolId(tool.id)}
                   >
                     <strong>{tool.toolName}</strong>
-                    <span>{tool.provider}</span>
+                    <span>
+                      {tool.provider}
+                      {tool.isDefault ? " · 기본" : ""}
+                    </span>
                   </button>
                 ))}
               </div>

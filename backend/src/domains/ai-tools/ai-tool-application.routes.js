@@ -8,11 +8,11 @@ const router = express.Router();
 router.get("/", authenticate, controller.getApplications);
 router.post("/", authenticate, controller.createApplication);
 
-/* 신청 승인·반려는 컴플라이언스 담당자와 관리자만 가능하다. */
+/* AI Tool 신청 승인·반려는 관리자만 가능하다. */
 router.patch(
   "/:applicationId/review",
   authenticate,
-  authorize("COMPLIANCE_MANAGER", "ADMIN"),
+  authorize("ADMIN"),
   controller.reviewApplication,
 );
 

@@ -47,11 +47,6 @@ const ROLE_MENUS = {
       icon: LayoutDashboard,
     },
     {
-      to: "/compliance/model-applications",
-      label: "AI Tool 신청 현황",
-      icon: Boxes,
-    },
-    {
       to: "/ai-chat",
       label: "AI 사용하기",
       icon: Bot,

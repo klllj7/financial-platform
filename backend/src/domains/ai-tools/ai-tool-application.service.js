@@ -3,9 +3,9 @@ const { User, Department } = require("../auth/auth.models");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
-/* 컴플라이언스 담당자와 관리자는 전체 신청, 임직원은 본인 신청만 조회한다. */
+/* 관리자는 전체 신청을 조회하고, 그 외 사용자는 본인 신청만 조회한다. */
 const getApplications = ({ userId, roleCode }) => AiToolApplication.findAll({
-  where: ["COMPLIANCE_MANAGER", "ADMIN"].includes(roleCode) ? {} : { userId },
+  where: roleCode === "ADMIN" ? {} : { userId },
   order: [["createdAt", "DESC"]],
 });
 
