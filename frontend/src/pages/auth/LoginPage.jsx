@@ -169,7 +169,7 @@ function LoginPage() {
 
   // 비밀번호 찾기 버튼 클릭 시 실행
   const handleFindPasswordClick = () => {
-    alert("비밀번호 찾기 기능은 추후 구현 예정입니다.");
+    navigate("/reset-password");
   };
 
   return (

@@ -10,6 +10,8 @@ import {
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import FindIdPage from "./pages/auth/FindIdPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import ResetPasswordConfirmPage from "./pages/auth/ResetPasswordConfirmPage";
 
 // 임직원용 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
@@ -61,6 +63,16 @@ function App() {
         <Route
           path="/find-id"
           element={<FindIdPage />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPasswordPage />} 
+        />
+
+        <Route
+          path="/reset-password/confirm"
+          element={<ResetPasswordConfirmPage />}
         />
 
         {/* ==================================================

@@ -177,8 +177,74 @@ const getMe = async (userId) => {
   };
 };
 
+// 이메일 마스킹 처리
+// 아이디 찾기 결과에서 전체 이메일을 그대로 노출하지 않기 위해 일부만 보여준다.
+const maskEmail = (email) => {
+  const [emailId, domain] = email.split("@");
+
+  // 이메일 형식이 아니면 원본 대신 빈 문자열 반환
+  if (!emailId || !domain) {
+    return "";
+  }
+
+  // 이메일 아이디가 2글자 이하인 경우 첫 글자만 보여준다.
+  if (emailId.length <= 2) {
+    return `${emailId.charAt(0)}*@${domain}`;
+  }
+
+  // 아이디 앞 2글자만 보여주고 나머지는 * 처리
+  const visibleId = emailId.slice(0, 2);
+  const maskedId = `${visibleId}${"*".repeat(Math.max(emailId.length - 2))}`;
+
+  return `${maskedId}@${domain}`;
+};
+
+// 아이디 찾기
+// 사용자가 입력한 이름과 부서 코드가 일치하는 계정을 조회한다.
+const findEmail = async ({ name, department }) => {
+  if (!name || !department) {
+    const error = new Error("이름과 부서를 모두 입력해주세요.");
+    error.statusCode = 400;
+    error.code = "AUTH_FIND_EMAIL_REQUIRED";
+    throw error;
+  }
+
+  const user = await User.findOne({
+    where: { name },
+    include: [
+      {
+        model: Department,
+        as: "department",
+        attributes: ["id", "code", "name"],
+        where: {
+          code: department,
+        },
+      },
+      {
+        model: Role,
+        as: "role",
+        attributes: ["id", "code", "name"],
+      },
+    ],
+  });
+
+  if (!user) {
+    const error = new Error("입력하신 정보와 일치하는 계정을 찾을 수 없습니다.");
+    error.statusCode = 404;
+    error.code = "AUTH_EMAIL_NOT_FOUND";
+    throw error;
+  }
+
+  return {
+    maskedEmail: maskEmail(user.email),
+    name: user.name,
+    department: user.department.name,
+  };
+};
+
 module.exports = {
   signup,
   login,
   getMe,
+  findEmail,
 };
