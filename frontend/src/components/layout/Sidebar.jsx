@@ -71,6 +71,11 @@ const ROLE_MENUS = {
  
   ADMIN: [
     {
+      to: "/admin/dashboard",
+      label: "전사 대시보드",
+      icon: LayoutDashboard,
+    },
+    {
       to: "/admin/accounts",
       label: "계정 관리",
       icon: UsersRound,
