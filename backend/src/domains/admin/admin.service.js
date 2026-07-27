@@ -1,4 +1,4 @@
-const { User, Role, Department } = require("../auth/auth.models");
+const { User, Role, Department, LoginHistory } = require("../auth/auth.models");
 
 // 관리자 - 전체 사용자 목록 조회
 const getUsers = async () => {
@@ -26,7 +26,36 @@ const getUsers = async () => {
     order: [["createdAt", "DESC"]],
   });
 
-  return users;
+  /* 
+    각 사용자별 가장 최근 로그인 이력 조회
+    현재는 사용자 목록을 가져온 뒤 사용자마다 최근 로그인 1건을 조회하는 방식으로 구현
+    나중에 데이터가 많아지면 JOIN 또는 서브쿼리 방식으로 최적화 가능
+  */
+  const usersWithLastLogin = await Promise.all(
+    users.map(async (user) => {
+      const lastLoginHistory = await LoginHistory.findOne({
+        where: {
+          userId: user.id,
+          status: "SUCCESS",
+        },
+        order: [["loggedInAt", "DESC"]],
+      });
+
+      // Sequelize 객체를 일반 객체로 변환
+      const plainUser = user.get({ plain: true });
+
+      return {
+        ...plainUser,
+
+        // 관리자 계정 관리 화면에서 사용할 최근 로그인 시간
+        lastLoginAt: lastLoginHistory
+          ? lastLoginHistory.loggedInAt
+          : null,
+      };
+    })
+  );
+
+  return usersWithLastLogin;
 };
 
 // 관리자 - 사용자 권한 변경
