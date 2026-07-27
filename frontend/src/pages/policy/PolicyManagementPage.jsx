@@ -100,9 +100,13 @@ function PolicyManagementPage() {
   }, [statusFilter, activeFilter]);
 
   // 서버에서 정책 목록을 새로 받아와 policies state를 갱신한다.
+  // 활성화(active_yn: true)된 정책이 위로 오도록 정렬해서 저장한다.
   const fetchPolicies = async () => {
     const result = await getPolicies();
-    setPolicies(result.data);
+    const sorted = [...result.data].sort(
+      (a, b) => Number(b.active_yn) - Number(a.active_yn)
+    );
+    setPolicies(sorted);
   };
 
   // 페이지가 처음 열릴 때 한 번 정책 목록을 불러온다.

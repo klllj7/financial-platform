@@ -9,6 +9,40 @@ const POLICY_STATUS_LABEL_MAP = {
   REJECTED: "반려",
 };
 
+// 기본 정렬 우선순위: 승인대기 -> 승인완료 -> 반려
+const STATUS_SORT_ORDER = {
+  PENDING: 0,
+  APPROVED: 1,
+  REJECTED: 2,
+};
+
+// 한 페이지에 보여줄 개수 선택지
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
+// 페이지네이션 버튼에 표시할 번호 목록을 만든다.
+// 페이지가 많으면 현재 페이지 주변 + 처음/끝만 보여주고 나머지는 "..."으로 줄인다.
+const getPageNumbers = (currentPage, totalPages) => {
+  const pages = [];
+  const windowStart = Math.max(2, currentPage - 1);
+  const windowEnd = Math.min(totalPages - 1, currentPage + 1);
+
+  pages.push(1);
+  if (windowStart > 2) {
+    pages.push("...");
+  }
+  for (let page = windowStart; page <= windowEnd; page += 1) {
+    pages.push(page);
+  }
+  if (windowEnd < totalPages - 1) {
+    pages.push("...");
+  }
+  if (totalPages > 1) {
+    pages.push(totalPages);
+  }
+
+  return pages;
+};
+
 // 날짜를 "YYYY-MM-DD" 형태로 보여준다.
 const formatDate = (isoString) => (isoString ? isoString.slice(0, 10) : "-");
 
@@ -49,6 +83,10 @@ function AdminPolicyPage() {
   const [rejectDetailInput, setRejectDetailInput] = useState("");
   const [revisionRequestInput, setRevisionRequestInput] = useState("");
 
+  // 페이지네이션: 한 페이지에 보여줄 개수, 현재 페이지 번호
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+
   // 서버에서 정책 목록을 받아와서, 이 페이지가 쓰는 필드 이름으로 변환한다.
   const fetchPolicies = async () => {
     const result = await getPolicies();
@@ -59,6 +97,7 @@ function AdminPolicyPage() {
       departmentName: policy.department_name || "-",
       version: `v${policy.version}`,
       requestedAt: formatDate(policy.createdAt),
+      requestedAtRaw: policy.createdAt, // 정렬용 원본 날짜(시각 포함)
       status: policy.approval_status.toUpperCase(), // pending -> PENDING
       content: policy.rule_content,
       rejectReason: policy.reject_reason,
@@ -75,9 +114,10 @@ function AdminPolicyPage() {
     fetchPolicies();
   }, []);
 
-  /* 상태, 검색어 조건에 맞는 정책만 추출 */
+  /* 상태, 검색어 조건에 맞는 정책만 추출한 뒤, 기본 정렬 규칙을 적용한다.
+     정렬: 승인대기 -> 승인완료 -> 반려 순서, 같은 상태끼리는 요청일 최신순 */
   const filteredPolicies = useMemo(() => {
-    return policies.filter((policy) => {
+    const matched = policies.filter((policy) => {
       const matchesStatus = statusFilter === "ALL" || policy.status === statusFilter;
 
       // 대소문자 구분 없이 검색하기 위해 검색어를 소문자로 변환
@@ -89,7 +129,28 @@ function AdminPolicyPage() {
 
       return matchesStatus && matchesKeyword;
     });
+
+    return [...matched].sort((a, b) => {
+      const statusDiff = STATUS_SORT_ORDER[a.status] - STATUS_SORT_ORDER[b.status];
+      if (statusDiff !== 0) {
+        return statusDiff;
+      }
+      // 같은 상태면 요청일이 최신인(더 큰 날짜) 것이 먼저 오도록
+      return new Date(b.requestedAtRaw) - new Date(a.requestedAtRaw);
+    });
   }, [policies, statusFilter, keyword]);
+
+  // 페이지네이션: 정렬/필터된 목록 중 현재 페이지에 해당하는 부분만 잘라낸다.
+  const totalPages = Math.max(1, Math.ceil(filteredPolicies.length / pageSize));
+  const paginatedPolicies = filteredPolicies.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  // 상태 필터, 검색어, 페이지 크기가 바뀌면 1페이지로 되돌린다.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, keyword, pageSize]);
 
   const pendingCount = policies.filter((policy) => policy.status === "PENDING").length;   // 승인대기 정책 수
   const approvedCount = policies.filter((policy) => policy.status === "APPROVED").length; // 승인완료 정책 수
@@ -220,8 +281,8 @@ function AdminPolicyPage() {
             </thead>
 
             <tbody>
-              {/* 필터 조건을 통과한 정책을 행으로 반복 출력 */}
-              {filteredPolicies.map((policy) => (
+              {/* 필터/정렬을 통과한 정책 중, 현재 페이지에 해당하는 것만 행으로 출력 */}
+              {paginatedPolicies.map((policy) => (
                 <tr key={policy.id}>
                   <td>
                     <strong className="admin-policy-name-text">{policy.policyName}</strong>
@@ -250,7 +311,7 @@ function AdminPolicyPage() {
               ))}
 
               {/* 필터 결과가 없을 때 안내 문구 표시 */}
-              {filteredPolicies.length === 0 && (
+              {paginatedPolicies.length === 0 && (
                 <tr>
                   <td colSpan="7" className="admin-policy-empty-message">
                     조건에 맞는 정책 승인 요청이 없습니다.
@@ -259,6 +320,59 @@ function AdminPolicyPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* 페이지네이션: 왼쪽에 페이지당 개수 선택, 가운데에 번호 이동 */}
+        <div className="admin-policy-pagination-bar">
+          <div className="admin-policy-page-size">
+            <label htmlFor="policyPageSize">페이지당</label>
+            <select
+              id="policyPageSize"
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}개씩 보기
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-policy-pagination">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            >
+              {"<"}
+            </button>
+
+            {getPageNumbers(currentPage, totalPages).map((page, index) =>
+              page === "..." ? (
+                <span key={`ellipsis-${index}`} className="admin-policy-pagination-ellipsis">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  type="button"
+                  className={page === currentPage ? "active" : ""}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              )
+            )}
+
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            >
+              {">"}
+            </button>
+          </div>
         </div>
       </div>
 

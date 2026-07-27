@@ -3,6 +3,9 @@ const cors = require("cors");       // Frontend-Backend 통신 설정
 const policyInfo = require("./domains/policy/models/policyInfo"); // PolicyInfo 모델 불러오기
 const policyRoutes = require("./domains/policy/routes/policyRoutes"); // Policy 관련 라우터 불러오기
 const PolicyHistory = require("./domains/policy/models/policyHistory"); // PolicyHistory 모델 불러오기
+const RegulationDocument = require("./domains/regulation/models/regulationDocument");
+const RegulationClause = require("./domains/regulation/models/regulationClause");
+const PolicyClauseMap = require("./domains/regulation/models/policyClauseMap");
 require("dotenv").config();         // .env 파일 읽기 설정
 
 
