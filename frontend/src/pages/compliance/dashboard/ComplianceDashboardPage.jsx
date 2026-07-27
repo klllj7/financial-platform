@@ -469,7 +469,7 @@ function ComplianceDashboardPage() {
             </small>
 
             <small className="compliance-budget-description">
-              Claude API 응답의 실제 입·출력 토큰 합계
+              Solar API 응답의 실제 입·출력 토큰 합계
             </small>
           </div>
         </article>

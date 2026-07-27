@@ -2,7 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  /* Claude가 반환한 실제 입·출력 토큰 수를 채팅 응답에 저장한다. */
+  /* Solar가 반환한 실제 입·출력 토큰 수를 채팅 응답에 저장한다. */
   async up(queryInterface, Sequelize) {
     const columns = await queryInterface.describeTable("chat_messages");
 

@@ -28,6 +28,7 @@ import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceR
 
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminModelPage from "./pages/admin/AdminModelPage";
 import AdminPolicyPage from "./pages/admin/AdminPolicyPage";
  
@@ -119,7 +120,7 @@ function App() {
           {/* 관리자 - 컴플라이언스와 동일한 전사 대시보드 */}
           <Route
             path="/admin/dashboard"
-            element={<ComplianceDashboardPage />}
+            element={<AdminDashboardPage />}
           />
  
           {/* 관리자 - AI 모델 관리 */}

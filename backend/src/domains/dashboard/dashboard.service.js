@@ -165,7 +165,7 @@ const getComplianceTrend = async ({ days }) => {
   return { items: [...buckets.values()] };
 };
 
-/* 이번 달 전사 AI 사용 횟수와 Claude 실제 토큰 사용량을 집계한다. */
+/* 이번 달 전사 AI 사용 횟수와 Solar 실제 토큰 사용량을 집계한다. */
 const getComplianceSummary = async ({ month }) => {
   const { start, end, previousStart } = getMonthRange(month);
   const [messages, previousUsageCount] = await Promise.all([
