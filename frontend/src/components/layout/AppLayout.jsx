@@ -27,6 +27,7 @@ const PAGE_TITLES = {
 
   "/admin/accounts": "계정 관리",
   "/admin/models": "AI 모델 관리",
+  "/admin/policies": "정책 승인 관리",
 };
 
 function AppLayout() {
