@@ -1,5 +1,5 @@
-// 월 관리를 위해
-import { useState } from "react";
+// 월 선택 상태와 대시보드 API 조회 시점을 관리하기 위해 사용
+import { useEffect, useState } from "react";
 
 // 버튼 클릭 시 다른 페이지로 이동하기 위해 useNavigate를 사용
 import { useNavigate } from "react-router-dom";
@@ -25,15 +25,15 @@ import {
   YAxis,
 } from "recharts";
 
-/* 백엔드 연결 전 화면에 표시할 Mock 데이터 */
+/* 공지사항과 AI Tool 신청 현황을 백엔드에서 조회한다. */
+import { getNotices } from "../../api/noticeApi";
+import { getAiToolApplications } from "../../api/aiToolApi";
 import {
-  aiToolApplicationData,
-  dashboardNoticeData,
-  dashboardSummary,
-  modelAllocationData,
-  recentUsageData,
-  usageTrendData,
-} from "../../mocks/dashboardMock";
+  getMyDashboardModels,
+  getMyDashboardRecent,
+  getMyDashboardSummary,
+  getMyDashboardTrend,
+} from "../../api/dashboardApi";
 
 /* 대시보드 전용 CSS */
 import "./MyDashboardPage.css";
@@ -50,6 +50,21 @@ const MONTH_OPTIONS = [
   "2026년 05월",
   "2026년 04월",
 ];
+
+const EMPTY_SUMMARY = {
+  riskEventCount: 0,
+  mediumOrHigherCount: 0,
+  usageCount: 0,
+  previousMonthDifference: 0,
+  totalTokens: 0,
+  totalCostKrw: 0,
+};
+
+const MODEL_COLORS = ["#2f6fed", "#7a5af8", "#30b795", "#f5a623"];
+
+/* 화면의 한글 월 표시를 API에서 사용하는 YYYY-MM 형식으로 변환한다. */
+const toMonthQuery = (monthLabel) =>
+  monthLabel.replace("년 ", "-").replace("월", "");
 
 /*
   위험 등급에 맞는 CSS 클래스 이름을 반환
@@ -93,23 +108,141 @@ function MyDashboardPage() {
   const [selectedMonth, setSelectedMonth] =
     useState("2026년 07월");
 
-  /*
-    공지사항 데이터가 배열이 아닌 경우에도
-    화면 전체가 멈추지 않도록 빈 배열을 사용
-  */
-  const notices = Array.isArray(dashboardNoticeData)
-    ? dashboardNoticeData
-    : [];
+  /* 대시보드에는 서버에서 조회한 최신 데이터 3건만 저장한다. */
+  const [notices, setNotices] = useState([]);
+  const [toolApplications, setToolApplications] =
+    useState([]);
+  const [usageTrendData, setUsageTrendData] = useState([]);
+  const [dashboardSummary, setDashboardSummary] =
+    useState(EMPTY_SUMMARY);
+  const [modelAllocationData, setModelAllocationData] =
+    useState([]);
+  const [recentUsageData, setRecentUsageData] = useState([]);
 
   /*
-    AI Tool 신청 데이터가 배열이 아닌 경우에도
-    화면 전체가 멈추지 않도록 빈 배열을 사용
+    정해진 개인 대시보드 API 명세에 따라 요약·추이·모델·최근 이력을 조회한다.
+    선택 월이 바뀌면 월간 요약과 모델 비율도 함께 갱신한다.
   */
-  const toolApplications = Array.isArray(
-    aiToolApplicationData,
-  )
-    ? aiToolApplicationData
-    : [];
+  useEffect(() => {
+    const fetchPersonalDashboard = async () => {
+      const month = toMonthQuery(selectedMonth);
+
+      try {
+        const [summaryResponse, trendResponse, modelsResponse, recentResponse] =
+          await Promise.all([
+            getMyDashboardSummary(month),
+            getMyDashboardTrend(7),
+            getMyDashboardModels(month),
+            getMyDashboardRecent(5),
+          ]);
+
+        setDashboardSummary(summaryResponse.data || EMPTY_SUMMARY);
+        setUsageTrendData(
+          Array.isArray(trendResponse.data?.items)
+            ? trendResponse.data.items.map((item) => ({
+              ...item,
+              date: new Date(`${item.date}T00:00:00`).toLocaleDateString(
+                "ko-KR",
+                { month: "numeric", day: "numeric" },
+              ),
+              riskCount: item.riskEventCount,
+            }))
+            : [],
+        );
+        setModelAllocationData(
+          Array.isArray(modelsResponse.data?.models)
+            ? modelsResponse.data.models
+            : [],
+        );
+        setRecentUsageData(
+          Array.isArray(recentResponse.data?.items)
+            ? recentResponse.data.items.map((item) => ({
+              ...item,
+              occurredAt: new Date(item.occurredAt).toLocaleString("ko-KR"),
+            }))
+            : [],
+        );
+      } catch (error) {
+        console.error("개인 대시보드 조회 실패", error);
+        setDashboardSummary(EMPTY_SUMMARY);
+        setUsageTrendData([]);
+        setModelAllocationData([]);
+        setRecentUsageData([]);
+      }
+    };
+
+    fetchPersonalDashboard();
+  }, [selectedMonth]);
+
+  /*
+    백엔드 응답을 기존 대시보드 카드가 사용하는 표시 형식으로 변환한다.
+    API 연결 실패 시 Mock 데이터는 사용하지 않고 빈 상태를 유지한다.
+  */
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [noticeResponse, applicationResponse] =
+          await Promise.all([
+            getNotices(),
+            getAiToolApplications(),
+          ]);
+
+        const noticeData = Array.isArray(noticeResponse.data)
+          ? noticeResponse.data
+          : [];
+        const applicationData = Array.isArray(
+          applicationResponse.data,
+        )
+          ? applicationResponse.data
+          : [];
+
+        setNotices(
+          noticeData.slice(0, 3).map((notice) => {
+            const createdAt = new Date(notice.createdAt);
+            const isNew =
+              Date.now() - createdAt.getTime() <=
+              3 * 24 * 60 * 60 * 1000;
+
+            return {
+              id: notice.id,
+              category: notice.category,
+              title: notice.title,
+              createdAt: createdAt.toLocaleDateString("ko-KR"),
+              isNew,
+            };
+          }),
+        );
+
+        setToolApplications(
+          applicationData.slice(0, 3).map((application) => ({
+            id: application.id,
+            toolName: application.toolName,
+            provider: application.provider,
+            purpose: application.purpose,
+            requestedAt: new Date(
+              application.createdAt,
+            ).toLocaleDateString("ko-KR"),
+            status:
+              application.status === "APPROVED"
+                ? "승인 완료"
+                : application.status === "REJECTED"
+                  ? "반려"
+                  : "검토 중",
+            statusKey:
+              application.status === "APPROVED"
+                ? "approved"
+                : application.status === "REJECTED"
+                  ? "rejected"
+                  : "pending",
+          })),
+        );
+      } catch (error) {
+        console.error("마이 대시보드 데이터 조회 실패", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   /*
     AI Tool 신청 현황 중
@@ -211,12 +344,13 @@ function MyDashboardPage() {
             </span>
 
             <strong className="summary-value">
-              {dashboardSummary.totalUsageCount}회
+              {dashboardSummary.usageCount}회
             </strong>
 
             <small>
-              전월 대비 +
-              {dashboardSummary.usageIncrease}회
+              전월 대비{" "}
+              {dashboardSummary.previousMonthDifference >= 0 ? "+" : ""}
+              {dashboardSummary.previousMonthDifference}회
             </small>
           </div>
         </article>
@@ -238,6 +372,24 @@ function MyDashboardPage() {
                 className="model-donut-chart"
                 role="img"
                 aria-label="모델별 사용 비율"
+                style={{
+                  background: modelAllocationData.length
+                    ? `conic-gradient(${modelAllocationData
+                      .reduce(
+                        (result, model, index) => {
+                          const start = result.total;
+                          const end = start + model.ratio;
+                          result.parts.push(
+                            `${MODEL_COLORS[index % MODEL_COLORS.length]} ${start}% ${end}%`,
+                          );
+                          result.total = end;
+                          return result;
+                        },
+                        { parts: [], total: 0 },
+                      )
+                      .parts.join(", ")})`
+                    : "#e5eaf3",
+                }}
               />
 
               {/* 모델별 사용 비율 범례 */}
@@ -256,7 +408,7 @@ function MyDashboardPage() {
 
                       <span>
                         <strong>{model.modelName}</strong>{" "}
-                        {model.percentage}%
+                        {model.ratio}%
                       </span>
                     </div>
                   ),

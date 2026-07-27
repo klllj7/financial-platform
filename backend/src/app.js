@@ -12,6 +12,12 @@ const authRoutes = require("./domains/auth/auth.routes");
 const adminRoutes = require("./domains/admin/admin.routes");
 const evidenceRoutes = require("./domains/report/evidence/evidence.routes");
 
+/* 새 기능은 기존 도메인 코드를 수정하지 않고 독립 라우터로 연결한다. */
+const chatRoutes = require("./domains/chat/chat.routes");
+const noticeRoutes = require("./domains/notices/notice.routes");
+const aiToolApplicationRoutes = require("./domains/ai-tools/ai-tool-application.routes");
+const dashboardRoutes = require("./domains/dashboard/dashboard.routes");
+
 const app = express();
 
 app.use(cors());
@@ -36,6 +42,11 @@ app.use("/api/auth", authRoutes);
 // Admin API 연결
 app.use("/api/admin", adminRoutes);
 
+// AI 채팅, 공지사항, AI Tool 신청 현황 API 연결
+app.use("/api/chats", chatRoutes);
+app.use("/api/notices", noticeRoutes);
+app.use("/api/ai-tool", aiToolApplicationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 // report/evidence API 연결
 app.use("/api/report/evidence", evidenceRoutes);
 
@@ -46,13 +57,12 @@ const startServer = async () => {
   try {
     // PostgreSQL 연결 확인
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true }); // 모델과 DB 테이블 동기화
-    console.log("테이블 동기화 완료");
     console.log("PostgreSQL DB 연결 성공");
 
-    // 모델 기준으로 DB 테이블 생성/수정
-    await sequelize.sync({ alter: true });
-    console.log("DB 테이블 동기화 완료");
+    // 공유 DB로 전환하면서 sequelize.sync({ alter: true })를 제거함.
+    // (서버 켤 때마다 자동으로 스키마를 바꿔서, 공유 DB에서는 팀원 전체에게
+    // 영향을 주는 위험한 동작이었음 — 실제로 unique 제약이 중복 생성되는
+    // 문제가 있었음). 이제 스키마 변경은 sequelize-cli 마이그레이션으로만 반영한다.
 
     // 기본 권한/부서 데이터 생성
     await seedBasicData();

@@ -102,7 +102,7 @@ function LoginPage() {
 
   // 아이디 찾기 버튼 클릭 시 실행
   const handleFindIdClick = () => {
-    alert("아이디 찾기 기능은 추후 구현 예정입니다.");
+    navigate("/find-id");
   };
 
   // 비밀번호 찾기 버튼 클릭 시 실행

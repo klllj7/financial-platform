@@ -62,7 +62,7 @@ if (require.main === module) {
   const runSeed = async () => {
     try {
       await sequelize.authenticate();
-      await sequelize.sync({ alter: true });
+      // sequelize.sync({ alter: true }) 제거함 (공유 DB에서 위험 — 마이그레이션으로 대체)
       await seedBasicData();
 
       console.log("Seed 실행 완료");
