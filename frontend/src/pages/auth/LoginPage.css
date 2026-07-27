@@ -438,3 +438,54 @@
   background: #f3f7ff;
   border-color: #2f6fed;
 }
+
+/* 개발/시연용 빠른 이동 영역 */
+.login-dev-access {
+  margin-top: 22px;
+  padding-top: 18px;
+
+  border-top: 1px dashed #cbd5e1;
+}
+
+.login-dev-access p {
+  margin: 0 0 10px;
+
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* 역할별 빠른 이동 버튼 목록 */
+.login-dev-access-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-dev-access-buttons button {
+  height: 40px;
+
+  color: #334155;
+  background: #f8fafc;
+
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.login-dev-access-buttons button:hover {
+  background: #eef4ff;
+  border-color: #2f6df6;
+  transform: translateY(-1px);
+}
