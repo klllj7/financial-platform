@@ -67,51 +67,6 @@
 
 
 /* ==================================================
-   AI 모델 신청 현황 버튼
-================================================== */
-
-.compliance-model-application-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  flex-shrink: 0;
-
-  min-height: 38px;
-  padding: 0 15px;
-
-  color: #314f7f;
-  background: #ffffff;
-
-  border: 1px solid #dce3ee;
-  border-radius: 20px;
-
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  box-shadow:
-    0 5px 14px rgba(23, 48, 90, 0.04);
-
-  transition:
-    color 0.2s,
-    border-color 0.2s,
-    transform 0.2s;
-}
-
-/* 버튼에 마우스를 올렸을 때 */
-.compliance-model-application-button:hover {
-  color: #2f6fed;
-  border-color: #bad0f7;
-
-  transform: translateY(-1px);
-}
-
-
-/* ==================================================
    오늘의 조치 필요 항목 전체 패널
 ================================================== */
 
@@ -1340,11 +1295,6 @@
 ================================================== */
 
 @media (max-width: 850px) {
-  /* 태블릿 이하에서는 두 번째 줄의 두 패널을 세로로 표시한다. */
-  .compliance-dashboard-second-row {
-    grid-template-columns: 1fr;
-  }
-
   /* 조치 패널 제목과 안내 문구를 세로로 배치한다. */
   .compliance-action-required-header {
     align-items: flex-start;
@@ -1426,8 +1376,9 @@
     padding: 18px 13px 25px;
   }
 
-  .compliance-model-application-button {
-    width: 100%;
+  /* 휴대전화 화면에서만 두 패널을 세로로 표시한다. */
+  .compliance-dashboard-second-row {
+    grid-template-columns: 1fr;
   }
 
   /* 조치 패널 제목을 여러 줄로 표시한다. */
