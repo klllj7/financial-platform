@@ -63,8 +63,6 @@ const inspectPrompt = async (message, userId) => {
 
 /* 선택한 AI Tool 신청이 승인 상태이고 현재 사용자가 사용할 수 있는지 확인한다. */
 const findApprovedTool = async ({
-  userId,
-  roleCode,
   aiToolApplicationId,
   toolKey,
 }) => {
@@ -88,9 +86,7 @@ const findApprovedTool = async ({
     where: {
       id: aiToolApplicationId,
       status: "APPROVED",
-      ...(["COMPLIANCE_MANAGER", "ADMIN"].includes(roleCode)
-        ? {}
-        : { userId }),
+      isActive: true,
     },
   });
 
@@ -106,15 +102,12 @@ const findApprovedTool = async ({
 
 const sendMessage = async ({
   userId,
-  roleCode,
   sessionId,
   aiToolApplicationId,
   toolKey,
   message,
 }) => {
   const approvedTool = await findApprovedTool({
-    userId,
-    roleCode,
     aiToolApplicationId,
     toolKey,
   });
