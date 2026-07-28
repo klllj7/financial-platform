@@ -6,6 +6,7 @@ const PolicyHistory = require("./domains/policy/models/policyHistory"); // Polic
 const RegulationDocument = require("./domains/regulation/models/regulationDocument");
 const RegulationClause = require("./domains/regulation/models/regulationClause");
 const PolicyClauseMap = require("./domains/regulation/models/policyClauseMap");
+const policyRoutes = require("./domains/policy/routes/policyRoutes");
 require("dotenv").config();         // .env 파일 읽기 설정
 
 
@@ -25,6 +26,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/policies", policyRoutes);
 app.use("/api/policies", policyRoutes);
 
 // 서버가 잘 켜졌는지 확인하는 테스트 API
