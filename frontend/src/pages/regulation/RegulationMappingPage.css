@@ -1,0 +1,140 @@
+.regulation-page {
+  padding: 28px;
+}
+
+.regulation-page-header {
+  margin-bottom: 22px;
+  padding: 26px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+
+  box-shadow: var(--shadow-card);
+}
+
+.regulation-page-eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.regulation-page-header h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.regulation-page-header p {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+}
+
+.regulation-status-message {
+  margin: 0 0 16px;
+  padding: 10px 16px;
+
+  background: #eef7f0;
+  color: #1a7a3d;
+  border-radius: 10px;
+}
+
+.regulation-page-body {
+  display: flex;
+  gap: 20px;
+}
+
+.regulation-document-list,
+.regulation-clause-list {
+  padding: 20px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.regulation-document-list {
+  flex: 0 0 260px;
+}
+
+.regulation-clause-list {
+  flex: 1;
+}
+
+.regulation-document-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.regulation-document-list li {
+  margin-bottom: 8px;
+}
+
+.regulation-document-list button {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.regulation-document-list button.is-selected {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.regulation-clause-card {
+  padding: 16px;
+  margin-bottom: 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.regulation-clause-title {
+  margin: 0 0 6px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.regulation-clause-description {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.regulation-clause-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.regulation-clause-actions select {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.regulation-clause-actions button {
+  padding: 6px 14px;
+
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
