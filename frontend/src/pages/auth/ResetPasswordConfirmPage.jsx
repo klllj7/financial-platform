@@ -1,9 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { confirmPasswordReset } from "../../api/authApi";
 import "./ResetPasswordConfirmPage.css";
 
 function ResetPasswordConfirmPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // URL query string에서 비밀번호 재설정 토큰을 가져온다.
+  // 예: /reset-password/confirm?token=xxxxx
+  const resetToken = searchParams.get("token");
+
+  // API 요청 중인지 확인하는 상태
+  const [isLoading, setIsLoading] = useState(false);
 
   // 새 비밀번호 입력값
   const [passwordForm, setPasswordForm] = useState({
@@ -25,8 +34,13 @@ function ResetPasswordConfirmPage() {
   };
 
   // 새 비밀번호 설정 버튼 클릭
-  const handlePasswordConfirmSubmit = (e) => {
+  const handlePasswordConfirmSubmit = async (e) => {
     e.preventDefault();
+
+    if (!resetToken) {
+      setResultMessage("유효하지 않은 접근입니다. 비밀번호 찾기 화면에서 다시 요청해주세요.");
+      return;
+    }
 
     if (!passwordForm.newPassword || !passwordForm.newPasswordConfirm) {
       setResultMessage("새 비밀번호와 비밀번호 확인을 모두 입력해주세요.");
@@ -38,13 +52,29 @@ function ResetPasswordConfirmPage() {
       return;
     }
 
-    /*
-      지금은 화면 구현 단계라 실제 비밀번호 변경은 하지 않는다.
-      다음 단계에서 POST /api/auth/password-reset/confirm API를 붙일 예정이다.
-    */
-    setResultMessage(
-      "새 비밀번호 설정 화면이 정상적으로 동작합니다. 다음 단계에서 API를 연동합니다."
-    );
+    try {
+      setIsLoading(true);
+      setResultMessage("");
+
+      /*
+        재설정 토큰과 새 비밀번호를 백엔드로 전달
+        백엔드는 토큰 검증 후 비밀번호를 암호화하여 저장 
+      */
+      await confirmPasswordReset({
+        resetToken,
+        newPassword: passwordForm.newPassword,
+      });
+
+      alert("비밀번호가 변경되엇습니다. 새 비밀번호로 로그인해주세요.");
+
+      navigate("/login", { replace: true, });
+    } catch (error) {
+      console.error("비밀번호 변경 실패: ", error);
+
+      setResultMessage(error.response?.data?.error?.message || "비밀번호 변경에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,8 +122,12 @@ function ResetPasswordConfirmPage() {
             </div>
           )}
 
-          <button type="submit" className="reset-confirm-submit-button">
-            새 비밀번호 설정
+          <button 
+            type="submit" 
+            className="reset-confirm-submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "변경 중..." : "새 비밀번호 설정"}
           </button>
         </form>
 
