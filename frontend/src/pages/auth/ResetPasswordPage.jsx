@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { requestPasswordReset } from "../../api/authApi";
+import AppFooter from "../../components/layout/AppFooter";
 import "./ResetPasswordPage.css";
 
 function ResetPasswordPage() {
@@ -97,6 +98,9 @@ function ResetPasswordPage() {
           </button>
         </div>
       </section>
+
+      {/* 화면 하단 개인정보처리방침 Footer */}
+      <AppFooter />
     </main>
   );
 }
