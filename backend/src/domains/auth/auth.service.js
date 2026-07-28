@@ -323,9 +323,130 @@ const findEmail = async ({ name, department }) => {
   };
 };
 
+// 비밀번호 재설정 토큰 요청
+// 사용자가 이메일을 입력하면 해당 계정이 존재하는지 확인하고,
+// 개발 단계에서는 이메일 발송 대신 resetToken을 응답으로 반환한다.
+const requestPasswordReset = async ({ email }) => {
+  if (!email) {
+    const error = new Error("이메일을 입력해주세요.");
+    error.statusCode = 400;
+    error.code = "AUTH_RESET_EMAIL_REQUIRED";
+    throw error;
+  }
+
+  const user = await User.findOne({
+    where: { email },
+  });
+
+  if (!user) {
+    const error = new Error("입력하신 이메일과 일치하는 계정을 찾을 수 없습니다.");
+    error.statusCode = 404;
+    error.code = "AUTH_RESET_USER_NOT_FOUND";
+    throw error;
+  }
+
+  // 비활성 계정은 비밀번호 재설정을 진행할 수 없도록 처리
+  if (user.status === "INACTIVE") {
+    const error = new Error("비활성화된 계정입니다. 관리자에게 문의해주세요.");
+    error.statusCode = 403;
+    error.code = "AUTH_ACCOUNT_INACTIVE";
+    throw error;
+  }
+
+  /*
+    비밀번호 재설정용 JWT 토큰
+    일반 로그인 토큰과 구분하기 위해 purpose 값을 password_reset으로 넣는다.
+    실제 서비스에서는 이 토큰을 이메일 링크로 보내야 한다.
+  */
+  const resetToken = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+      purpose: "password_reset",
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "10m",
+    }
+  );
+
+  return {
+    message: "비밀번호 재설정 토큰이 생성되었습니다.",
+    resetToken,
+  };
+};
+
+// 새 비밀번호 설정
+// resetToken을 검증한 뒤 사용자의 비밀번호를 새 값으로 변경한다.
+const confirmPasswordReset = async ({ resetToken, newPassword }) => {
+  if (!resetToken || !newPassword) {
+    const error = new Error("재설정 토큰과 새 비밀번호를 모두 입력해주세요.");
+    error.statusCode = 400;
+    error.code = "AUTH_RESET_REQUIRED";
+    throw error;
+  }
+
+  let decoded;
+
+  try {
+    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+  } catch (error) {
+    const invalidTokenError = new Error("비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다.");
+    invalidTokenError.statusCode = 401;
+    invalidTokenError.code = "AUTH_RESET_INVALID_TOKEN";
+    throw invalidTokenError;
+  }
+
+  // 로그인 토큰을 비밀번호 재설정에 잘못 사용하는 것을 방지
+  if (decoded.purpose !== "password_reset") {
+    const error = new Error("유효하지 않은 비밀번호 재설정 요청입니다.");
+    error.statusCode = 401;
+    error.code = "AUTH_RESET_INVALID_PURPOSE";
+    throw error;
+  }
+
+  // 회원가입과 동일한 비밀번호 규칙 적용
+  const passwordErrorMessage = validatePassword(newPassword);
+
+  if (passwordErrorMessage) {
+    const error = new Error(passwordErrorMessage);
+    error.statusCode = 400;
+    error.code = "AUTH_INVALID_PASSWORD";
+    throw error;
+  }
+
+  const user = await User.findByPk(decoded.userId);
+
+  if (!user) {
+    const error = new Error("사용자를 찾을 수 없습니다.");
+    error.statusCode = 404;
+    error.code = "AUTH_RESET_USER_NOT_FOUND";
+    throw error;
+  }
+
+  if (user.status === "INACTIVE") {
+    const error = new Error("비활성화된 계정입니다. 관리자에게 문의해주세요.");
+    error.statusCode = 403;
+    error.code = "AUTH_ACCOUNT_INACTIVE";
+    throw error;
+  }
+
+  // 새 비밀번호를 bcrypt로 암호화해서 저장
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  user.password = hashedPassword;
+  await user.save();
+
+  return {
+    message: "비밀번호가 변경되었습니다.",
+  };
+};
+
 module.exports = {
   signup,
   login,
   getMe,
   findEmail,
+  requestPasswordReset,
+  confirmPasswordReset,
 };
