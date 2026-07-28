@@ -58,6 +58,11 @@ const ROLE_MENUS = {
       icon: Bot,
     },
     {
+      to: "/ai-tools",
+      label: "AI Tool 신청",
+      icon: Boxes,
+    },
+    {
       to: "/compliance/evidence",
       label: "상시평가 증빙자료",
       icon: ClipboardCheck,

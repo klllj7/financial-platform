@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signup } from "../../api/authApi";
+import { signup, getDepartments } from "../../api/authApi";
+import { Eye, EyeOff } from "lucide-react";
 import "./SignupPage.css";
 
 function SignupPage() {
@@ -15,6 +16,15 @@ function SignupPage() {
     department: "",
   });
 
+  // 비밀번호 입력값 표시 여부
+  const [showPassword, setShowPassword] = useState(false);
+
+  // 비밀번호 확인 입력값 표시 여부
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
+  // DB에서 조회한 부서 목록
+  const [departments, setDepartments] = useState([]);
+
   // 에러 메시지 표시용 state
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -26,6 +36,17 @@ function SignupPage() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // 부서 목록 조회
+  const fetchDepartments = async () => {
+    try {
+      const result = await getDepartments();
+      setDepartments(result.data);
+    } catch (error) {
+      console.error("부서 목록 조회 실패: ", error);
+      setErrorMessage("부서 목록을 불러오지 못했습니다.");
+    }
   };
 
   // 회원가입 버튼 클릭 시 실행되는 함수
@@ -44,9 +65,17 @@ function SignupPage() {
       return;
     }
 
+    // 비밀번호 규칙 검사
+    const passwordErrorMessage = validatePassword(signupForm.password);
+
+    if (passwordErrorMessage) {
+      alert(passwordErrorMessage);
+      return;
+    }
+
     // 비밀번호 확인 검증
     if (signupForm.password !== signupForm.passwordConfirm) {
-      setErrorMessage("비밀번호가 일치하지 않습니다.");
+      alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
       return;
     }
 
@@ -78,10 +107,63 @@ function SignupPage() {
     }
   };
 
+  const validatePassword = (password) => {
+    // 8자 이상
+    if (password.length < 8) {
+      return "비밀번호는 8자 이상이어야 합니다.";
+    }
+
+    // 영문 포함
+    if (!/[A-Za-z]/.test(password)) {
+      return "비밀번호에는 영문이 1자 이상 포함되어야 합니다.";
+    }
+
+    // 숫자 포함
+    if (!/[0-9]/.test(password)) {
+      return "비밀번호에는 숫자가 1자 이상 포함되어야 합니다.";
+    }
+
+    // 허용된 특수문자 포함
+    if (!/[!@#$%^]/.test(password)) {
+      return "비밀번호에는 특수문자 !@#$%^ 중 1자 이상이 포함되어야 합니다.";
+    }
+
+    // 연속된 숫자 3자리 이상 금지
+    const sequentialNumbers = [
+      "012", "123", "234", "345", "456", "567", "678", "789",
+    ]
+
+    const hasSequentialNumber = sequentialNumbers.some((number) => password.includes(number));
+
+    if (hasSequentialNumber) {
+      return "연속된 숫자 3자리 이상은 사용할 수 없습니다.";
+    }
+
+    // 생년월일로 자주 쓰이는 6자리 또는 8자리 숫자 패턴 금지
+    if (/(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])/.test(password)) {
+      return "생년월일 형식은 비밀번호에 사용할 수 없습니다.";
+    }
+
+    if (/\d{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])/.test(password)) {
+      return "생년월일 형식은 비밀번호에 사용할 수 없습니다.";
+    }
+
+    // 휴대폰 번호 형식 금지
+    if (/01[016789]-?\d{3,4}-?\d{4}/.test(password)) {
+      return "전화번호 형식은 비밀번호에 사용할 수 없습니다.";
+    }
+
+    return "";
+  };
+
   // 로그인 화면으로 이동
   const handleLoginClick = () => {
     navigate("/login");
   };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   return (
     <main className="signup-page">
@@ -134,27 +216,63 @@ function SignupPage() {
             {/* 비밀번호 */}
             <div className="form-group">
               <label htmlFor="password">비밀번호</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={signupForm.password}
-                onChange={handleInputChange}
-                placeholder="비밀번호를 입력하세요"
-              />
+
+              <p className="signup-password-rule">
+                8자 이상, 영문/숫자/특수문자(!@#$%^)를 포함해주세요.
+                <br />
+                연속 숫자, 생년월일, 전화번호는 사용할 수 없습니다.
+              </p>
+
+              <div className="signup-password-input-wrap">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={signupForm.password}
+                  onChange={handleInputChange}
+                  placeholder="예: Secure1!"
+                />
+
+                <button 
+                  type="button"
+                  className="signup-password-toggle-button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             {/* 비밀번호 확인 */}
             <div className="form-group">
               <label htmlFor="passwordConfirm">비밀번호 확인</label>
-              <input
-                id="passwordConfirm"
-                name="passwordConfirm"
-                type="password"
-                value={signupForm.passwordConfirm}
-                onChange={handleInputChange}
-                placeholder="비밀번호를 한 번 더 입력하세요"
-              />
+              
+              <p className="signup-password-rule signup-password-rule-empty">
+                입력한 비밀번호를 한 번 더 입력해주세요.
+              </p>
+
+              <div className="signup-password-input-wrap">
+                <input
+                  id="passwordConfirm"
+                  name="passwordConfirm"
+                  type={showPasswordConfirm ? "text" : "password"}
+                  value={signupForm.passwordConfirm}
+                  onChange={handleInputChange}
+                  placeholder="비밀번호를 한 번 더 입력하세요"
+                />
+
+                <button
+                  type="button"
+                  className="signup-password-toggle-button"
+                  onClick={() => setShowPasswordConfirm((prev) => !prev)}
+                  aria-label={
+                    showPasswordConfirm ? "비밀번호 확인 숨기기" : "비밀번호 확인 보기"
+                  }
+                >
+                  {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             {/* 부서 선택 */}
@@ -167,11 +285,11 @@ function SignupPage() {
                 onChange={handleInputChange}
               >
                 <option value="">부서를 선택하세요</option>
-                <option value="LOAN_REVIEW">여신심사팀</option>
-                <option value="MARKETING">마케팅팀</option>
-                <option value="IT_SECURITY">IT보안팀</option>
-                <option value="COMPLIANCE">준법감시팀</option>
-                <option value="CUSTOMER_SERVICE">고객지원팀</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={department.code}>
+                    {department.name}
+                  </option>
+                ))}
               </select>
             </div>
 
