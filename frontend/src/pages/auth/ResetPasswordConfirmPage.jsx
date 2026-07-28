@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { confirmPasswordReset } from "../../api/authApi";
 import "./ResetPasswordConfirmPage.css";
 
@@ -13,6 +14,12 @@ function ResetPasswordConfirmPage() {
 
   // API 요청 중인지 확인하는 상태
   const [isLoading, setIsLoading] = useState(false);
+
+  // 새 비밀번호 입력값 표시 여부
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // 새 비밀번호 확인 입력값 표시 여부
+  const [showNewPasswordConfirm, setShowNewPasswordConfirm] = useState(false);
 
   // 새 비밀번호 입력값
   const [passwordForm, setPasswordForm] = useState({
@@ -84,7 +91,9 @@ function ResetPasswordConfirmPage() {
           <p>Password Reset</p>
           <h1>새 비밀번호 설정</h1>
           <span>
-            사용할 새 비밀번호를 입력해주세요. 비밀번호 확인까지 일치해야 합니다.
+            8자 이상, 영문/숫자/특수문자(!@#$%^)를 포함해주세요.
+            <br />
+            연속 숫자, 생년월일, 전화번호는 사용할 수 없습니다.
           </span>
         </div>
 
@@ -94,26 +103,54 @@ function ResetPasswordConfirmPage() {
         >
           <div className="reset-confirm-form-group">
             <label htmlFor="newPassword">새 비밀번호</label>
-            <input
-              id="newPassword"
-              name="newPassword"
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={handleInputChange}
-              placeholder="새 비밀번호를 입력해주세요"
-            />
+
+            <div className="reset-confirm-password-input-wrap">
+              <input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={handleInputChange}
+                placeholder="새 비밀번호를 입력해주세요"
+              />
+
+              <button
+                type="button"
+                className="reset-confirm-password-toggle-button"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                aria-label={showNewPassword ? "새 비밀번호 숨기기" : "새 비밀번호 보기"}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />} 
+              </button>
+            </div>
           </div>
 
           <div className="reset-confirm-form-group">
             <label htmlFor="newPasswordConfirm">새 비밀번호 확인</label>
-            <input
-              id="newPasswordConfirm"
-              name="newPasswordConfirm"
-              type="password"
-              value={passwordForm.newPasswordConfirm}
-              onChange={handleInputChange}
-              placeholder="새 비밀번호를 한 번 더 입력해주세요"
-            />
+            
+            <div className="reset-confirm-password-input-wrap">
+              <input
+                id="newPasswordConfirm"
+                name="newPasswordConfirm"
+                type="password"
+                value={passwordForm.newPasswordConfirm}
+                onChange={handleInputChange}
+                placeholder="새 비밀번호를 한 번 더 입력해주세요"
+              />
+
+              <button
+                type="button"
+                className="reset-confirm-password-toggle-button"
+                onClick={() => setShowNewPasswordConfirm((prev) => !prev)}
+                aria-label={
+                  showNewPasswordConfirm
+                    ? "새 비밀번호 확인 숨기기"
+                    : "새 비밀번호 확인 보기"
+                }
+              >
+                {showNewPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {resultMessage && (
