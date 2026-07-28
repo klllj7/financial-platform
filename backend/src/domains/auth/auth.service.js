@@ -258,6 +258,17 @@ const getMe = async (userId) => {
   };
 };
 
+// 부서 목록 조회
+// 회원가입, 아이디 찾기 화면에서 사용할 부서 목록을 DB에서 조회한다.
+const getDepartments = async () => {
+  const departments = await Department.findAll({
+    attributes: ["id", "code", "name"],
+    order: [["id", "ASC"]],
+  });
+
+  return departments;
+}
+
 // 이메일 마스킹 처리
 // 아이디 찾기 결과에서 전체 이메일을 그대로 노출하지 않기 위해 일부만 보여준다.
 const maskEmail = (email) => {
@@ -449,4 +460,5 @@ module.exports = {
   findEmail,
   requestPasswordReset,
   confirmPasswordReset,
+  getDepartments,
 };

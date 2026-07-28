@@ -41,3 +41,10 @@ export const confirmPasswordReset = async (payload) => {
   const response = await axiosInstance.post("/auth/password-reset/confirm", payload);
   return response.data;
 };
+
+// 부서 목록 조회 API
+// 실제 요청 주소: GET /api/auth/departments
+export const getDepartments = async () => {
+  const response = await axiosInstance.get("/auth/departments");
+  return response.data;
+};

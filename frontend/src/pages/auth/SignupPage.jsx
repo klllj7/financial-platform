@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signup } from "../../api/authApi";
+import { signup, getDepartments } from "../../api/authApi";
 import { Eye, EyeOff } from "lucide-react";
 import "./SignupPage.css";
 
@@ -22,6 +22,9 @@ function SignupPage() {
   // 비밀번호 확인 입력값 표시 여부
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
+  // DB에서 조회한 부서 목록
+  const [departments, setDepartments] = useState([]);
+
   // 에러 메시지 표시용 state
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -33,6 +36,17 @@ function SignupPage() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // 부서 목록 조회
+  const fetchDepartments = async () => {
+    try {
+      const result = await getDepartments();
+      setDepartments(result.data);
+    } catch (error) {
+      console.error("부서 목록 조회 실패: ", error);
+      setErrorMessage("부서 목록을 불러오지 못했습니다.");
+    }
   };
 
   // 회원가입 버튼 클릭 시 실행되는 함수
@@ -146,6 +160,10 @@ function SignupPage() {
   const handleLoginClick = () => {
     navigate("/login");
   };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   return (
     <main className="signup-page">
@@ -267,11 +285,11 @@ function SignupPage() {
                 onChange={handleInputChange}
               >
                 <option value="">부서를 선택하세요</option>
-                <option value="LOAN_REVIEW">여신심사팀</option>
-                <option value="MARKETING">마케팅팀</option>
-                <option value="IT_SECURITY">IT보안팀</option>
-                <option value="COMPLIANCE">준법감시팀</option>
-                <option value="CUSTOMER_SERVICE">고객지원팀</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={department.code}>
+                    {department.name}
+                  </option>
+                ))}
               </select>
             </div>
 

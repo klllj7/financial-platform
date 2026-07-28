@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { findEmail } from "../../api/authApi";
+import { findEmail, getDepartments } from "../../api/authApi";
 import "./FindIdPage.css";
 
 function FindIdPage() {
@@ -17,6 +17,9 @@ function FindIdPage() {
 
   // API 요청 중인지 확인하는 상태
   const [isLoading, setIsLoading] = useState(false);
+
+  // DB에서 조회한 부서 목록
+  const [departments, setDepartments] = useState([]);
 
   // input, select 값 변경 처리
   const handleInputChange = (e) => {
@@ -64,6 +67,21 @@ function FindIdPage() {
     }
   };
 
+  // 부서 목록 조회
+  const fetchDepartments = async () => {
+    try {
+      const result = await getDepartments();
+      setDepartments(result.data);
+    } catch (error) {
+      console.error("부서 목록 조회 실패: ", error);
+      setResultMessage("부서 목록을 불러오지 못했습니다.");
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
   return (
     <main className="find-id-page">
       <section className="find-id-card">
@@ -96,11 +114,11 @@ function FindIdPage() {
               onChange={handleInputChange}
             >
               <option value="">부서를 선택해주세요</option>
-              <option value="LOAN_REVIEW">여신심사팀</option>
-              <option value="MARKETING">마케팅팀</option>
-              <option value="IT_SECURITY">IT보안팀</option>
-              <option value="COMPLIANCE">준법감시팀</option>
-              <option value="CUSTOMER_SERVICE">고객지원팀</option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.code}>
+                  {department.name}
+                </option>
+              ))}
             </select>
           </div>
 
