@@ -80,9 +80,43 @@ const findEmail = async (req, res) => {
   }
 };
 
+// 비밀번호 재설정 요청 Controller
+const requestPasswordReset = async (req, res) => {
+  try {
+    const result = await authService.requestPasswordReset(req.body);
+
+    return success(res, result, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "AUTH_PASSWORD_RESET_REQUEST_FAILED",
+      error.message || "비밀번호 재설정 요청에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
+// 새 비밀번호 설정 Controller
+const confirmPasswordReset = async (req, res) => {
+  try {
+    const result = await authService.confirmPasswordReset(req.body);
+
+    return success(res, result, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "AUTH_PASSWORD_RESET_CONFIRM_FAILED",
+      error.message || "비밀번호 변경에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   signup,
   login,
   getMe,
   findEmail,
+  requestPasswordReset,
+  confirmPasswordReset,
 };

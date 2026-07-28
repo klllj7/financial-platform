@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { requestPasswordReset } from "../../api/authApi";
 import "./ResetPasswordPage.css";
 
 function ResetPasswordPage() {
@@ -11,8 +12,11 @@ function ResetPasswordPage() {
   // 화면에 보여줄 안내 메시지
   const [resultMessage, setResultMessage] = useState("");
 
+  // API 요청 중인지 확인하는 상태
+  const [isLoading, setIsLoading] = useState(false);
+
   // 비밀번호 재설정 요청 버튼 클릭
-  const handleResetRequestSubmit = (e) => {
+  const handleResetRequestSubmit = async (e) => {
     e.preventDefault();
 
     if (!email) {
@@ -20,13 +24,29 @@ function ResetPasswordPage() {
       return;
     }
 
-    /*
-      지금은 화면 구현 단계라 실제 이메일 발송/API 호출은 하지 않는다.
-      다음 단계에서 POST /api/auth/password-reset/request API를 붙일 예정이다.
-    */
-    setResultMessage(
-      "입력하신 이메일이 가입된 계정과 일치하는 경우, 비밀번호 재설정 절차가 진행됩니다."
-    );
+    try {
+      setIsLoading(true);
+      setResultMessage("");
+
+      /*
+        이메일을 백엔드로 보내 비밀번호 재설정 토큰을 요청한다.
+        현재는 이메일 발송 기능이 없으므로 개발 단계에서 resetToken을 응답으로 받아
+        새 비밀번호 설정 화면으로 이동시킨다.
+      */
+      const result = await requestPasswordReset({ email, });
+
+      const resetToken = result.data.resetToken;
+
+      navigate(`/reset-password/confirm?token=${resetToken}`);
+    } catch (error) {
+      console.error("비밀번호 재설정 요청 실패: ", error);
+
+      setResultMessage(
+        error.response?.data?.error?.message || "비밀번호 재설정 요청에 실패했습니다."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,8 +82,12 @@ function ResetPasswordPage() {
             </div>
           )}
 
-          <button type="submit" className="reset-password-submit-button">
-            비밀번호 재설정 요청
+          <button 
+            type="submit" 
+            className="reset-password-submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "요청 중..." : "비밀번호 재설정 요청"}
           </button>
         </form>
 
