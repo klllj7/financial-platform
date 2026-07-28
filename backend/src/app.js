@@ -1,17 +1,17 @@
 const express = require("express"); // Express 서버 사용
 const cors = require("cors");       // Frontend-Backend 통신 설정
 const policyInfo = require("./domains/policy/models/policyInfo"); // PolicyInfo 모델 불러오기
+const regulationRoutes = require("./domains/regulation/routes/regulationRoutes");
 const policyRoutes = require("./domains/policy/routes/policyRoutes"); // Policy 관련 라우터 불러오기
 const PolicyHistory = require("./domains/policy/models/policyHistory"); // PolicyHistory 모델 불러오기
 const RegulationDocument = require("./domains/regulation/models/regulationDocument");
 const RegulationClause = require("./domains/regulation/models/regulationClause");
 const PolicyClauseMap = require("./domains/regulation/models/policyClauseMap");
-const policyRoutes = require("./domains/policy/routes/policyRoutes");
 require("dotenv").config();         // .env 파일 읽기 설정
 
 
 const sequelize = require("./common/config/db");  // PostgreSQL 연결 설정 파일 불러오기
-const seedBasicData = require("./db/init");
+const { seedBasicData, seedRegulationData } = require("./db/init");
 const authRoutes = require("./domains/auth/auth.routes");
 const adminRoutes = require("./domains/admin/admin.routes");
 const evidenceRoutes = require("./domains/report/evidence/evidence.routes");
@@ -26,7 +26,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/policies", policyRoutes);
+app.use("/api/regulations", regulationRoutes);
 app.use("/api/policies", policyRoutes);
 
 // 서버가 잘 켜졌는지 확인하는 테스트 API
@@ -71,6 +71,8 @@ const startServer = async () => {
 
     // 기본 권한/부서 데이터 생성
     await seedBasicData();
+    // 규제매핑 샘플 데이터 생성
+    await seedRegulationData();
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
