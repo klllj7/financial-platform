@@ -77,6 +77,11 @@ const ROLE_MENUS = {
       label: "정책 관리",
       icon: ShieldCheck,
     },
+    {
+      to: "/regulations",
+      label: "규제 매핑",
+      icon: FileText,
+    },
   ],
  
   ADMIN: [

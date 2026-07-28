@@ -38,6 +38,9 @@ import AdminPolicyPage from "./pages/admin/AdminPolicyPage";
  
 // 정책 관리 페이지
 import PolicyManagementPage from "./pages/policy/PolicyManagementPage";
+
+// 규제 매핑 페이지
+import RegulationMappingPage from "./pages/regulation/RegulationMappingPage";
  
 function App() {
   return (
@@ -183,7 +186,13 @@ function App() {
             path="/policies"
             element={<PolicyManagementPage />}
           />
- 
+
+          {/* 규제 매핑 페이지 */}
+          <Route
+            path="/regulations"
+            element={<RegulationMappingPage />}
+          />
+
           {/* 상시평가 증빙자료 (컴플라이언스) */}
           <Route
             path="/compliance/evidence"
