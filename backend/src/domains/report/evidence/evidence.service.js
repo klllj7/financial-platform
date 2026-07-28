@@ -9,8 +9,8 @@ const getEvidenceChecklist = async ({ departmentId, targetYear }) => {
   const items = CHECKLIST_ITEMS.map((item) => {
     const match = uploaded.find((f) => f.item_no === item.no);
     return {
-      ...item,
-      result: match?.item_result ?? "미이행",   // 추가: 마스터 목록 값 대신 DB 값 사용
+      ...item,                 // ← 여기서 원본 필드를 전부 복사
+      result: match?.item_result ?? "미이행",
       evidence: match?.file_name ? "준비완료" : "미준비",
       file: match?.file_name ?? null,
     };

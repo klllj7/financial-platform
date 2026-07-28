@@ -5,6 +5,7 @@ import {
   Check,
   FileText,
   Upload,
+  Sparkles,
   Circle,
 } from "lucide-react";
 
@@ -32,7 +33,15 @@ export function resultBadgeClass(result) {
   return map[result] || "ce-badge ce-badge-na";
 }
 
+const GENERATION_MODES = ["자동", "반자동", "수동", "조건부"];
+
+// "생성" 버튼을 눌렀을 때 preparedMaterial 문구를 임시 파일명으로 바꾼다.
+const toTempFileName = (preparedMaterial) =>
+  `${preparedMaterial.replace(/\s+/g, "_")}.tmp`;
+
 function EvidenceChecklistPage() {
+  // mock 데이터를 그대로 두면 "생성" 결과를 화면에 반영할 수 없어 로컬 상태로 복사해서 관리한다.
+  const [items, setItems] = useState(ITEMS);
   const [expanded, setExpanded] = useState(
     Object.fromEntries(CATEGORY_META.map((c) => [c.key, true]))
   );
@@ -40,23 +49,47 @@ function EvidenceChecklistPage() {
   const [filterCategory, setFilterCategory] = useState("전체");
   const [filterResult, setFilterResult] = useState("전체");
   const [filterEvidence, setFilterEvidence] = useState("전체");
+  const [filterMode, setFilterMode] = useState("전체");
   const [activeTab, setActiveTab] = useState("detail");
 
-  const totalItems = ITEMS.length;
-  const totalPrepared = ITEMS.filter((i) => i.evidence === "준비완료").length;
+  // "생성" 버튼을 눌러 팝업을 띄운 대상 항목 (없으면 팝업 닫힘)
+  const [generateTarget, setGenerateTarget] = useState(null);
+
+  const totalItems = items.length;
+  const totalPrepared = items.filter((i) => i.evidence === "준비완료").length;
   const overallPct = Math.round((totalPrepared / totalItems) * 100);
 
-  const filteredItems = (items) =>
-    items.filter(
+  const filteredItems = (list) =>
+    list.filter(
       (i) =>
         (filterResult === "전체" || i.result === filterResult) &&
-        (filterEvidence === "전체" || i.evidence === filterEvidence)
+        (filterEvidence === "전체" || i.evidence === filterEvidence) &&
+        (filterMode === "전체" || i.generationMode === filterMode)
     );
 
   const visibleCategories =
     filterCategory === "전체"
       ? CATEGORY_META
       : CATEGORY_META.filter((c) => c.key === filterCategory);
+
+  // 팝업에서 결과값을 선택하면 그 값으로 result/evidence/file을 한번에 갱신한다.
+  const handleGenerateConfirm = (resultValue) => {
+    if (!generateTarget) return;
+
+    setItems((prev) =>
+      prev.map((i) =>
+        i.no === generateTarget.no
+          ? {
+              ...i,
+              result: resultValue,
+              evidence: "준비완료",
+              file: toTempFileName(generateTarget.preparedMaterial),
+            }
+          : i
+      )
+    );
+    setGenerateTarget(null);
+  };
 
   return (
     <div className="evidence-checklist-page">
@@ -132,11 +165,17 @@ function EvidenceChecklistPage() {
           <option value="준비완료">준비완료</option>
           <option value="미준비">미준비</option>
         </select>
+        <select className="ce-select" value={filterMode} onChange={(e) => setFilterMode(e.target.value)}>
+          <option value="전체">자료 준비방식: 전체</option>
+          {GENERATION_MODES.map((mode) => (
+            <option key={mode} value={mode}>{mode}</option>
+          ))}
+        </select>
       </div>
 
       <div className="ce-category-list">
         {visibleCategories.map((cat) => {
-          const catItems = ITEMS.filter((i) => i.category === cat.key);
+          const catItems = items.filter((i) => i.category === cat.key);
           const prepared = catItems.filter((i) => i.evidence === "준비완료").length;
           const pct = Math.round((prepared / catItems.length) * 100);
           const tone = progressTone(pct);
@@ -185,24 +224,7 @@ function EvidenceChecklistPage() {
                           <td className="ce-col-no">{item.no}</td>
                           <td>{item.title}</td>
                           <td>
-                            <select
-                              value={item.result}
-                              onChange={async (e) => {
-                                const newResult = e.target.value;
-                                await updateEvidenceItemResult({
-                                  departmentId: currentDepartmentId,
-                                  targetYear: currentTargetYear,
-                                  itemNo: item.no,
-                                  result: newResult,
-                                });
-                                // 저장 후 목록 다시 불러오기 (간단하게는 fetchChecklist() 재호출)
-                              }}
-                            >
-                              <option value="이행">이행</option>
-                              <option value="부분이행">부분이행</option>
-                              <option value="미이행">미이행</option>
-                            </select>
-
+                            <span className={resultBadgeClass(item.result)}>{item.result}</span>
                           </td>
                           <td>
                             {item.evidence === "준비완료" ? (
@@ -214,8 +236,18 @@ function EvidenceChecklistPage() {
                           <td>
                             {item.file ? (
                               <span className="ce-file-link"><FileText size={12} />{item.file}</span>
+                            ) : item.generationMode === "수동" ? (
+                              <button type="button" className="ce-upload-button">
+                                <Upload size={12} /> 업로드
+                              </button>
                             ) : (
-                              <button className="ce-upload-button"><Upload size={12} /> 업로드</button>
+                              <button
+                                type="button"
+                                className="ce-generate-button"
+                                onClick={() => setGenerateTarget(item)}
+                              >
+                                <Sparkles size={12} /> 생성
+                              </button>
                             )}
                           </td>
                         </tr>
@@ -243,6 +275,57 @@ function EvidenceChecklistPage() {
           )}
         </div>
       </div>
+
+      {generateTarget && (
+        <div
+          className="ce-modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setGenerateTarget(null)}
+        >
+          <div
+            className="ce-modal"
+            role="dialog"
+            aria-modal="true"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <header className="ce-modal-header">
+              <h3>증빙자료 생성 — {generateTarget.no}. {generateTarget.title}</h3>
+              <button type="button" className="ce-modal-close" onClick={() => setGenerateTarget(null)}>
+                닫기
+              </button>
+            </header>
+
+            <div className="ce-modal-body">
+              <p className="ce-modal-desc">{generateTarget.preparedMaterial}</p>
+              <p className="ce-modal-hint">생성 후 표시할 결과값을 선택하세요.</p>
+
+              <div className="ce-modal-options">
+                <button
+                  type="button"
+                  className="ce-modal-option ce-modal-option-done"
+                  onClick={() => handleGenerateConfirm("이행")}
+                >
+                  이행으로 표시
+                </button>
+                <button
+                  type="button"
+                  className="ce-modal-option ce-modal-option-partial"
+                  onClick={() => handleGenerateConfirm("부분이행")}
+                >
+                  부분이행으로 표시
+                </button>
+                <button
+                  type="button"
+                  className="ce-modal-option ce-modal-option-none"
+                  onClick={() => handleGenerateConfirm("미이행")}
+                >
+                  미이행으로 유지
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
