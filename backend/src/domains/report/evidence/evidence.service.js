@@ -31,4 +31,52 @@ const updateItemResult = async ({ departmentId, targetYear, itemNo, result }) =>
   return { itemNo, result };
 };
 
-module.exports = { getEvidenceChecklist, updateItemResult };
+/* 전사 대시보드용으로 실제 업로드된 증빙의 전체·대항목별 준비율을 계산한다. */
+const getEvidenceSummary = async ({ targetYear }) => {
+  const uploaded = await EvidenceFile.findAll({
+    attributes: ["item_no", "file_name"],
+    where: { target_year: targetYear },
+  });
+  const preparedItemNumbers = new Set(
+    uploaded
+      .filter((file) => file.file_name)
+      .map((file) => String(file.item_no)),
+  );
+  const categories = CATEGORY_META.map((category) => {
+    const categoryItems = CHECKLIST_ITEMS.filter(
+      (item) => item.category === category.key,
+    );
+    const preparedCount = categoryItems.filter((item) =>
+      preparedItemNumbers.has(String(item.no)),
+    ).length;
+
+    return {
+      key: category.key,
+      label: category.label,
+      preparedCount,
+      totalCount: categoryItems.length,
+      percentage: categoryItems.length
+        ? Math.round((preparedCount / categoryItems.length) * 100)
+        : 0,
+    };
+  });
+  const preparedCount = CHECKLIST_ITEMS.filter((item) =>
+    preparedItemNumbers.has(String(item.no)),
+  ).length;
+
+  return {
+    targetYear,
+    preparedCount,
+    totalCount: CHECKLIST_ITEMS.length,
+    overallPercentage: CHECKLIST_ITEMS.length
+      ? Math.round((preparedCount / CHECKLIST_ITEMS.length) * 100)
+      : 0,
+    categories,
+  };
+};
+
+module.exports = {
+  getEvidenceChecklist,
+  updateItemResult,
+  getEvidenceSummary,
+};

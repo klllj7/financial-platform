@@ -7,6 +7,11 @@ const { authenticate } = require("../../../common/middlewares/authMiddleware");
 const router = express.Router();
 
 router.get(
+  "/summary",
+  authenticate,
+  evidenceController.getEvidenceSummary,
+);
+router.get(
     "/checklist",
     authenticate, 
     // requireRole("COMPLIANCE_MANAGER", "ADMIN"),
