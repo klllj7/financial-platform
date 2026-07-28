@@ -37,6 +37,33 @@
 
 
 /* ==================================================
+   로딩 / 에러 상태
+================================================== */
+
+.ce-loading,
+.ce-error {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+
+  border-radius: 12px;
+
+  font-size: 13px;
+}
+
+.ce-loading {
+  color: var(--color-text-sub);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+}
+
+.ce-error {
+  color: #cd4048;
+  background: #ffe7e8;
+  border: 1px solid #f0b0b4;
+}
+
+
+/* ==================================================
    안내 카드
 ================================================== */
 

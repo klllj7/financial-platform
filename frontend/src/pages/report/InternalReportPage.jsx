@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Printer } from "lucide-react";
 
 import { getEvents } from "../../api/dlpApi";
+import { getDepartments } from "../../api/authApi";
 
 import "./InternalReportPage.css";
 
@@ -42,6 +43,9 @@ function InternalReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 이벤트가 0건인 부서도 표에 표시하기 위한 전체 부서 목록 (department 테이블 기준)
+  const [departments, setDepartments] = useState([]);
+
   const today = useMemo(() => new Date(), []);
   const defaultPeriodStart = useMemo(() => {
     const date = new Date(today);
@@ -76,12 +80,19 @@ function InternalReportPage() {
         setError("AI Gateway 로그를 불러오지 못했습니다.");
       })
       .finally(() => setLoading(false));
+
+    // 부서 목록 조회는 위험 이벤트 조회와 무관하므로 실패해도 화면 전체를 막지 않는다.
+    getDepartments()
+      .then((res) => setDepartments(res.data ?? []))
+      .catch((err) => console.error("부서 목록 조회 실패", err));
   }, []);
 
   const departmentOptions = useMemo(() => {
-    const unique = Array.from(new Set(events.map((e) => e.department))).sort();
+    const fromDepartments = departments.map((d) => d.name);
+    const fromEvents = events.map((e) => e.department);
+    const unique = Array.from(new Set([...fromDepartments, ...fromEvents])).sort();
     return ["전체", ...unique];
-  }, [events]);
+  }, [departments, events]);
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -112,6 +123,24 @@ function InternalReportPage() {
 
   const departmentSummaries = useMemo(() => {
     const buckets = new Map();
+
+    /*
+      부서 필터를 "전체"로 두면 department 테이블의 전체 부서를 0건으로 먼저 채워 넣는다.
+      (departments 조회가 실패했거나 아직 안 왔으면, 기존처럼 이벤트에 등장한 부서만이라도
+      보여준다.)
+      특정 부서를 선택했다면 그 부서 하나만 기준으로 삼는다 — 안 그러면 필터링 의미가 없어진다.
+    */
+    const baseDepartments =
+      department !== "전체"
+        ? [department]
+        : departments.length > 0
+          ? departments.map((d) => d.name)
+          : Array.from(new Set(events.map((e) => e.department)));
+
+    baseDepartments.forEach((name) => {
+      buckets.set(name, { department: name, high: 0, medium: 0, low: 0 });
+    });
+
     filteredEvents.forEach((event) => {
       const current = buckets.get(event.department) ?? {
         department: event.department,
@@ -123,10 +152,11 @@ function InternalReportPage() {
       if (current[key] !== undefined) current[key] += 1;
       buckets.set(event.department, current);
     });
+
     return [...buckets.values()]
       .map((row) => ({ ...row, total: row.high + row.medium + row.low }))
       .sort((a, b) => b.total - a.total);
-  }, [filteredEvents]);
+  }, [departments, events, department, filteredEvents]);
 
   const actionHistory = useMemo(() => {
     return filteredEvents
