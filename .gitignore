@@ -36,3 +36,6 @@ venv/
 __pycache__/
 *.pyc
 
+# 개인 작업 메모 (팀 공유 안 함)
+docs/d-policy-work-summary.md
+

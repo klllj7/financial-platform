@@ -10,13 +10,3 @@ export const getClauses = async (docId) =>{
     const response = await axiosInstance.get(`/regulations/documents/${docId}/clauses`);
     return response.data;
 };
-// 정책-조항 매핑 생성
-export const createMapping = async (clausesId, policyId) =>{
-    const response = await axiosInstance.post(`/regulations/clauses/${clausesId}/mappings`, { policy_id: policyId });
-    return response.data;
-};
-// 정책-조항 매핑 삭제
-export const deleteMapping = async (clausesId, policyId) =>{
-    const response = await axiosInstance.delete(`/regulations/clauses/${clausesId}/mappings`,{ data: { policy_id: policyId } });
-    return response.data;
-};

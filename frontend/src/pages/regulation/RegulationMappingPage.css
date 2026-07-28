@@ -37,15 +37,6 @@
   color: var(--color-text-muted);
 }
 
-.regulation-status-message {
-  margin: 0 0 16px;
-  padding: 10px 16px;
-
-  background: #eef7f0;
-  color: #1a7a3d;
-  border-radius: 10px;
-}
-
 .regulation-page-body {
   display: flex;
   gap: 20px;
@@ -111,30 +102,7 @@
 }
 
 .regulation-clause-description {
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--color-text-muted);
   font-size: 14px;
-}
-
-.regulation-clause-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.regulation-clause-actions select {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-}
-
-.regulation-clause-actions button {
-  padding: 6px 14px;
-
-  background: var(--color-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
 }
