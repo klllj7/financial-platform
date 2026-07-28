@@ -31,7 +31,9 @@ PROMPT_INJECTION_PATTERNS = {
 ALL_PATTERNS = {**PII_PATTERNS, **{k: "|".join(f"(?:{p})" for p in v) for k, v in PROMPT_INJECTION_PATTERNS.items()}}
 
 # 마스킹이 아니라 항상 차단해야 하는 탐지 유형이다.
-BLOCK_TYPES = {"resident_number", "prompt_injection"}
+# confidential_similarity는 embedding_detector.py에서 생성되는 유형으로,
+# 특정 구간이 아니라 문장 전체의 의미로 판단하는 것이라 마스킹이 의미가 없어 차단한다.
+BLOCK_TYPES = {"resident_number", "prompt_injection", "confidential_similarity"}
 
 
 def detect_pii(text: str) -> list[dict]:
@@ -75,6 +77,7 @@ PII_GRADES = {
     "resident_number": "HIGH",
     "card_number": "HIGH",
     "prompt_injection": "HIGH",
+    "confidential_similarity": "HIGH",
     "account_number": "MEDIUM",
     "phone_number": "MEDIUM",
     "email": "LOW",
