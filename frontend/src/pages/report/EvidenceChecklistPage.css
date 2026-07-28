@@ -37,6 +37,33 @@
 
 
 /* ==================================================
+   로딩 / 에러 상태
+================================================== */
+
+.ce-loading,
+.ce-error {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+
+  border-radius: 12px;
+
+  font-size: 13px;
+}
+
+.ce-loading {
+  color: var(--color-text-sub);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+}
+
+.ce-error {
+  color: #cd4048;
+  background: #ffe7e8;
+  border: 1px solid #f0b0b4;
+}
+
+
+/* ==================================================
    안내 카드
 ================================================== */
 
@@ -416,6 +443,30 @@
   border-color: #bfd1f1;
 }
 
+.ce-generate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  height: 28px;
+  padding: 0 10px;
+
+  color: var(--color-primary);
+  background: #ffffff;
+  border: 1px solid var(--color-primary);
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ce-generate-button:hover {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
 
 /* ==================================================
    해당없음 섹션
@@ -441,6 +492,132 @@
 
   color: var(--color-text-sub);
   font-size: 12px;
+}
+
+
+/* ==================================================
+   생성 팝업 (모달)
+================================================== */
+
+.ce-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 28, 48, 0.46);
+}
+
+.ce-modal {
+  width: min(460px, 100%);
+
+  background: #ffffff;
+  border-radius: 16px;
+
+  box-shadow: 0 24px 70px rgba(10, 22, 42, 0.24);
+
+  overflow: hidden;
+}
+
+.ce-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 18px 20px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ce-modal-header h3 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ce-modal-close {
+  padding: 6px;
+
+  color: var(--color-text-sub);
+  background: transparent;
+  border: none;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-modal-body {
+  padding: 20px;
+}
+
+.ce-modal-desc {
+  margin: 0 0 6px;
+
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ce-modal-hint {
+  margin: 0 0 16px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+.ce-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ce-modal-option {
+  height: 40px;
+  padding: 0 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.ce-modal-option-done {
+  color: #07835f;
+  background: #ffffff;
+}
+.ce-modal-option-done:hover {
+  background: #def7ed;
+  border-color: #a2e6cf;
+}
+
+.ce-modal-option-partial {
+  color: #b96800;
+  background: #ffffff;
+}
+.ce-modal-option-partial:hover {
+  background: #fff3d4;
+  border-color: #f6d27b;
+}
+
+.ce-modal-option-none {
+  color: #64738b;
+  background: #ffffff;
+}
+.ce-modal-option-none:hover {
+  background: #eef1f6;
+  border-color: #d7dde7;
 }
 
 

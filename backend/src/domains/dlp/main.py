@@ -125,17 +125,46 @@ def list_events():
     try:
         events = db.query(EventLog).order_by(EventLog.created_at.desc()).all()
 
+        usage_log_ids = [event.event_id for event in events]
+
+        # usage_log를 한 번에 조회
+        usage_logs = (
+            db.query(UsageLog).filter(UsageLog.id.in_(usage_log_ids)).all()
+            if usage_log_ids else []
+        )
+        usage_log_by_id = {u.id: u for u in usage_logs}
+
+        # user를 한 번에 조회
+        user_ids = {u.user_id for u in usage_logs if u.user_id is not None}
+        users = (
+            db.query(User).filter(User.id.in_(user_ids)).all()
+            if user_ids else []
+        )
+        user_by_id = {u.id: u for u in users}
+
+        # department를 한 번에 조회
+        department_ids = {u.department_id for u in users if u.department_id is not None}
+        departments = (
+            db.query(Department).filter(Department.id.in_(department_ids)).all()
+            if department_ids else []
+        )
+        department_by_id = {d.id: d for d in departments}
+
+        # action_history를 한 번에 조회
+        actions = (
+            db.query(ActionHistory).filter(ActionHistory.event_id.in_(usage_log_ids)).all()
+            if usage_log_ids else []
+        )
+        actions_by_event_id = {}
+        for a in actions:
+            actions_by_event_id.setdefault(a.event_id, []).append(a)
+
         result = []
         for event in events:
-            usage_log = db.query(UsageLog).filter(UsageLog.id == event.event_id).first()
-            actions = db.query(ActionHistory).filter(ActionHistory.event_id == event.event_id).all()
-
-            user = None
-            department = None
-            if usage_log and usage_log.user_id is not None:
-                user = db.query(User).filter(User.id == usage_log.user_id).first()
-                if user and user.department_id is not None:
-                    department = db.query(Department).filter(Department.id == user.department_id).first()
+            usage_log = usage_log_by_id.get(event.event_id)
+            user = user_by_id.get(usage_log.user_id) if usage_log and usage_log.user_id is not None else None
+            department = department_by_id.get(user.department_id) if user and user.department_id is not None else None
+            event_actions = actions_by_event_id.get(event.event_id, [])
 
             result.append({
                 "event_id": event.event_id,
@@ -153,7 +182,7 @@ def list_events():
                         "actor_user_id": a.actor_user_id,
                         "action_time": a.action_time
                     }
-                    for a in actions
+                    for a in event_actions
                 ]
             })
         return result

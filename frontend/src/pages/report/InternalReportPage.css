@@ -45,8 +45,8 @@
   padding: 0 16px;
 
   color: #ffffff;
-  background: var(--color-primary);
-  border: none;
+  background: var(--color-text);
+  border: 1px solid var(--color-text);
   border-radius: 8px;
 
   font-size: 13px;
@@ -105,13 +105,14 @@
 
 .car-loading {
   color: var(--color-text-sub);
-  background: #f6f8fc;
+  background: #f5f5f5;
 }
 
 .car-error {
-  color: #cd4048;
-  background: #ffe7e8;
-  border: 1px solid #f0b0b4;
+  color: var(--color-text);
+  background: #f5f5f5;
+  border: 2px solid var(--color-text);
+  font-weight: 700;
 }
 
 /* ==================================================
@@ -127,7 +128,7 @@
   border: 1px solid var(--color-border);
   border-radius: 4px;
 
-  box-shadow: 0 8px 28px rgba(20, 35, 70, 0.06);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
 }
 
 /* 결재선 */
@@ -147,7 +148,7 @@
   padding: 6px 0;
 
   color: var(--color-text);
-  background: #f6f8fc;
+  background: #f5f5f5;
   border: 1px solid var(--color-border);
   border-bottom: none;
 
@@ -175,7 +176,7 @@
   width: 34px;
 
   color: var(--color-text-sub);
-  background: #fbfcfe;
+  background: #fafafa;
   font-weight: 600;
 }
 
@@ -221,7 +222,7 @@
   color: var(--color-text);
   font-size: 15px;
   font-weight: 800;
-  border-left: 4px solid var(--color-primary);
+  border-left: 4px solid var(--color-text);
   padding-left: 8px;
 }
 
@@ -248,8 +249,8 @@
 
   padding: 14px 16px;
 
-  background: #f6f8fc;
-  border: 1px solid var(--color-border);
+  background: #f5f5f5;
+  border: 1px solid var(--color-text);
   border-radius: 8px;
 }
 
@@ -285,8 +286,8 @@
 
 .car-summary-table th,
 .car-detail-table th {
-  color: var(--color-text-sub);
-  background: #f6f8fc;
+  color: var(--color-text);
+  background: #f0f0f0;
   font-weight: 700;
 }
 
@@ -303,8 +304,8 @@
   margin-bottom: 14px;
   padding: 12px 14px;
 
-  background: #f6f8fc;
-  border: 1px solid var(--color-border);
+  background: #f5f5f5;
+  border: 1px solid var(--color-text);
   border-radius: 8px;
 
   color: var(--color-text-sub);
@@ -327,7 +328,7 @@
 }
 
 .car-risk-criteria small {
-  color: #94a3b8;
+  color: var(--color-text-sub);
 }
 
 /* 위험등급 배지 */
@@ -345,9 +346,28 @@
   font-weight: 800;
 }
 
-.car-risk-high { color: #cd4048; background: #ffe7e8; border: 1px solid #f0b0b4; }
-.car-risk-medium { color: #b96800; background: #fff3d4; border: 1px solid #f6d27b; }
-.car-risk-low { color: #07835f; background: #def7ed; border: 1px solid #a2e6cf; }
+/*
+  위험등급 배지는 색상 대신 명암 단계 + 굵기/테두리로 구분한다.
+  HIGH: 검정 배경(가장 강한 대비) / MEDIUM: 회색 배경 / LOW: 흰 배경 + 얇은 테두리
+*/
+.car-risk-high {
+  color: #ffffff;
+  background: var(--color-text);
+  border: 2px solid var(--color-text);
+  font-weight: 800;
+}
+.car-risk-medium {
+  color: var(--color-text);
+  background: #c7c7c7;
+  border: 1px solid var(--color-text);
+  font-weight: 800;
+}
+.car-risk-low {
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-text);
+  font-weight: 600;
+}
 
 /* 정책준수 참고사항 */
 .car-policy-notes {
