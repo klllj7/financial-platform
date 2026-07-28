@@ -58,9 +58,14 @@ const ROLE_MENUS = {
       icon: Bot,
     },
     {
-      to: "/report/evidence",
+      to: "/compliance/evidence",
       label: "상시평가 증빙자료",
       icon: ClipboardCheck,
+    },
+    {
+      to: "/compliance/report",
+      label: "내부결재 보고서",
+      icon: FileText,
     },
     {
       to: "/policies",

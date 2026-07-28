@@ -12,5 +12,11 @@ router.get(
     // requireRole("COMPLIANCE_MANAGER", "ADMIN"),
     evidenceController.getEvidenceChecklist
 );
+router.patch(
+  "/:itemNo/result",
+  authenticate,
+  evidenceController.updateItemResult
+);
+
 
 module.exports = router;

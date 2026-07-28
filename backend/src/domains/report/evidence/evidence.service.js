@@ -1,15 +1,34 @@
-// [뼈대 단계] 실제 체크리스트 테이블이 아직 없어서
-// 배관 확인용 placeholder 데이터만 반환한다.
-// 다음 단계에서 이 함수 내부를 실제 DB 조회 또는
-// 목데이터 143개 항목으로 채운다.
+const EvidenceFile = require("./evidenceFile.model");
+const { CATEGORY_META, NA_CATEGORIES, CHECKLIST_ITEMS } = require("./checklistItems");
 
-const getEvidenceChecklist = async () => {
+const getEvidenceChecklist = async ({ departmentId, targetYear }) => {
+  const uploaded = await EvidenceFile.findAll({
+    where: { department_id: departmentId, target_year: targetYear },
+  });
+
+  const items = CHECKLIST_ITEMS.map((item) => {
+    const match = uploaded.find((f) => f.item_no === item.no);
     return {
-        categoryMeta: [],
-        naCategories: [],
-        items: []
+      ...item,
+      result: match?.item_result ?? "미이행",   // 추가: 마스터 목록 값 대신 DB 값 사용
+      evidence: match?.file_name ? "준비완료" : "미준비",
+      file: match?.file_name ?? null,
     };
+  });
+
+  return { categoryMeta: CATEGORY_META, naCategories: NA_CATEGORIES, items };
 };
-module.exports = {
-    getEvidenceChecklist
+
+const updateItemResult = async ({ departmentId, targetYear, itemNo, result }) => {
+  const [row] = await EvidenceFile.findOrCreate({
+    where: { department_id: departmentId, target_year: targetYear, item_no: itemNo },
+    defaults: { department_id: departmentId, target_year: targetYear, item_no: itemNo },
+  });
+
+  row.item_result = result;
+  await row.save();
+
+  return { itemNo, result };
 };
+
+module.exports = { getEvidenceChecklist, updateItemResult };

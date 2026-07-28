@@ -1,0 +1,387 @@
+/* ==================================================
+   화면 전용 툴바 (인쇄시 숨김)
+================================================== */
+
+.internal-report-page {
+  min-height: calc(100vh - 58px);
+  padding: 28px;
+
+  background: var(--color-background);
+}
+
+.car-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin: 0 auto 18px;
+  max-width: 860px;
+}
+
+.car-toolbar h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.car-toolbar p {
+  margin: 8px 0 0;
+
+  color: var(--color-text-sub);
+  font-size: 13px;
+}
+
+.car-print-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+
+  height: 38px;
+  padding: 0 16px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ==================================================
+   필터 바 (인쇄시 숨김)
+================================================== */
+
+.car-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  margin: 0 auto 18px;
+  max-width: 860px;
+  padding: 14px 16px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.car-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  color: var(--color-text-sub);
+  font-size: 11px;
+}
+
+.car-filter-field select,
+.car-filter-field input[type="date"] {
+  height: 34px;
+  padding: 0 10px;
+
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+
+  font-size: 12px;
+}
+
+.car-loading,
+.car-error {
+  max-width: 860px;
+  margin: 0 auto 18px;
+  padding: 14px 16px;
+
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.car-loading {
+  color: var(--color-text-sub);
+  background: #f6f8fc;
+}
+
+.car-error {
+  color: #cd4048;
+  background: #ffe7e8;
+  border: 1px solid #f0b0b4;
+}
+
+/* ==================================================
+   문서 본문 (A4 느낌)
+================================================== */
+
+.car-document {
+  margin: 0 auto;
+  max-width: 860px;
+  padding: 48px 56px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+
+  box-shadow: 0 8px 28px rgba(20, 35, 70, 0.06);
+}
+
+/* 결재선 */
+.car-approval-line {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0;
+
+  margin: 0 0 32px;
+}
+
+.car-approval-box {
+  width: 120px;
+}
+
+.car-approval-role {
+  padding: 6px 0;
+
+  color: var(--color-text);
+  background: #f6f8fc;
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.car-approval-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.car-approval-table th,
+.car-approval-table td {
+  height: 30px;
+
+  border: 1px solid var(--color-border);
+
+  font-size: 11px;
+  text-align: center;
+}
+
+.car-approval-table th {
+  width: 34px;
+
+  color: var(--color-text-sub);
+  background: #fbfcfe;
+  font-weight: 600;
+}
+
+.car-approval-sign {
+  color: #c3cbd8;
+}
+
+/* 제목 블록 */
+.car-title-block {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+
+  border-bottom: 2px solid var(--color-text);
+  text-align: center;
+}
+
+.car-title-block h1 {
+  margin: 0 0 12px;
+
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.car-title-meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+/* 섹션 공통 */
+.car-section {
+  margin-bottom: 28px;
+}
+
+.car-section h2 {
+  margin: 0 0 12px;
+
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 800;
+  border-left: 4px solid var(--color-primary);
+  padding-left: 8px;
+}
+
+.car-source-note {
+  margin: 0 0 16px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+/* 요약 카드 */
+.car-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+.car-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  padding: 14px 16px;
+
+  background: #f6f8fc;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.car-summary-card-label {
+  color: var(--color-text-sub);
+  font-size: 11px;
+}
+
+.car-summary-card strong {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+/* 표 공통 */
+.car-summary-table,
+.car-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.car-summary-table th,
+.car-summary-table td,
+.car-detail-table th,
+.car-detail-table td {
+  padding: 8px 10px;
+
+  border: 1px solid var(--color-border);
+
+  font-size: 12px;
+  text-align: left;
+}
+
+.car-summary-table th,
+.car-detail-table th {
+  color: var(--color-text-sub);
+  background: #f6f8fc;
+  font-weight: 700;
+}
+
+.car-empty-row {
+  padding: 16px;
+
+  color: #8b98ad;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* 위험 등급 산출 기준 안내 박스 */
+.car-risk-criteria {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+
+  background: #f6f8fc;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+.car-risk-criteria strong {
+  display: block;
+  margin-bottom: 6px;
+
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.car-risk-criteria ul {
+  margin: 0 0 6px;
+  padding-left: 18px;
+
+  line-height: 1.6;
+}
+
+.car-risk-criteria small {
+  color: #94a3b8;
+}
+
+/* 위험등급 배지 */
+.car-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 52px;
+  padding: 2px 8px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.car-risk-high { color: #cd4048; background: #ffe7e8; border: 1px solid #f0b0b4; }
+.car-risk-medium { color: #b96800; background: #fff3d4; border: 1px solid #f6d27b; }
+.car-risk-low { color: #07835f; background: #def7ed; border: 1px solid #a2e6cf; }
+
+/* 정책준수 참고사항 */
+.car-policy-notes {
+  margin: 0;
+  padding-left: 18px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* ==================================================
+   인쇄 전용 스타일
+================================================== */
+
+@media print {
+  .car-toolbar,
+  .car-filter-bar {
+    display: none;
+  }
+
+  .internal-report-page {
+    min-height: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .car-document {
+    margin: 0;
+    max-width: none;
+    padding: 0;
+
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
