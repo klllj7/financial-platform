@@ -79,7 +79,7 @@ const ROLE_MENUS = {
     },
     {
       to: "/regulations",
-      label: "규제 매핑",
+      label: "규제 관리",
       icon: FileText,
     },
   ],
