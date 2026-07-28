@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Bot,
-  Boxes,
+  ChevronDown,
+  ChevronUp,
   Eraser,
   LockKeyhole,
   MessageSquareText,
@@ -16,7 +17,7 @@ import {
   sendChatMessage,
   updateChatPin,
 } from "../../api/chatApi";
-import { getAiToolApplications } from "../../api/aiToolApi";
+import { getAvailableAiTools } from "../../api/aiToolApi";
 
 // AI 사용하기 화면에만 적용되는 스타일이다.
 import "./AiChatPage.css";
@@ -37,6 +38,8 @@ const DEFAULT_SOLAR_TOOL = {
   isDefault: true,
 };
 
+const DEFAULT_VISIBLE_CHAT_COUNT = 5;
+
 function AiChatPage() {
   /* 현재 로그인한 사용자의 역할을 가져와 공통 화면에 표시한다. */
   const storedUser = localStorage.getItem("user");
@@ -52,6 +55,7 @@ function AiChatPage() {
 
   // 왼쪽 패널에 표시할 이전 채팅과 고정 여부를 관리한다.
   const [chatHistory, setChatHistory] = useState([]);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
 
   // 현재 화면에서 열어 보고 있는 이전 채팅의 ID다.
   const [activeChatId, setActiveChatId] = useState(null);
@@ -103,16 +107,14 @@ function AiChatPage() {
   useEffect(() => {
     const fetchApprovedTools = async () => {
       try {
-        const response = await getAiToolApplications();
+        const response = await getAvailableAiTools();
         const applications = Array.isArray(response.data)
           ? response.data
           : [];
         const uniqueTools = [];
         const seenToolKeys = new Set();
 
-        applications
-          .filter((application) => application.status === "APPROVED")
-          .forEach((application) => {
+        applications.forEach((application) => {
             const key = `${application.provider}:${application.toolName}`;
             if (seenToolKeys.has(key)) return;
             seenToolKeys.add(key);
@@ -122,8 +124,11 @@ function AiChatPage() {
         const selectableTools = [DEFAULT_SOLAR_TOOL, ...uniqueTools];
         setApprovedTools(selectableTools);
         setSelectedToolId((currentId) =>
-          selectableTools.some((tool) => tool.id === currentId)
+          selectableTools.some(
+            (tool) => String(tool.id) === String(currentId),
+          )
             ? currentId
+            // 최초 진입이나 기존 선택 모델이 비활성화된 경우 Solar Pro 3을 기본 선택한다.
             : DEFAULT_SOLAR_TOOL.id,
         );
       } catch (requestError) {
@@ -141,6 +146,20 @@ function AiChatPage() {
   const sortedChatHistory = useMemo(
     () => [...chatHistory].sort((a, b) => Number(b.isPinned) - Number(a.isPinned)),
     [chatHistory],
+  );
+  const visibleChatHistory = useMemo(
+    () =>
+      isHistoryExpanded
+        ? sortedChatHistory
+        : sortedChatHistory.slice(0, DEFAULT_VISIBLE_CHAT_COUNT),
+    [isHistoryExpanded, sortedChatHistory],
+  );
+  const hiddenChatCount = Math.max(
+    sortedChatHistory.length - DEFAULT_VISIBLE_CHAT_COUNT,
+    0,
+  );
+  const selectedTool = approvedTools.find(
+    (tool) => String(tool.id) === String(selectedToolId),
   );
 
 
@@ -281,7 +300,7 @@ function AiChatPage() {
           </div>
 
           <div className="ai-chat-history-list">
-            {sortedChatHistory.map((chat) => (
+            {visibleChatHistory.map((chat) => (
               <button
                 key={chat.id}
                 type="button"
@@ -315,6 +334,27 @@ function AiChatPage() {
             ))}
           </div>
 
+          {hiddenChatCount > 0 && (
+            <button
+              type="button"
+              className="ai-chat-history-more"
+              aria-expanded={isHistoryExpanded}
+              onClick={() => setIsHistoryExpanded((expanded) => !expanded)}
+            >
+              {isHistoryExpanded ? (
+                <>
+                  <ChevronUp size={14} />
+                  접기
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={14} />
+                  더보기 ({hiddenChatCount})
+                </>
+              )}
+            </button>
+          )}
+
           <div className="ai-chat-security-guide">
             <ShieldCheck size={18} />
             <div>
@@ -330,38 +370,40 @@ function AiChatPage() {
             <div className="ai-chat-bot-icon"><Bot size={20} /></div>
             <div className="ai-chat-conversation-title">
               <h3>ComplianceAI</h3>
-              <p>질문 내용에 적합한 모델이 자동으로 선택됩니다.</p>
+              <p>사용 가능한 AI를 선택해 안전하게 대화를 시작하세요.</p>
             </div>
-            <span><i /> 보안 연결</span>
+            <div className="ai-chat-conversation-status">
+              <span className="ai-chat-current-model">
+                사용 모델 · {selectedTool?.toolName || "선택 필요"}
+              </span>
+              <span className="ai-chat-secure-status"><i /> 보안 연결</span>
+            </div>
           </header>
 
-          {/* 승인 완료된 AI Tool 중 대화에 사용할 Tool을 선택한다. */}
+          {/* 모든 역할이 승인 완료된 AI Tool 중 하나를 드롭다운으로 선택한다. */}
           <div className="ai-chat-tool-selector">
-            <div>
-              <Boxes size={16} />
-              <strong>사용할 AI Tool</strong>
-            </div>
+            <label htmlFor="ai-chat-model-select">
+              <strong>사용 모델</strong>
+              <span>
+                선택된 모델 · {selectedTool?.toolName || "없음"}
+              </span>
+            </label>
 
             {approvedTools.length > 0 ? (
-              <div className="ai-chat-tool-toggle-list">
+              <select
+                id="ai-chat-model-select"
+                value={selectedToolId}
+                onChange={(event) => setSelectedToolId(event.target.value)}
+              >
                 {approvedTools.map((tool) => (
-                  <button
+                  <option
                     key={tool.id}
-                    type="button"
-                    className={
-                      selectedToolId === tool.id ? "active" : ""
-                    }
-                    aria-pressed={selectedToolId === tool.id}
-                    onClick={() => setSelectedToolId(tool.id)}
+                    value={String(tool.id)}
                   >
-                    <strong>{tool.toolName}</strong>
-                    <span>
-                      {tool.provider}
-                      {tool.isDefault ? " · 기본" : ""}
-                    </span>
-                  </button>
+                    {tool.toolName} · {tool.provider}
+                  </option>
                 ))}
-              </div>
+              </select>
             ) : (
               <p>
                 승인된 AI Tool이 없습니다. 먼저 AI Tool 사용을 신청해 주세요.

@@ -27,6 +27,8 @@
 .ai-chat-pin-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: #a0aaba; border-radius: 7px; cursor: pointer; }
 .ai-chat-pin-button:hover { color: #315fae; background: #e7eefb; }
 .ai-chat-pin-button.pinned { color: #2f6fed; background: #e4edff; }
+.ai-chat-history-more { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 34px; margin: -7px 0 15px; color: #617493; background: #fff; border: 1px solid #dfe5ef; border-radius: 9px; font-family: inherit; font-size: 9px; font-weight: 800; cursor: pointer; transition: .2s; }
+.ai-chat-history-more:hover { color: #2f5fae; background: #f6f9ff; border-color: #b9cae5; }
 .ai-chat-security-guide { display: flex; align-items: flex-start; gap: 9px; margin-top: auto; padding: 13px; color: #07815f; background: #ecfaf5; border: 1px solid #bee8da; border-radius: 10px; }
 .ai-chat-security-guide strong { display: block; color: #246c58; font-size: 10px; }
 .ai-chat-security-guide p { margin: 4px 0 0; color: #628a7d; font-size: 9px; line-height: 1.45; }
@@ -37,19 +39,19 @@
 .ai-chat-bot-icon { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; color: #2f6fed; background: #edf3ff; border-radius: 11px; }
 .ai-chat-conversation-title h3 { margin: 0; color: #263853; font-size: 13px; font-weight: 800; }
 .ai-chat-conversation-title p { margin: 4px 0 0; color: #8492a7; font-size: 9px; }
-.ai-chat-conversation-header > span { display: flex; align-items: center; gap: 5px; margin-left: auto; color: #138163; font-size: 9px; font-weight: 800; }
-.ai-chat-conversation-header > span i { width: 7px; height: 7px; background: #16a77c; border-radius: 50%; }
+.ai-chat-conversation-status { display: flex; align-items: flex-end; flex-direction: column; gap: 5px; margin-left: auto; }
+.ai-chat-current-model { padding: 4px 7px; color: #315fae; background: #eaf2ff; border: 1px solid #cfe0fb; border-radius: 6px; font-size: 8px; font-weight: 800; }
+.ai-chat-secure-status { display: flex; align-items: center; gap: 5px; color: #138163; font-size: 9px; font-weight: 800; }
+.ai-chat-secure-status i { width: 7px; height: 7px; background: #16a77c; border-radius: 50%; }
 
-/* 승인된 AI Tool을 하나만 선택할 수 있는 토글 영역 */
-.ai-chat-tool-selector { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 10px 18px; background: #f8faff; border-bottom: 1px solid #e3e8f0; }
-.ai-chat-tool-selector > div:first-child { display: flex; align-items: center; flex: 0 0 auto; gap: 6px; color: #536b8f; font-size: 10px; }
+/* 모든 역할이 공통으로 사용하는 AI 모델 드롭다운 */
+.ai-chat-tool-selector { display: flex; align-items: center; gap: 8px; min-height: 68px; padding: 10px 18px; background: #f8faff; border-bottom: 1px solid #e3e8f0; }
+.ai-chat-tool-selector label { min-width: 112px; }
+.ai-chat-tool-selector label strong { display: block; color: #344b6d; font-size: 10px; }
+.ai-chat-tool-selector label span { display: block; margin-top: 4px; color: #7184a1; font-size: 8px; }
+.ai-chat-tool-selector select { width: 230px; max-width: 100%; height: 38px; padding: 0 34px 0 11px; color: #263853; background: #fff; border: 1px solid #c9d5e7; border-radius: 9px; outline: none; font-family: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+.ai-chat-tool-selector select:focus { border-color: #79a3ea; box-shadow: 0 0 0 3px rgba(47,111,237,.1); }
 .ai-chat-tool-selector > p { margin: 0; color: #a05d17; font-size: 9px; }
-.ai-chat-tool-toggle-list { display: flex; gap: 7px; overflow-x: auto; padding: 2px; }
-.ai-chat-tool-toggle-list button { display: flex; align-items: flex-start; flex-direction: column; flex: 0 0 auto; gap: 2px; min-width: 110px; padding: 8px 10px; color: #61728d; background: #fff; border: 1px solid #d9e1ed; border-radius: 9px; font-family: inherit; text-align: left; cursor: pointer; }
-.ai-chat-tool-toggle-list button strong { font-size: 10px; }
-.ai-chat-tool-toggle-list button span { color: #8a97aa; font-size: 8px; }
-.ai-chat-tool-toggle-list button.active { color: #2459ad; background: #eaf2ff; border-color: #79a3ea; box-shadow: 0 0 0 2px rgba(47,111,237,.08); }
-.ai-chat-tool-toggle-list button.active span { color: #5778ad; }
 .ai-chat-message-list { min-height: 0; overflow-y: auto; padding: 22px; }
 .ai-chat-empty-state { display: flex; align-items: center; justify-content: center; flex-direction: column; min-height: 390px; text-align: center; }
 .ai-chat-empty-state > span { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; color: #2f6fed; background: #edf3ff; border-radius: 20px; }
@@ -92,4 +94,4 @@
 
 /* 태블릿과 모바일에서는 업무 패널을 채팅 위에 배치한다. */
 @media (max-width: 900px) { .ai-chat-workspace { grid-template-columns: 1fr; } .ai-chat-history-list { display: grid; grid-template-columns: repeat(2, 1fr); } .ai-chat-security-guide { margin-top: 0; } }
-@media (max-width: 600px) { .ai-chat-page { padding: 20px 14px 26px; } .ai-chat-heading { align-items: stretch; flex-direction: column; } .ai-chat-heading > button { align-self: flex-start; } .ai-chat-workspace { min-height: 0; } .ai-chat-history-list { grid-template-columns: 1fr; } .ai-chat-conversation-panel { min-height: 650px; } .ai-chat-conversation-header { flex-wrap: wrap; padding: 12px; } .ai-chat-tool-selector { align-items: stretch; flex-direction: column; } .ai-chat-message { max-width: 95%; } .ai-chat-message-list { padding: 16px; } .ai-chat-composer { margin: 0 12px 12px; } }
+@media (max-width: 600px) { .ai-chat-page { padding: 20px 14px 26px; } .ai-chat-heading { align-items: stretch; flex-direction: column; } .ai-chat-heading > button { align-self: flex-start; } .ai-chat-workspace { min-height: 0; } .ai-chat-history-list { grid-template-columns: 1fr; } .ai-chat-conversation-panel { min-height: 650px; } .ai-chat-conversation-header { flex-wrap: wrap; padding: 12px; } .ai-chat-conversation-status { align-items: flex-start; width: 100%; margin-left: 49px; } .ai-chat-tool-selector { align-items: stretch; flex-direction: column; } .ai-chat-tool-selector select { width: 100%; } .ai-chat-message { max-width: 95%; } .ai-chat-message-list { padding: 16px; } .ai-chat-composer { margin: 0 12px 12px; } }

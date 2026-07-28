@@ -163,6 +163,139 @@
   overflow: hidden;
 }
 
+.ai-tools-all-section {
+  margin-top: 18px;
+}
+
+.ai-tools-all-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-tools-all-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 250px;
+  height: 36px;
+  padding: 0 10px;
+  color: #8290a5;
+  background: #f8faff;
+  border: 1px solid #d7e0ed;
+  border-radius: 9px;
+}
+
+.ai-tools-all-search:focus-within {
+  color: var(--color-primary);
+  background: #ffffff;
+  border-color: #8db1f2;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.09);
+}
+
+.ai-tools-all-search input {
+  width: 100%;
+  min-width: 0;
+  color: #344b6d;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.ai-tools-all-search input::placeholder {
+  color: #9aa6b7;
+}
+
+.ai-tools-all-status-filter {
+  width: 108px;
+  height: 36px;
+  padding: 0 24px 0 9px;
+  color: #52627a;
+  background: #ffffff;
+  border: 1px solid #d7e0ed;
+  border-radius: 9px;
+  outline: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ai-tools-all-status-filter:focus {
+  border-color: #8db1f2;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.09);
+}
+
+.ai-tools-all-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ai-tools-all-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+}
+
+.ai-tools-all-table th {
+  padding: 13px 16px;
+  color: #687386;
+  background: #f8faff;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ai-tools-all-table td {
+  padding: 15px 16px;
+  color: #52627a;
+  border-bottom: 1px solid #edf1f7;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.ai-tools-all-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ai-tools-all-table tbody tr:hover {
+  background: #fafcff;
+}
+
+.ai-tools-all-table td strong {
+  color: #263853;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .ai-tools-all-section .ai-tools-section-header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 15px;
+  }
+
+  .ai-tools-all-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ai-tools-all-search {
+    width: 100%;
+  }
+
+  .ai-tools-all-status-filter {
+    width: 100%;
+  }
+
+  .ai-tools-all-controls .ai-tools-count {
+    align-self: flex-start;
+  }
+}
+
 /* 신청 현황 제목 영역 */
 .ai-tools-section-header {
   display: flex;
