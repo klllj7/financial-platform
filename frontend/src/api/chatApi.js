@@ -23,6 +23,14 @@ export const updateChatPin = async (sessionId, isPinned) => {
   return response.data;
 };
 
+/* 선택한 이전 채팅을 목록에서 숨긴다. 서버의 감사 로그는 유지된다. */
+export const deleteChatSessions = async (sessionIds) => {
+  const response = await axiosInstance.delete("/chats/sessions", {
+    data: { sessionIds },
+  });
+  return response.data;
+};
+
 /* 새 질문을 보내고 저장된 사용자 메시지와 AI 답변을 받는다. */
 export const sendChatMessage = async (payload) => {
   const response = await axiosInstance.post("/chats/messages", payload);
