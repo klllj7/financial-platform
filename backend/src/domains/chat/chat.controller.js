@@ -18,6 +18,34 @@ const updatePin = async (req, res) => {
   } catch (error) { return fail(res, error.code || "CHAT_PIN_FAILED", error.message, error.statusCode || 500); }
 };
 
+const deleteSessions = async (req, res) => {
+  try {
+    const sessionIds = Array.isArray(req.body.sessionIds)
+      ? [...new Set(req.body.sessionIds.filter((id) => typeof id === "string"))]
+      : [];
+    if (sessionIds.length === 0) {
+      return fail(
+        res,
+        "CHAT_DELETE_SELECTION_REQUIRED",
+        "삭제할 채팅을 선택해 주세요.",
+        400,
+      );
+    }
+
+    return success(res, await service.softDeleteSessions({
+      userId: req.user.userId,
+      sessionIds,
+    }));
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "CHAT_DELETE_FAILED",
+      error.message,
+      error.statusCode || 500,
+    );
+  }
+};
+
 const sendMessage = async (req, res) => {
   try {
     const message = typeof req.body.message === "string" ? req.body.message.trim() : "";
@@ -38,5 +66,6 @@ module.exports = {
   getSessions,
   getMessages,
   updatePin,
+  deleteSessions,
   sendMessage,
 };

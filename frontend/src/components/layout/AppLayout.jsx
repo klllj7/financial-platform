@@ -4,9 +4,10 @@ import {
   useLocation,
 } from "react-router-dom";
 
-// 공통 사이드바와 상단 헤더
+// 공통 사이드바와 상단 헤더 및 하단
 import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
+import AppFooter from "./AppFooter";
 
 // 공통 레이아웃 CSS
 import "./layout.css";
@@ -56,6 +57,9 @@ function AppLayout() {
           {/* 현재 주소에 해당하는 페이지가 표시되는 위치 */}
           <Outlet />
         </main>
+
+        {/* 로그인 후 모든 내부 화면 하단에 공통 Footer 표시 */}
+        <AppFooter />
       </div>
     </div>
   );

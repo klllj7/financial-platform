@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Bot,
+  CheckSquare,
   ChevronDown,
   ChevronUp,
   Eraser,
@@ -9,9 +10,12 @@ import {
   Pin,
   Send,
   ShieldCheck,
+  Square,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import {
+  deleteChatSessions,
   getChatMessages,
   getChatSessions,
   sendChatMessage,
@@ -56,6 +60,9 @@ function AiChatPage() {
   // 왼쪽 패널에 표시할 이전 채팅과 고정 여부를 관리한다.
   const [chatHistory, setChatHistory] = useState([]);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedChatIds, setSelectedChatIds] = useState([]);
+  const [isDeletingChats, setIsDeletingChats] = useState(false);
 
   // 현재 화면에서 열어 보고 있는 이전 채팅의 ID다.
   const [activeChatId, setActiveChatId] = useState(null);
@@ -267,6 +274,49 @@ function AiChatPage() {
     }
   };
 
+  const toggleDeleteMode = () => {
+    setIsDeleteMode((current) => !current);
+    setSelectedChatIds([]);
+  };
+
+  const handleChatCheck = (chatId) => {
+    setSelectedChatIds((current) =>
+      current.includes(chatId)
+        ? current.filter((id) => id !== chatId)
+        : [...current, chatId],
+    );
+  };
+
+  const handleSelectedChatsDelete = async () => {
+    if (selectedChatIds.length === 0 || isDeletingChats) return;
+    const confirmed = window.confirm(
+      `선택한 채팅 ${selectedChatIds.length}개를 목록에서 삭제하시겠습니까?\n대화 로그는 감사 목적으로 보관됩니다.`,
+    );
+    if (!confirmed) return;
+
+    setIsDeletingChats(true);
+    setError("");
+    try {
+      await deleteChatSessions(selectedChatIds);
+      setChatHistory((current) =>
+        current.filter((chat) => !selectedChatIds.includes(chat.id)),
+      );
+      if (activeChatId && selectedChatIds.includes(activeChatId)) {
+        handleResetChat();
+      }
+      setSelectedChatIds([]);
+      setIsDeleteMode(false);
+    } catch (requestError) {
+      console.error("이전 채팅 삭제 실패", requestError);
+      setError(
+        requestError.response?.data?.error?.message ||
+          "선택한 채팅을 삭제하지 못했습니다.",
+      );
+    } finally {
+      setIsDeletingChats(false);
+    }
+  };
+
 
   return (
     <div className="ai-chat-page">
@@ -295,8 +345,20 @@ function AiChatPage() {
             <MessageSquareText size={18} />
             <div>
               <h3>이전 채팅</h3>
-              <p>대화를 선택하거나 핀으로 상단에 고정하세요.</p>
+              <p>
+                {isDeleteMode
+                  ? "삭제할 대화를 체크하세요."
+                  : "대화를 선택하거나 핀으로 상단에 고정하세요."}
+              </p>
             </div>
+            <button
+              type="button"
+              className={isDeleteMode ? "active" : ""}
+              onClick={toggleDeleteMode}
+            >
+              <Trash2 size={13} />
+              {isDeleteMode ? "취소" : "삭제"}
+            </button>
           </div>
 
           <div className="ai-chat-history-list">
@@ -305,34 +367,66 @@ function AiChatPage() {
                 key={chat.id}
                 type="button"
                 className={
-                  activeChatId === chat.id ? "active" : ""
+                  `${activeChatId === chat.id ? "active" : ""} ${
+                    selectedChatIds.includes(chat.id) ? "selected" : ""
+                  }`
                 }
-                onClick={() => handleHistorySelect(chat)}
+                onClick={() =>
+                  isDeleteMode
+                    ? handleChatCheck(chat.id)
+                    : handleHistorySelect(chat)
+                }
               >
                 <span className="ai-chat-history-icon">
-                  <MessageSquareText size={15} />
+                  {isDeleteMode ? (
+                    selectedChatIds.includes(chat.id) ? (
+                      <CheckSquare size={16} />
+                    ) : (
+                      <Square size={16} />
+                    )
+                  ) : (
+                    <MessageSquareText size={15} />
+                  )}
                 </span>
                 <span className="ai-chat-history-content">
                   <strong>{chat.title}</strong>
                   <small>{new Date(chat.updatedAt).toLocaleDateString("ko-KR")}</small>
                 </span>
-                <span
-                  role="button"
-                  tabIndex={0}
-                  className={`ai-chat-pin-button ${chat.isPinned ? "pinned" : ""}`}
-                  aria-label={chat.isPinned ? "채팅 고정 해제" : "채팅 고정"}
-                  onClick={(event) => handlePinToggle(event, chat.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      handlePinToggle(event, chat.id);
-                    }
-                  }}
-                >
-                  <Pin size={14} fill={chat.isPinned ? "currentColor" : "none"} />
-                </span>
+                {!isDeleteMode && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className={`ai-chat-pin-button ${chat.isPinned ? "pinned" : ""}`}
+                    aria-label={chat.isPinned ? "채팅 고정 해제" : "채팅 고정"}
+                    onClick={(event) => handlePinToggle(event, chat.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        handlePinToggle(event, chat.id);
+                      }
+                    }}
+                  >
+                    <Pin size={14} fill={chat.isPinned ? "currentColor" : "none"} />
+                  </span>
+                )}
               </button>
             ))}
           </div>
+
+          {isDeleteMode && (
+            <button
+              type="button"
+              className="ai-chat-history-delete-confirm"
+              disabled={
+                selectedChatIds.length === 0 || isDeletingChats
+              }
+              onClick={handleSelectedChatsDelete}
+            >
+              <Trash2 size={14} />
+              {isDeletingChats
+                ? "삭제 중..."
+                : `선택 삭제 (${selectedChatIds.length})`}
+            </button>
+          )}
 
           {hiddenChatCount > 0 && (
             <button

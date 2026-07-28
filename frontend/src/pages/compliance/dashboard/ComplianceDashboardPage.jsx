@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 /* 전사 대시보드에 표시할 아이콘 */
 import {
-  Activity,
   ArrowRight,
   Bell,
+  Boxes,
   CircleDollarSign,
+  ClipboardList,
   Clock3,
+  FileCheck2,
 } from "lucide-react";
 
 /* 컴포넌트 */
@@ -30,6 +32,9 @@ import {
 /* 최근 공지와 위험 이벤트를 각각의 백엔드에서 조회한다. */
 import { getNotices } from "../../../api/noticeApi";
 import { getEvents } from "../../../api/dlpApi";
+import { getEvidenceSummary } from "../../../api/reportApi";
+import { getPolicies } from "../../../api/policyApi";
+import { getAiToolApplications } from "../../../api/aiToolApi";
 import {
   getComplianceDashboardSummary,
   getComplianceDashboardTrend,
@@ -53,8 +58,6 @@ const formatNumber = (value) => {
 };
 
 const EMPTY_SUMMARY = {
-  usageCount: 0,
-  previousMonthDifference: 0,
   totalTokens: 0,
   estimatedCostKrw: 0,
 };
@@ -64,6 +67,58 @@ const EMPTY_RISK_SUMMARY = {
   medium: 0,
   low: 0,
   urgentActionCount: 0,
+};
+
+const EMPTY_EVIDENCE_SUMMARY = {
+  preparedCount: 0,
+  totalCount: 38,
+  overallPercentage: 0,
+  categories: [
+    {
+      key: "관리적",
+      label: "⑦ 관리적 보호조치",
+      preparedCount: 0,
+      totalCount: 17,
+      percentage: 0,
+    },
+    {
+      key: "기술적",
+      label: "⑧ 기술적 보호조치",
+      preparedCount: 0,
+      totalCount: 11,
+      percentage: 0,
+    },
+    {
+      key: "처리위탁",
+      label: "⑥ 처리위탁",
+      preparedCount: 0,
+      totalCount: 7,
+      percentage: 0,
+    },
+    {
+      key: "수집",
+      label: "② 수집",
+      preparedCount: 0,
+      totalCount: 2,
+      percentage: 0,
+    },
+    {
+      key: "제공",
+      label: "③ 제공",
+      preparedCount: 0,
+      totalCount: 1,
+      percentage: 0,
+    },
+  ],
+};
+
+const REQUEST_STATUS_LABELS = {
+  pending: "검토 중",
+  approved: "승인 완료",
+  rejected: "반려",
+  PENDING: "검토 중",
+  APPROVED: "승인 완료",
+  REJECTED: "반려",
 };
 
 /* DLP의 조치 이력 중 가장 최근 수동 조치를 화면 상태로 변환한다. */
@@ -96,7 +151,7 @@ const formatOccurredAt = (value) => {
 };
 
 
-function ComplianceDashboardPage() {
+function ComplianceDashboardPage({ isAdminView = false }) {
   /*
     다른 페이지로 이동할 때 사용하는 함수다.
   */
@@ -111,6 +166,10 @@ function ComplianceDashboardPage() {
     useState(EMPTY_SUMMARY);
   const [riskSummary, setRiskSummary] =
     useState(EMPTY_RISK_SUMMARY);
+  const [evidenceSummary, setEvidenceSummary] =
+    useState(EMPTY_EVIDENCE_SUMMARY);
+  const [policyRequests, setPolicyRequests] = useState([]);
+  const [aiToolApplications, setAiToolApplications] = useState([]);
 
   /*
     공지와 DLP 위험 이벤트는 서로 다른 서버이므로 독립적으로 조회한다.
@@ -118,12 +177,21 @@ function ComplianceDashboardPage() {
   */
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const [noticeResult, eventResult, usageTrendResult, summaryResult] =
+      const [
+        noticeResult,
+        eventResult,
+        usageTrendResult,
+        summaryResult,
+        evidenceResult,
+      ] =
         await Promise.allSettled([
         getNotices(),
         getEvents(),
         getComplianceDashboardTrend(30),
         getComplianceDashboardSummary(),
+        isAdminView
+          ? Promise.resolve({ data: EMPTY_EVIDENCE_SUMMARY })
+          : getEvidenceSummary(new Date().getFullYear()),
       ]);
 
       if (noticeResult.status === "fulfilled") {
@@ -265,10 +333,67 @@ function ComplianceDashboardPage() {
           usageTrendResult.reason,
         );
       }
+
+      if (evidenceResult.status === "fulfilled") {
+        const evidenceData = evidenceResult.value.data || {};
+        setEvidenceSummary({
+          ...EMPTY_EVIDENCE_SUMMARY,
+          ...evidenceData,
+          categories:
+            Array.isArray(evidenceData.categories) &&
+            evidenceData.categories.length > 0
+              ? evidenceData.categories
+              : EMPTY_EVIDENCE_SUMMARY.categories,
+        });
+      } else {
+        console.error(
+          "상시평가 증빙자료 요약 조회 실패",
+          evidenceResult.reason,
+        );
+      }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [isAdminView]);
+
+  useEffect(() => {
+    if (isAdminView) return;
+
+    const fetchRequestStatuses = async () => {
+      const [policyResult, aiToolResult] = await Promise.allSettled([
+        getPolicies(),
+        getAiToolApplications(),
+      ]);
+
+      if (policyResult.status === "fulfilled") {
+        const policies = Array.isArray(policyResult.value.data)
+          ? policyResult.value.data
+          : [];
+        setPolicyRequests(
+          [...policies]
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )
+            .slice(0, 3),
+        );
+      } else {
+        console.error("정책 요청 현황 조회 실패", policyResult.reason);
+      }
+
+      if (aiToolResult.status === "fulfilled") {
+        const applications = Array.isArray(aiToolResult.value.data)
+          ? aiToolResult.value.data
+          : [];
+        setAiToolApplications(applications.slice(0, 3));
+      } else {
+        console.error("AI Tool 신청 현황 조회 실패", aiToolResult.reason);
+      }
+    };
+
+    fetchRequestStatuses();
+  }, [isAdminView]);
 
   /* DLP 위험 등급별 건수를 도넛 차트 데이터로 변환한다. */
   const riskChartData = [
@@ -304,9 +429,25 @@ function ComplianceDashboardPage() {
     });
   };
 
+  const handleEvidenceViewAll = () => {
+    navigate("/compliance/evidence");
+  };
+
+  const handlePolicyViewAll = () => {
+    navigate("/policies");
+  };
+
+  const handleAiToolViewAll = () => {
+    navigate("/ai-tools");
+  };
+
 
   return (
-    <div className="compliance-dashboard-page">
+    <div
+      className={`compliance-dashboard-page ${
+        isAdminView ? "admin-view" : ""
+      }`}
+    >
       {/* ==================================================
           전사 대시보드 제목 영역
       ================================================== */}
@@ -326,30 +467,47 @@ function ComplianceDashboardPage() {
       {/* ==================================================
           상단 요약 영역
       ================================================== */}
-      <section className="compliance-summary-grid">
-        {/* 전사 AI 사용 횟수 카드 */}
-        <article className="compliance-summary-card">
-          <div className="compliance-summary-icon compliance-summary-icon-primary">
-            <Activity size={22} />
+      <section
+        className={`compliance-summary-grid ${
+          isAdminView ? "admin-view" : ""
+        }`}
+      >
+        {/* 최근 공지사항은 CSS 순서로 상단 가장 오른쪽에 표시한다. */}
+        <article className="compliance-notice-panel">
+          <div className="compliance-notice-header">
+            <div>
+              <Bell size={17} />
+              <h3>최근 공지사항</h3>
+            </div>
+            <button type="button" onClick={handleNoticeViewAll}>
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
           </div>
 
-          <div className="compliance-summary-content">
-            <span className="compliance-summary-label">
-              AI 사용 횟수
-            </span>
-
-            <strong className="compliance-summary-value">
-              {formatNumber(
-                dashboardSummary.usageCount,
-              )}
-              회
-            </strong>
-
-            <small>
-              전월 대비{" "}
-              {dashboardSummary.previousMonthDifference >= 0 ? "+" : ""}
-              {dashboardSummary.previousMonthDifference}회
-            </small>
+          <div className="compliance-notice-list">
+            {notices.length > 0 ? (
+              notices.map((notice) => (
+                <button
+                  key={notice.id}
+                  type="button"
+                  className="compliance-notice-item"
+                  onClick={handleNoticeClick}
+                >
+                  <div>
+                    <span className="compliance-notice-category">
+                      {notice.category}
+                    </span>
+                    <strong>{notice.title}</strong>
+                  </div>
+                  <small>{notice.date}</small>
+                </button>
+              ))
+            ) : (
+              <div className="compliance-notice-empty">
+                등록된 공지사항이 없습니다.
+              </div>
+            )}
           </div>
         </article>
 
@@ -446,7 +604,7 @@ function ComplianceDashboardPage() {
         </article>
 
         {/* 토큰 사용량과 비용 카드 */}
-        <article className="compliance-summary-card">
+        <article className="compliance-summary-card compliance-cost-summary-card">
           <div className="compliance-summary-icon compliance-summary-icon-cost">
             <CircleDollarSign size={22} />
           </div>
@@ -474,11 +632,67 @@ function ComplianceDashboardPage() {
           </div>
         </article>
 
+        {!isAdminView && (
+        <section className="compliance-evidence-progress-panel">
+          <header className="compliance-evidence-progress-header">
+            <div>
+              <span><FileCheck2 size={18} /></span>
+              <div>
+                <h3>상시평가 증빙자료 준비</h3>
+                <p>{new Date().getFullYear()}년 전사 준비 현황</p>
+              </div>
+            </div>
+            <button type="button" onClick={handleEvidenceViewAll}>
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
+          </header>
+
+          <div className="compliance-evidence-overall">
+            <div>
+              <span>전체 이행률</span>
+              <strong>{evidenceSummary.overallPercentage}%</strong>
+            </div>
+            <div className="compliance-evidence-progress-track">
+              <span
+                style={{
+                  width: `${evidenceSummary.overallPercentage}%`,
+                }}
+              />
+            </div>
+            <small>
+              {evidenceSummary.preparedCount} / {evidenceSummary.totalCount}개
+              항목 준비완료
+            </small>
+          </div>
+
+          <div className="compliance-evidence-category-list">
+            {evidenceSummary.categories.map((category) => (
+              <div
+                key={category.key}
+                className="compliance-evidence-category-item"
+              >
+                <div>
+                  <span>{category.label}</span>
+                  <strong>{category.percentage}%</strong>
+                </div>
+                <div className="compliance-evidence-progress-track small">
+                  <span style={{ width: `${category.percentage}%` }} />
+                </div>
+                <small>
+                  {category.preparedCount}/{category.totalCount}
+                </small>
+              </div>
+            ))}
+          </div>
+        </section>
+        )}
+
       </section>
 
 
       {/* ==================================================
-          두 번째 줄: 위험 이벤트 관리와 최근 공지사항
+          두 번째 줄: 위험 이벤트 관리
       ================================================== */}
       <div className="compliance-dashboard-second-row">
         <section className="compliance-action-required-panel">
@@ -602,52 +816,88 @@ function ComplianceDashboardPage() {
         </div>
         </section>
 
-        {/* 최근 공지사항을 위험 이벤트 관리 오른쪽에 표시한다. */}
-        <article className="compliance-notice-panel">
-          <div className="compliance-notice-header">
+        {!isAdminView && (
+        <section className="compliance-request-status-panel">
+          <header className="compliance-request-status-header">
             <div>
-              <Bell size={17} />
-
-              <h3>최근 공지사항</h3>
+              <span><ClipboardList size={17} /></span>
+              <h3>정책 요청 현황</h3>
             </div>
-
-            <button
-              type="button"
-              onClick={handleNoticeViewAll}
-            >
+            <button type="button" onClick={handlePolicyViewAll}>
               전체 보기
-
               <ArrowRight size={14} />
             </button>
+          </header>
+          <div className="compliance-request-status-list">
+            {policyRequests.length > 0 ? (
+              policyRequests.map((policy) => {
+                const status = policy.approval_status || "pending";
+                return (
+                  <button
+                    key={policy.id}
+                    type="button"
+                    onClick={handlePolicyViewAll}
+                  >
+                    <div>
+                      <strong>{policy.name}</strong>
+                      <small>{policy.department_name || "부서 미지정"}</small>
+                    </div>
+                    <span className={`status-${status.toLowerCase()}`}>
+                      {REQUEST_STATUS_LABELS[status] || status}
+                    </span>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="compliance-request-status-empty">
+                등록된 정책 요청이 없습니다.
+              </p>
+            )}
           </div>
+        </section>
+        )}
 
-          <div className="compliance-notice-list">
-            {notices.length > 0 ? (
-              notices.map((notice) => (
+        {!isAdminView && (
+        <section className="compliance-request-status-panel">
+          <header className="compliance-request-status-header">
+            <div>
+              <span><Boxes size={17} /></span>
+              <h3>AI Tool 신청 현황</h3>
+            </div>
+            <button type="button" onClick={handleAiToolViewAll}>
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
+          </header>
+          <div className="compliance-request-status-list">
+            {aiToolApplications.length > 0 ? (
+              aiToolApplications.map((application) => (
                 <button
-                  key={notice.id}
+                  key={application.id}
                   type="button"
-                  className="compliance-notice-item"
-                  onClick={handleNoticeClick}
+                  onClick={handleAiToolViewAll}
                 >
                   <div>
-                    <span className="compliance-notice-category">
-                      {notice.category}
-                    </span>
-
-                    <strong>{notice.title}</strong>
+                    <strong>{application.toolName}</strong>
+                    <small>{application.provider}</small>
                   </div>
-
-                  <small>{notice.date}</small>
+                  <span
+                    className={`status-${application.status.toLowerCase()}`}
+                  >
+                    {REQUEST_STATUS_LABELS[application.status] ||
+                      application.status}
+                  </span>
                 </button>
               ))
             ) : (
-              <div className="compliance-notice-empty">
-                등록된 공지사항이 없습니다.
-              </div>
+              <p className="compliance-request-status-empty">
+                등록된 AI Tool 신청이 없습니다.
+              </p>
             )}
           </div>
-        </article>
+        </section>
+        )}
+
       </div>
 
 
