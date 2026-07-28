@@ -355,6 +355,19 @@
   cursor: not-allowed;
 }
 
+.admin-model-toggle-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 90px;
+}
+
+.admin-model-toggle-cell small {
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* =========================================================
    승인/반려 버튼
 ========================================================= */
@@ -366,7 +379,8 @@
 
 /* 승인/반려 버튼 공통 */
 .admin-model-approve-button,
-.admin-model-reject-button {
+.admin-model-reject-button,
+.admin-model-delete-button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -392,9 +406,15 @@
   background: #fee2e2;
 }
 
+.admin-model-delete-button {
+  color: #ffffff;
+  background: #dc3545;
+}
+
 /* 처리 완료로 클릭할 수 없는 버튼 */
 .admin-model-approve-button:disabled,
-.admin-model-reject-button:disabled {
+.admin-model-reject-button:disabled,
+.admin-model-delete-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -574,6 +594,60 @@
 .admin-model-save-button {
   color: #ffffff;
   background: var(--color-primary);
+}
+
+.admin-model-delete-modal {
+  width: 420px;
+}
+
+.admin-model-delete-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 22px;
+}
+
+.admin-model-delete-body > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 12px;
+}
+
+.admin-model-delete-body strong {
+  display: block;
+  color: #263853;
+  font-size: 14px;
+}
+
+.admin-model-delete-body p {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.admin-model-confirm-delete-button {
+  min-height: 38px;
+  padding: 0 16px;
+  color: #ffffff;
+  background: #dc3545;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-model-confirm-delete-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* =========================================================

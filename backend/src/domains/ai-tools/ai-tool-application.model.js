@@ -11,6 +11,7 @@ const AiToolApplication = sequelize.define("AiToolApplication", {
   provider: { type: DataTypes.STRING(100), allowNull: false },
   purpose: { type: DataTypes.TEXT, allowNull: false },
   status: { type: DataTypes.ENUM("PENDING", "APPROVED", "REJECTED"), allowNull: false, defaultValue: "PENDING" },
+  isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
   reviewerId: { type: DataTypes.INTEGER, allowNull: true },
   reviewComment: { type: DataTypes.TEXT, allowNull: true },
   reviewedAt: { type: DataTypes.DATE, allowNull: true },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // 아이콘
 import {
@@ -6,11 +6,13 @@ import {
   Bot,
   ClipboardList,
   Plus,
+  Search,
   X,
 } from "lucide-react";
 
 import {
   createAiToolApplication,
+  getAllAiToolApplications,
   getAiToolApplications,
 } from "../../api/aiToolApi";
 
@@ -29,11 +31,25 @@ const getApplicationStatusClassName = (statusKey) => {
 };
 
 function AiToolsPage() {
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+  const roleCode = user?.role?.code || user?.role || "EMPLOYEE";
+  const canViewAllApplications = [
+    "EMPLOYEE",
+    "COMPLIANCE_MANAGER",
+    "ADMIN",
+  ].includes(roleCode);
+
   /*
     신청 현황 데이터가 배열이 아닌 경우에도
     화면 전체가 멈추지 않도록 빈 배열을 사용한다.
   */
   const [applications, setApplications] = useState([]);
+  const [allApplications, setAllApplications] = useState([]);
+  const [allApplicationsKeyword, setAllApplicationsKeyword] = useState("");
+  const [allApplicationsStatus, setAllApplicationsStatus] = useState("ALL");
+  const [isAllApplicationsLoading, setIsAllApplicationsLoading] =
+    useState(canViewAllApplications);
 
   const [isApplyModalOpen, setIsApplyModalOpen] =
     useState(false);
@@ -55,6 +71,8 @@ function AiToolsPage() {
     toolName: application.toolName,
     provider: application.provider,
     purpose: application.purpose,
+    applicantName: application.applicantName,
+    departmentName: application.departmentName,
     reviewComment: application.reviewComment,
     reviewedAt: application.reviewedAt
       ? new Date(application.reviewedAt).toLocaleString("ko-KR")
@@ -89,6 +107,28 @@ function AiToolsPage() {
     fetchApplications();
   }, []);
 
+  /* 모든 역할은 내 신청 아래에서 조직의 전체 신청 현황을 확인한다. */
+  useEffect(() => {
+    if (!canViewAllApplications) return;
+
+    const fetchAllApplications = async () => {
+      try {
+        const response = await getAllAiToolApplications();
+        setAllApplications(
+          Array.isArray(response.data)
+            ? response.data.map(formatApplication)
+            : [],
+        );
+      } catch (error) {
+        console.error("전체 AI Tool 신청 내역 조회 실패", error);
+      } finally {
+        setIsAllApplicationsLoading(false);
+      }
+    };
+
+    fetchAllApplications();
+  }, [canViewAllApplications]);
+
   /*
     현재 검토 중인 신청 건수를 계산한다.
   */
@@ -96,6 +136,29 @@ function AiToolsPage() {
     (application) =>
       application.statusKey === "pending",
   ).length;
+  const filteredAllApplications = useMemo(() => {
+    const keyword = allApplicationsKeyword.trim().toLocaleLowerCase("ko-KR");
+    return allApplications.filter((application) => {
+      const matchesStatus =
+        allApplicationsStatus === "ALL" ||
+        application.statusKey === allApplicationsStatus;
+      const matchesKeyword =
+        !keyword ||
+        [
+          application.toolName,
+          application.provider,
+          application.status,
+        ].some((value) =>
+          String(value || "").toLocaleLowerCase("ko-KR").includes(keyword),
+        );
+
+      return matchesStatus && matchesKeyword;
+    });
+  }, [
+    allApplications,
+    allApplicationsKeyword,
+    allApplicationsStatus,
+  ]);
 
   /* AI Tool 신청 팝업을 연다. */
   const handleApplyButtonClick = () => {
@@ -124,10 +187,17 @@ function AiToolsPage() {
 
     try {
       const response = await createAiToolApplication(applicationForm);
+      const createdApplication = formatApplication(response.data);
       setApplications((currentApplications) => [
-        formatApplication(response.data),
+        createdApplication,
         ...currentApplications,
       ]);
+      if (canViewAllApplications) {
+        setAllApplications((currentApplications) => [
+          createdApplication,
+          ...currentApplications,
+        ]);
+      }
       handleApplyModalClose();
     } catch (error) {
       alert(error.response?.data?.error?.message || "AI Tool 신청에 실패했습니다.");
@@ -304,6 +374,100 @@ function AiToolsPage() {
           </div>
         )}
       </section>
+
+      {canViewAllApplications && (
+        <section className="ai-tools-section ai-tools-all-section">
+          <div className="ai-tools-section-header">
+            <div className="ai-tools-section-title">
+              <div className="ai-tools-section-title-row">
+                <ClipboardList size={19} />
+                <h3>전체 신청 목록</h3>
+              </div>
+              <p>
+                전사 임직원이 신청한 AI Tool과 현재 처리 상태를 확인합니다.
+              </p>
+            </div>
+            <div className="ai-tools-all-controls">
+              <label className="ai-tools-all-search">
+                <Search size={15} />
+                <input
+                  type="search"
+                  value={allApplicationsKeyword}
+                  onChange={(event) =>
+                    setAllApplicationsKeyword(event.target.value)
+                  }
+                  placeholder="모델, 공급사, 처리 상태 검색"
+                  aria-label="전체 AI Tool 신청 목록 검색"
+                />
+              </label>
+              <select
+                className="ai-tools-all-status-filter"
+                value={allApplicationsStatus}
+                onChange={(event) =>
+                  setAllApplicationsStatus(event.target.value)
+                }
+                aria-label="전체 신청 처리 상태 필터"
+              >
+                <option value="ALL">전체 상태</option>
+                <option value="pending">검토 중</option>
+                <option value="approved">승인 완료</option>
+                <option value="rejected">반려</option>
+              </select>
+              <span className="ai-tools-count">
+                {allApplicationsKeyword.trim() ||
+                allApplicationsStatus !== "ALL"
+                  ? `${filteredAllApplications.length} / ${allApplications.length}건`
+                  : `총 ${allApplications.length}건`}
+              </span>
+            </div>
+          </div>
+
+          {filteredAllApplications.length > 0 ? (
+            <div className="ai-tools-all-table-wrapper">
+              <table className="ai-tools-all-table">
+                <thead>
+                  <tr>
+                    <th>AI Tool</th>
+                    <th>공급사</th>
+                    <th>신청일</th>
+                    <th>처리 상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAllApplications.map((application) => (
+                    <tr key={application.id}>
+                      <td><strong>{application.toolName}</strong></td>
+                      <td>{application.provider}</td>
+                      <td>{application.requestedAt}</td>
+                      <td>
+                        <span
+                          className={getApplicationStatusClassName(
+                            application.statusKey,
+                          )}
+                        >
+                          {application.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="ai-tools-empty">
+              <ClipboardList size={30} />
+              <strong>
+                {isAllApplicationsLoading
+                  ? "전체 신청 내역을 불러오는 중입니다."
+                  : allApplicationsKeyword.trim() ||
+                      allApplicationsStatus !== "ALL"
+                    ? "검색 조건에 맞는 신청 내역이 없습니다."
+                    : "전체 신청 내역이 없습니다."}
+              </strong>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* 반려된 신청 카드를 선택하면 관리자가 작성한 반려 사유를 보여준다. */}
       {selectedRejectedApplication && (
