@@ -112,6 +112,22 @@ const confirmPasswordReset = async (req, res) => {
   }
 };
 
+// 부서 목록 조회 Controller
+const getDepartments = async (req, res) => {
+  try {
+    const departments = await authService.getDepartments();
+
+    return success(res, departments, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "AUTH_DEPARTMENTS_FAILED",
+      error.message || "부서 목록 조회에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -119,4 +135,5 @@ module.exports = {
   findEmail,
   requestPasswordReset,
   confirmPasswordReset,
+  getDepartments,
 };

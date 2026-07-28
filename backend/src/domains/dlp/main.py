@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from detector import detect_pii, mask_text
+from detector import detect_pii, mask_text, compute_grade, BLOCK_TYPES
+from embedding_detector import detect_similarity
 from db import SessionLocal
 from models import UsageLog, EventLog, ActionHistory, User, Department
-from detector import compute_grade
 from enum import Enum
 
 app = FastAPI()
@@ -30,9 +30,10 @@ class ActionRequest(BaseModel):
 
 @app.post("/gateway/chat")
 def gateway_chat(request: ChatRequest):
-    detected = detect_pii(request.prompt)
+    detected = detect_pii(request.prompt) + detect_similarity(request.prompt)
+    blocked_types = sorted({d["type"] for d in detected if d["type"] in BLOCK_TYPES})
 
-    if any(d["type"] == "resident_number" for d in detected):
+    if blocked_types:
         action_status = "blocked"
         response_prompt = None
     elif detected:
@@ -72,9 +73,15 @@ def gateway_chat(request: ChatRequest):
         db.close()
 
     if action_status == "blocked":
+        if "prompt_injection" in blocked_types:
+            reason = "프롬프트 인젝션·탈옥 시도가 감지되어"
+        elif "confidential_similarity" in blocked_types:
+            reason = "기밀·민감 내부정보와 유사한 내용이 감지되어"
+        else:
+            reason = "민감정보(주민등록번호)가 포함되어"
         return {
             "action_status": action_status,
-            "message": "민감정보(주민등록번호)가 포함되어 요청이 차단되었습니다.",
+            "message": f"{reason} 요청이 차단되었습니다.",
             "detected": detected,
         }
     return {
