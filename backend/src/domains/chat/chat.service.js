@@ -4,6 +4,7 @@ const AiToolApplication = require("../ai-tools/ai-tool-application.model");
 const { createSolarMessage } = require("./solar.client");
 
 const DEFAULT_SOLAR_TOOL_KEY = "DEFAULT_SOLAR";
+const DLP_SERVICE_URL = process.env.DLP_SERVICE_URL || "http://localhost:8000";
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -29,11 +30,36 @@ const updatePin = async ({ userId, sessionId, isPinned }) => {
   return session.update({ isPinned });
 };
 
-/* DLP 서비스 연결 전 차단·마스킹 화면을 검증하기 위한 동일한 반환 형식이다. */
-const inspectPrompt = (message) => ({
-  blocked: /비밀번호|인증번호|기밀|보안키/i.test(message),
-  maskApplied: /주민등록번호|계좌번호|전화번호/i.test(message),
-});
+/*
+  C 담당 DLP 서비스(/gateway/chat)에 프롬프트를 보내 PII 탐지·마스킹·차단 여부를 받아온다.
+  탐지된 이벤트는 DLP 쪽 usage_log/event_log/action_history에 자동으로 기록되어
+  "위험 이벤트 관리" 화면에 바로 반영된다.
+  DLP 서비스가 응답하지 않으면(로컬에서 안 켜져 있는 등) 채팅 자체가 막히지 않도록
+  탐지 없이 통과시키고 에러만 로그로 남긴다.
+*/
+const inspectPrompt = async (message, userId) => {
+  try {
+    const response = await fetch(`${DLP_SERVICE_URL}/gateway/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: message, user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`DLP 서비스 응답 오류 (status: ${response.status})`);
+    }
+
+    const data = await response.json();
+    return {
+      blocked: data.action_status === "blocked",
+      maskApplied: data.action_status === "masked",
+      safePrompt: data.prompt ?? message,
+    };
+  } catch (error) {
+    console.error("DLP 서비스 호출 실패, 탐지 없이 통과시킵니다:", error.message);
+    return { blocked: false, maskApplied: false, safePrompt: message };
+  }
+};
 
 /* 선택한 AI Tool 신청이 승인 상태이고 현재 사용자가 사용할 수 있는지 확인한다. */
 const findApprovedTool = async ({
@@ -100,7 +126,7 @@ const sendMessage = async ({
       title: message.length > 30 ? `${message.slice(0, 30)}…` : message,
     });
 
-  const inspection = inspectPrompt(message);
+  const inspection = await inspectPrompt(message, userId);
   const previousMessages = await ChatMessage.findAll({
     where: { sessionId: session.id },
     order: [["createdAt", "ASC"]],
@@ -108,7 +134,9 @@ const sendMessage = async ({
   const userMessage = await ChatMessage.create({
     sessionId: session.id,
     role: "USER",
-    content: message,
+    // 차단된 경우 원문 대신 저장할 안전한 값이 없으니 원문을 남기고,
+    // 마스킹된 경우 DLP가 돌려준 마스킹 결과를 저장/전달한다.
+    content: inspection.blocked ? message : inspection.safePrompt,
   });
 
   let reply;
