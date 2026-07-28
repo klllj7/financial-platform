@@ -7,6 +7,7 @@ const ChatSession = sequelize.define("ChatSession", {
   userId: { type: DataTypes.INTEGER, allowNull: false },
   title: { type: DataTypes.STRING(200), allowNull: false },
   isPinned: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+  deletedAt: { type: DataTypes.DATE, allowNull: true },
 }, { tableName: "chat_sessions", underscored: true });
 
 module.exports = ChatSession;

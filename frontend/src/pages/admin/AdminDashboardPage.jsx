@@ -11,7 +11,7 @@ import "./AdminDashboardPage.css";
 function AdminDashboardPage() {
   return (
     <div className="admin-dashboard-page">
-      <ComplianceDashboardPage />
+      <ComplianceDashboardPage isAdminView />
     </div>
   );
 }

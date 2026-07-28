@@ -51,5 +51,26 @@ const updateItemResult = async (req, res) => {
   }
 };
 
-module.exports = { getEvidenceChecklist, updateItemResult };
+const getEvidenceSummary = async (req, res) => {
+  try {
+    const targetYear = Number(req.query.targetYear) || new Date().getFullYear();
+    return success(
+      res,
+      await evidenceService.getEvidenceSummary({ targetYear }),
+      200,
+    );
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "EVIDENCE_SUMMARY_FAILED",
+      error.message || "증빙자료 요약 조회에 실패했습니다.",
+      error.statusCode || 500,
+    );
+  }
+};
 
+module.exports = {
+  getEvidenceChecklist,
+  updateItemResult,
+  getEvidenceSummary,
+};

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { findEmail, getDepartments } from "../../api/authApi";
+import AppFooter from "../../components/layout/AppFooter";
 import "./FindIdPage.css";
 
 function FindIdPage() {
@@ -146,6 +147,9 @@ function FindIdPage() {
           </button>
         </div>
       </section>
+
+      {/* 화면 하단 개인정보처리방침 Footer */}
+      <AppFooter />
     </main>
   );
 }

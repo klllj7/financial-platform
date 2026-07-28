@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signup, getDepartments } from "../../api/authApi";
 import { Eye, EyeOff } from "lucide-react";
+import AppFooter from "../../components/layout/AppFooter";
 import "./SignupPage.css";
 
 function SignupPage() {
@@ -319,6 +320,9 @@ function SignupPage() {
           </div>
         </section>
       </section>
+
+      {/* 회원가입 화면 하단 개인정보처리방침 Footer */}
+      <AppFooter />
     </main>
   );
 }
