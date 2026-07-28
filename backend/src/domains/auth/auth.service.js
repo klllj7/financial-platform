@@ -2,12 +2,93 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User, Role, Department, LoginHistory } = require("./auth.models");
 
+// 비밀번호 규칙 검증
+// 프론트 검증은 우회될 수 있으므로 백엔드에서도 동일하게 검사한다.
+const validatePassword = (password) => {
+  // 비밀번호 값이 없으면 에러 반환
+  if (!password) {
+    return "비밀번호를 입력해주세요.";
+  }
+
+  // 8자 이상
+  if (password.length < 8) {
+    return "비밀번호는 8자 이상이어야 합니다.";
+  }
+
+  // 영문 포함
+  if (!/[A-Za-z]/.test(password)) {
+    return "비밀번호에는 영문이 1자 이상 포함되어야 합니다.";
+  }
+
+  // 숫자 포함
+  if (!/[0-9]/.test(password)) {
+    return "비밀번호에는 숫자가 1자 이상 포함되어야 합니다.";
+  }
+
+  // 허용된 특수문자 포함
+  if (!/[!@#$%^]/.test(password)) {
+    return "비밀번호에는 특수문자 !@#$%^ 중 1자 이상이 포함되어야 합니다.";
+  }
+
+  // 연속된 숫자 3자리 이상 금지
+  // 예: 123, 234, 345, 456, 567, 678, 789
+  const sequentialNumbers = [
+    "012", "123", "234", "345", "456", "567", "678", "789",
+  ];
+
+  const hasSequentialNumber = sequentialNumbers.some((number) =>
+    password.includes(number)
+  );
+
+  if (hasSequentialNumber) {
+    return "연속된 숫자 3자리 이상은 사용할 수 없습니다.";
+  }
+
+  // 생년월일로 자주 쓰이는 8자리 숫자 패턴 금지
+  // 예: 19990101, 20001231
+  if (/(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])/.test(password)) {
+    return "생년월일 형식은 비밀번호에 사용할 수 없습니다.";
+  }
+
+  // 생년월일로 자주 쓰이는 6자리 숫자 패턴 금지
+  // 예: 990101, 001231
+  if (/\d{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])/.test(password)) {
+    return "생년월일 형식은 비밀번호에 사용할 수 없습니다.";
+  }
+
+  // 휴대폰 번호 형식 금지
+  // 예: 01012345678, 010-1234-5678
+  if (/01[016789]-?\d{3,4}-?\d{4}/.test(password)) {
+    return "전화번호 형식은 비밀번호에 사용할 수 없습니다.";
+  }
+
+  // 모든 규칙을 통과하면 빈 문자열 반환
+  return "";
+};
+
 // 회원가입
 const signup = async ({ name, email, password, department }) => {
+  // 회원가입 요청값 기본 검증
+  if (!name || !email || !password || !department) {
+    const error = new Error("필수 항목을 모두 입력해주세요.");
+    error.statusCode = 400;
+    error.code = "AUTH_SIGNUP_REQUIRED";
+    throw error;
+  }
+
+  // 비밀번호 규칙 검증
+  // 프론트에서 검증하더라도 API 직접 요청 막기 위해 백엔드에서도 다시 검사
+  const passwordErrorMessage = validatePassword(password);
+
+  if (passwordErrorMessage) {
+    const error = new Error(passwordErrorMessage);
+    error.statusCode = 400;
+    error.code = "AUTH_INVALID_PASSWORD";
+    throw error;
+  }
+  
   // 이미 가입된 이메일인지 확인
-  const existingUser = await User.findOne({
-    where: { email },
-  });
+  const existingUser = await User.findOne({ where: { email }, });
 
   if (existingUser) {
     const error = new Error("이미 사용 중인 이메일입니다.");
