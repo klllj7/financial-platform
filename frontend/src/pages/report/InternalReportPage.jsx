@@ -5,7 +5,7 @@ import { getEvents } from "../../api/dlpApi";
 
 import "./InternalReportPage.css";
 
-const APPROVAL_ROLES = ["기안", "검토", "승인"];
+const APPROVAL_ROLES = ["담당", "부장", "사장"];
 
 const RISK_ORDER = { LOW: 0, MEDIUM: 1, HIGH: 2 };
 
@@ -137,10 +137,12 @@ function InternalReportPage() {
           userName: event.userName,
           eventType: event.eventType,
           actionLabel: ACTION_TYPE_LABEL[action.action_type] ?? action.action_type ?? "-",
-          actorName: action.actor_name ?? action.actor_user_id ?? "-",
+          // DLP /events 응답의 actions[]는 이름이 아니라 actor_user_id(숫자)만 내려준다.
+          // 이름으로 보여주려면 별도 사용자 조회가 필요해 우선 ID를 그대로 표시한다.
+          actorName: action.actor_user_id ?? "-",
           reason: action.action_reason ?? "-",
-          actedAt: formatDateTime(action.created_at),
-          actedAtRaw: action.created_at ?? "",
+          actedAt: formatDateTime(action.action_time),
+          actedAtRaw: action.action_time ?? "",
         }))
       )
       .sort((a, b) => (a.actedAtRaw < b.actedAtRaw ? 1 : -1));
