@@ -787,6 +787,15 @@
   grid-area: evidence;
 }
 
+.compliance-summary-grid.admin-view {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: "risk cost notice";
+}
+
+.compliance-dashboard-page.admin-view .compliance-dashboard-second-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .compliance-risk-summary-card,
 .compliance-cost-summary-card {
   padding: 16px;
@@ -1698,6 +1707,14 @@
       "risk"
       "cost"
       "evidence"
+      "notice";
+  }
+
+  .compliance-summary-grid.admin-view {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "risk"
+      "cost"
       "notice";
   }
 

@@ -151,7 +151,7 @@ const formatOccurredAt = (value) => {
 };
 
 
-function ComplianceDashboardPage() {
+function ComplianceDashboardPage({ isAdminView = false }) {
   /*
     다른 페이지로 이동할 때 사용하는 함수다.
   */
@@ -189,7 +189,9 @@ function ComplianceDashboardPage() {
         getEvents(),
         getComplianceDashboardTrend(30),
         getComplianceDashboardSummary(),
-        getEvidenceSummary(new Date().getFullYear()),
+        isAdminView
+          ? Promise.resolve({ data: EMPTY_EVIDENCE_SUMMARY })
+          : getEvidenceSummary(new Date().getFullYear()),
       ]);
 
       if (noticeResult.status === "fulfilled") {
@@ -352,9 +354,11 @@ function ComplianceDashboardPage() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [isAdminView]);
 
   useEffect(() => {
+    if (isAdminView) return;
+
     const fetchRequestStatuses = async () => {
       const [policyResult, aiToolResult] = await Promise.allSettled([
         getPolicies(),
@@ -389,7 +393,7 @@ function ComplianceDashboardPage() {
     };
 
     fetchRequestStatuses();
-  }, []);
+  }, [isAdminView]);
 
   /* DLP 위험 등급별 건수를 도넛 차트 데이터로 변환한다. */
   const riskChartData = [
@@ -439,7 +443,11 @@ function ComplianceDashboardPage() {
 
 
   return (
-    <div className="compliance-dashboard-page">
+    <div
+      className={`compliance-dashboard-page ${
+        isAdminView ? "admin-view" : ""
+      }`}
+    >
       {/* ==================================================
           전사 대시보드 제목 영역
       ================================================== */}
@@ -459,7 +467,11 @@ function ComplianceDashboardPage() {
       {/* ==================================================
           상단 요약 영역
       ================================================== */}
-      <section className="compliance-summary-grid">
+      <section
+        className={`compliance-summary-grid ${
+          isAdminView ? "admin-view" : ""
+        }`}
+      >
         {/* 최근 공지사항은 CSS 순서로 상단 가장 오른쪽에 표시한다. */}
         <article className="compliance-notice-panel">
           <div className="compliance-notice-header">
@@ -620,6 +632,7 @@ function ComplianceDashboardPage() {
           </div>
         </article>
 
+        {!isAdminView && (
         <section className="compliance-evidence-progress-panel">
           <header className="compliance-evidence-progress-header">
             <div>
@@ -673,6 +686,7 @@ function ComplianceDashboardPage() {
             ))}
           </div>
         </section>
+        )}
 
       </section>
 
@@ -802,6 +816,7 @@ function ComplianceDashboardPage() {
         </div>
         </section>
 
+        {!isAdminView && (
         <section className="compliance-request-status-panel">
           <header className="compliance-request-status-header">
             <div>
@@ -840,7 +855,9 @@ function ComplianceDashboardPage() {
             )}
           </div>
         </section>
+        )}
 
+        {!isAdminView && (
         <section className="compliance-request-status-panel">
           <header className="compliance-request-status-header">
             <div>
@@ -879,6 +896,7 @@ function ComplianceDashboardPage() {
             )}
           </div>
         </section>
+        )}
 
       </div>
 
