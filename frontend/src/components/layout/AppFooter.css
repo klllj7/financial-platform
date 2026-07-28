@@ -1,0 +1,61 @@
+/* 모든 화면 하단에 공통으로 표시되는 Footer */
+.app-footer {
+  width: 100%;
+  padding: 18px 24px;
+
+  color: #64748b;
+  background: transparent;
+
+  font-size: 12px;
+}
+
+/* Footer 내부 정렬 */
+.app-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 저작권 문구 */
+.app-footer-copy {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* 개인정보처리방침 링크 영역 */
+.app-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  white-space: nowrap;
+}
+
+/* Footer 링크 스타일 */
+.app-footer-links a {
+  color: #475569;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.app-footer-links a:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* 링크 사이 구분선 */
+.app-footer-divider {
+  color: #cbd5e1;
+}
+
+/* 모바일 화면에서는 세로 정렬 */
+@media (max-width: 768px) {
+  .app-footer-inner {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

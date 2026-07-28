@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../api/authApi";
 // import { getHealthCheck } from "../../api/healthApi"; // backend server test
+import AppFooter from "../../components/layout/AppFooter";
 import "./LoginPage.css";
 
 function LoginPage() {
@@ -337,6 +338,9 @@ function LoginPage() {
           </div>
         </section>
       </section>
+
+      {/* 로그인 화면 하단 개인정보처리방침 Footer */}
+      <AppFooter />
     </main>
   );
 }

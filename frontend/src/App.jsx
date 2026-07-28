@@ -13,9 +13,12 @@ import FindIdPage from "./pages/auth/FindIdPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ResetPasswordConfirmPage from "./pages/auth/ResetPasswordConfirmPage";
 
-// 임직원용 공통 레이아웃
+// 개인정보처리방침
+import PrivacyPolicyPage from "./pages/privacy/PrivacyPolicyPage";
+
+// 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
- 
+
 // 임직원용 기능 페이지
 import AiChatPage from "./pages/ai-chat/AiChatPage";
 import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
@@ -28,7 +31,6 @@ import ComplianceNoticePage from "./pages/compliance/notices/ComplianceNoticePag
 import ComplianceRiskEventsPage from "./pages/compliance/risk-events/ComplianceRiskEventsPage";
 import EvidenceChecklistPage from "./pages/report/EvidenceChecklistPage";
 import InternalReportPage from "./pages/report/InternalReportPage";
-
 
 // 관리자 기능 페이지
 import AdminAccountPage from "./pages/admin/AdminAccountPage";
@@ -77,6 +79,14 @@ function App() {
           element={<ResetPasswordConfirmPage />}
         />
 
+        {/* ==================================================
+            개인정보처리방침 페이지
+        ================================================== */}
+        <Route
+          path="/privacy-policy" 
+          element={<PrivacyPolicyPage />}
+        />
+        
         {/* ==================================================
             임직원용 페이지
  
