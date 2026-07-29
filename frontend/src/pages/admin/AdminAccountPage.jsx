@@ -19,9 +19,12 @@ function AdminAccountPage() {
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
   const [roleFilter, setRoleFilter] = useState("ALL");
 
+  const [searchKeyword, setSearchKeyword] = useState(""); // 검색
+
   const [users, setUsers] = useState([]);                 // DB에서 불러온 사용자 목록
   const [roles, setRoles] = useState([]);                 // DB에서 조회한 권한 목록
   const [departments, setDepartments] = useState([]);     // DB에서 조회한 부서 목록
+
   const [isLoading, setIsLoading] = useState(false);      // 목록 로딩 상태
   const [errorMessage, setErrorMessage] = useState("");   // 목록 조회 에러 메시지
 
@@ -152,18 +155,34 @@ function AdminAccountPage() {
     fetchAccountOptions();
   }, []);
 
-  // 선택된 부서/역할 조건에 맞 사용자 목록 필터링
+  // 선택된 부서/역할 조건 및 검색어에 맞게 사용자 목록 필터링
   const filteredUsers = useMemo(() => {
+    const normalizedKeyword = searchKeyword.trim().toLowerCase();
+
     return users.filter((user) => {
-      const departmentName = user.department?.name || "-";
-      const roleCode = user.role?.code || "-";
+      const departmentCode = user.department?.code ?? "";
+      const departmentName = user.department?.name ?? "";
+      const roleCode = user.role?.code ?? "";
+      const roleName = user.role?.name ?? "";
 
-      const matchesDepartment = departmentFilter === "ALL" || user.department?.code === departmentFilter;
-      const matchesRole = roleFilter === "ALL" || user.role?.code === roleFilter;
+      const matchesDepartment = departmentFilter === "ALL" || departmentCode === departmentFilter;
+      const matchesRole = roleFilter === "ALL" || roleCode === roleFilter;
 
-      return matchesDepartment && matchesRole;
+      const matchesSearch = normalizedKeyword === "" ||
+      [
+        user.name,
+        user.email,
+        roleCode,
+        roleName,
+        departmentCode,
+        departmentName,
+      ]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedKeyword));
+
+      return matchesDepartment && matchesRole && matchesSearch;
     });
-  }, [users, departmentFilter, roleFilter]);
+  }, [users, departmentFilter, roleFilter, searchKeyword, ]);
 
   return (
     <section className="admin-account-page">
@@ -185,6 +204,31 @@ function AdminAccountPage() {
 
       {/* 필터 영역 */}
       <div className="admin-filter-card">
+        {/* 사용자 검색 */}
+        <div className="admin-filter-group admin-search-group">
+          <label htmlFor="adminUserSearch">사용자 검색</label>
+
+          <div className="admin-account-search">
+            <input
+              id="adminUserSearch"
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="이름, 이메일, 부서, 권한 검색"
+            />
+
+            {searchKeyword && (
+              <button
+                type="button"
+                onClick={() => setSearchKeyword("")}
+                aria-label="검색어 초기화"
+              >
+                초기화
+              </button>
+            )}
+          </div>
+        </div>
+        
         <div className="admin-filter-group">
           <label htmlFor="departmentFilter">부서별 필터</label>
           <select
@@ -245,7 +289,7 @@ function AdminAccountPage() {
               {filteredUsers.map((user) => {
                 const departmentName = user.department?.name || "-";
                 const roleCode = user.role?.code || "-";
-                const roleName = user.role?.name || ROLE_LABEL_MAP[roleCode] || "-";
+                const roleName = user.role?.name || roleCode || "-";
                 const status = user.status || "-";
                 const statusName = STATUS_LABEL_MAP[status] || status;
 
@@ -275,7 +319,7 @@ function AdminAccountPage() {
 
                     <td>
                       {/* 활성/비활성 상태를 변경하는 토글 스위치 */}
-                      <div clasName="admin-status-toggle-cell">
+                      <div className="admin-status-toggle-cell">
                         <button
                           type="button"
                           className={
@@ -355,7 +399,7 @@ function AdminAccountPage() {
               <div className="admin-modal-info-list">
                 <div>
                   <span>현재 권한</span>
-                  <strong>{selectedUser.role?.name || ROLE_LABEL_MAP[selectedUser.role?.code] || "-"}</strong>
+                  <strong>{selectedUser.role?.name || selectedUser.role?.code || "-"}</strong>
                 </div>
 
                 <div className="admin-role-select-area">

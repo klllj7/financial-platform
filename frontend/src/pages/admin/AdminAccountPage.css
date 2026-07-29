@@ -608,6 +608,63 @@
   box-shadow: 0 0 0 4px rgba(47, 109, 246, 0.12);
 }
 
+/* 관리자 계정 검색 input과 초기화 버튼 영역 */
+.admin-account-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 관리자 계정 검색 input */
+.admin-account-search input {
+  width: 260px;
+  height: 40px;
+  padding: 0 14px;
+
+  color: #1e293b;
+  background: #ffffff;
+
+  border: 1px solid #d9e1ef;
+  border-radius: 12px;
+
+  font-size: 14px;
+  outline: none;
+}
+
+/* 검색 input 포커스 효과 */
+.admin-account-search input:focus {
+  border-color: #2f6fed;
+  box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+}
+
+/* 검색어 초기화 버튼 */
+.admin-account-search button {
+  height: 40px;
+  padding: 0 12px;
+
+  color: #64748b;
+  background: #f8fafc;
+
+  border: 1px solid #d9e1ef;
+  border-radius: 12px;
+
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 검색어 초기화 버튼 hover */
+.admin-account-search button:hover {
+  color: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+/* 검색 영역이 너무 좁아지지 않도록 처리 */
+.admin-search-group {
+  min-width: 340px;
+}
+
 /* 반응형 */
 @media (max-width: 760px) {
   .admin-account-page {
