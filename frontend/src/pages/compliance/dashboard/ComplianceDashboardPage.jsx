@@ -201,14 +201,26 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           : [];
 
         setNotices(
-          noticeData.slice(0, 3).map((notice) => ({
-            id: notice.id,
-            category: notice.category,
-            title: notice.title,
-            date: new Date(
-              notice.createdAt,
-            ).toLocaleDateString("ko-KR"),
-          })),
+          [...noticeData]
+            .sort((firstNotice, secondNotice) => {
+              if (firstNotice.isPinned !== secondNotice.isPinned) {
+                return Number(secondNotice.isPinned) -
+                  Number(firstNotice.isPinned);
+              }
+
+              return new Date(secondNotice.createdAt).getTime() -
+                new Date(firstNotice.createdAt).getTime();
+            })
+            .slice(0, 3)
+            .map((notice) => ({
+              id: notice.id,
+              category: notice.category,
+              title: notice.title,
+              date: new Date(
+                notice.createdAt,
+              ).toLocaleDateString("ko-KR"),
+              isPinned: Boolean(notice.isPinned),
+            })),
         );
       } else {
         console.error("최근 공지 조회 실패", noticeResult.reason);
@@ -395,12 +407,51 @@ function ComplianceDashboardPage({ isAdminView = false }) {
     fetchRequestStatuses();
   }, [isAdminView]);
 
+  useEffect(() => {
+    if (!isAdminView) return;
+
+    const fetchAdminModels = async () => {
+      try {
+        const response = await getAiToolApplications();
+        const applications = Array.isArray(response.data)
+          ? response.data
+          : [];
+        setAiToolApplications(applications);
+      } catch (error) {
+        console.error("관리자 AI 모델 현황 조회 실패", error);
+      }
+    };
+
+    fetchAdminModels();
+  }, [isAdminView]);
+
   /* DLP 위험 등급별 건수를 도넛 차트 데이터로 변환한다. */
   const riskChartData = [
     { name: "HIGH", value: riskSummary.high, color: "#ff4d4f" },
     { name: "MEDIUM", value: riskSummary.medium, color: "#f59e0b" },
     { name: "LOW", value: riskSummary.low, color: "#10b981" },
   ];
+  const adminModelMetrics = {
+    unchecked: aiToolApplications.filter(
+      (application) =>
+        application.status === "PENDING" && !application.reviewedAt,
+    ).length,
+    pending: aiToolApplications.filter(
+      (application) => application.status === "PENDING",
+    ).length,
+    active: aiToolApplications.filter(
+      (application) =>
+        application.status === "APPROVED" &&
+        application.isActive !== false,
+    ).length,
+  };
+  const recentAdminApplications = [...aiToolApplications]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime(),
+    )
+    .slice(0, 3);
 
   /*
     공지사항 전체 보기 버튼을 누르면
@@ -439,6 +490,10 @@ function ComplianceDashboardPage({ isAdminView = false }) {
 
   const handleAiToolViewAll = () => {
     navigate("/ai-tools");
+  };
+
+  const handleAdminModelViewAll = () => {
+    navigate("/admin/models");
   };
 
 
@@ -491,7 +546,9 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 <button
                   key={notice.id}
                   type="button"
-                  className="compliance-notice-item"
+                  className={`compliance-notice-item ${
+                    notice.isPinned ? "is-pinned" : ""
+                  }`}
                   onClick={handleNoticeClick}
                 >
                   <div>
@@ -688,8 +745,86 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         </section>
         )}
 
+        {isAdminView && (
+        <section className="compliance-request-status-panel compliance-admin-model-panel">
+          <header className="compliance-request-status-header">
+            <div>
+              <span><Boxes size={17} /></span>
+              <h3>AI 모델 관리</h3>
+            </div>
+            <button type="button" onClick={handleAdminModelViewAll}>
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
+          </header>
+          <div className="compliance-admin-model-metrics">
+            <button type="button" onClick={handleAdminModelViewAll}>
+              <span>미확인 신청</span>
+              <strong>{adminModelMetrics.unchecked}</strong>
+              <small>검토 기록이 없는 신청</small>
+            </button>
+            <button type="button" onClick={handleAdminModelViewAll}>
+              <span>승인 대기</span>
+              <strong>{adminModelMetrics.pending}</strong>
+              <small>승인 처리가 필요한 신청</small>
+            </button>
+            <button type="button" onClick={handleAdminModelViewAll}>
+              <span>활성 모델</span>
+              <strong>{adminModelMetrics.active}</strong>
+              <small>현재 사용 가능한 모델</small>
+            </button>
+          </div>
+          <div className="compliance-admin-recent-header">
+            <strong>최근 신청 목록</strong>
+            <span>최신 3건</span>
+          </div>
+          <div className="compliance-request-status-list compliance-admin-recent-list">
+            {recentAdminApplications.length > 0 ? (
+              recentAdminApplications.map((application) => (
+                <button
+                  key={application.id}
+                  type="button"
+                  onClick={handleAdminModelViewAll}
+                >
+                  <div>
+                    <strong>{application.toolName}</strong>
+                    <small>
+                      {application.applicantName || "신청자 미지정"}
+                      {" · "}
+                      {application.createdAt
+                        ? new Date(application.createdAt).toLocaleDateString(
+                            "ko-KR",
+                          )
+                        : "신청일 미지정"}
+                    </small>
+                  </div>
+                  <span
+                    className={`status-${String(
+                      application.status || "PENDING",
+                    ).toLowerCase()}`}
+                  >
+                    {REQUEST_STATUS_LABELS[application.status] ||
+                      application.status ||
+                      "검토 중"}
+                  </span>
+                </button>
+              ))
+            ) : (
+              <p className="compliance-request-status-empty">
+                최근 AI 모델 신청이 없습니다.
+              </p>
+            )}
+          </div>
+        </section>
+        )}
+
       </section>
 
+      <div
+        className={`compliance-dashboard-detail-grid ${
+          isAdminView ? "admin-view" : ""
+        }`}
+      >
 
       {/* ==================================================
           두 번째 줄: 위험 이벤트 관리
@@ -828,7 +963,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               <ArrowRight size={14} />
             </button>
           </header>
-          <div className="compliance-request-status-list">
+          <div className="compliance-request-status-list compliance-dashboard-request-cards">
             {policyRequests.length > 0 ? (
               policyRequests.map((policy) => {
                 const status = policy.approval_status || "pending";
@@ -841,6 +976,19 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                     <div>
                       <strong>{policy.name}</strong>
                       <small>{policy.department_name || "부서 미지정"}</small>
+                      <p>
+                        {typeof policy.rule_content === "string"
+                          ? policy.rule_content
+                          : "정책 요청"}
+                      </p>
+                      <time>
+                        신청일{" "}
+                        {policy.createdAt
+                          ? new Date(policy.createdAt).toLocaleDateString(
+                              "ko-KR",
+                            )
+                          : "-"}
+                      </time>
                     </div>
                     <span className={`status-${status.toLowerCase()}`}>
                       {REQUEST_STATUS_LABELS[status] || status}
@@ -869,7 +1017,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               <ArrowRight size={14} />
             </button>
           </header>
-          <div className="compliance-request-status-list">
+          <div className="compliance-request-status-list compliance-dashboard-request-cards">
             {aiToolApplications.length > 0 ? (
               aiToolApplications.map((application) => (
                 <button
@@ -880,6 +1028,15 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                   <div>
                     <strong>{application.toolName}</strong>
                     <small>{application.provider}</small>
+                    <p>{application.purpose || "사용 목적 미입력"}</p>
+                    <time>
+                      신청일{" "}
+                      {application.createdAt
+                        ? new Date(application.createdAt).toLocaleDateString(
+                            "ko-KR",
+                          )
+                        : "-"}
+                    </time>
                   </div>
                   <span
                     className={`status-${application.status.toLowerCase()}`}
@@ -1110,6 +1267,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           </ResponsiveContainer>
         </div>
       </section>
+      </div>
     </div>
   );
 }

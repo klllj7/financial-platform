@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Pin, X } from "lucide-react";
 import { getNotices } from "../../api/noticeApi";
 
 // 공지사항 페이지 전용 CSS
@@ -9,12 +10,36 @@ function NoticePage() {
   const [notices, setNotices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedNotice, setSelectedNotice] = useState(null);
 
   useEffect(() => {
     const fetchNotices = async () => {
       try {
         const response = await getNotices();
-        setNotices(Array.isArray(response.data) ? response.data : []);
+        const loadedAt = Date.now();
+        const noticeData = Array.isArray(response.data) ? response.data : [];
+        setNotices(
+          [...noticeData]
+            .sort((firstNotice, secondNotice) => {
+              if (
+                Boolean(firstNotice.isPinned) !==
+                Boolean(secondNotice.isPinned)
+              ) {
+                return Number(Boolean(secondNotice.isPinned)) -
+                  Number(Boolean(firstNotice.isPinned));
+              }
+
+              return new Date(secondNotice.createdAt).getTime() -
+                new Date(firstNotice.createdAt).getTime();
+            })
+            .map((notice) => ({
+              ...notice,
+              isPinned: Boolean(notice.isPinned),
+              isNew:
+                new Date(notice.createdAt).getTime() >
+                loadedAt - 3 * 24 * 60 * 60 * 1000,
+            })),
+        );
       } catch (requestError) {
         console.error("공지사항 조회 실패", requestError);
         setError("공지사항을 불러오지 못했습니다.");
@@ -47,7 +72,16 @@ function NoticePage() {
         {notices.map((notice) => (
           <article
             key={notice.id}
-            className="notice-page-item"
+            className={`notice-page-item ${notice.isPinned ? "is-pinned" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedNotice(notice)}
+            onKeyDown={(event) => {
+              if (["Enter", " "].includes(event.key)) {
+                event.preventDefault();
+                setSelectedNotice(notice);
+              }
+            }}
           >
             <div className="notice-page-item-main">
               {/* 카테고리와 NEW 표시 */}
@@ -56,7 +90,14 @@ function NoticePage() {
                   {notice.category}
                 </span>
 
-                {new Date(notice.createdAt).getTime() > Date.now() - 3 * 24 * 60 * 60 * 1000 && (
+                {notice.isPinned && (
+                  <span className="notice-page-important">
+                    <Pin size={11} />
+                    중요
+                  </span>
+                )}
+
+                {notice.isNew && (
                   <span className="notice-page-new">
                     NEW
                   </span>
@@ -75,6 +116,60 @@ function NoticePage() {
           </article>
         ))}
       </section>
+
+      {selectedNotice && (
+        <div
+          className="notice-detail-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedNotice(null);
+            }
+          }}
+        >
+          <section
+            className="notice-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="notice-detail-title"
+          >
+            <header>
+              <div className="notice-detail-badges">
+                <span className="notice-page-category">
+                  {selectedNotice.category}
+                </span>
+                {selectedNotice.isPinned && (
+                  <span className="notice-page-important">
+                    <Pin size={11} />
+                    중요
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="공지사항 상세 창 닫기"
+                onClick={() => setSelectedNotice(null)}
+              >
+                <X size={19} />
+              </button>
+            </header>
+            <div className="notice-detail-content">
+              <h3 id="notice-detail-title">{selectedNotice.title}</h3>
+              <div className="notice-detail-meta">
+                <span>
+                  작성자 {selectedNotice.authorName || "관리자"}
+                </span>
+                <time>
+                  {new Date(selectedNotice.createdAt).toLocaleDateString(
+                    "ko-KR",
+                  )}
+                </time>
+              </div>
+              <p>{selectedNotice.content}</p>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

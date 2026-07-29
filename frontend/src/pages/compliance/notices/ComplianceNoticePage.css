@@ -429,6 +429,43 @@
   cursor: pointer;
 }
 
+.compliance-notice-card[role="button"] {
+  cursor: pointer;
+}
+
+.compliance-notice-card[role="button"]:focus-visible {
+  outline: 2px solid #2f6fed;
+  outline-offset: -2px;
+}
+
+.compliance-notice-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.compliance-notice-detail-content {
+  padding: 22px;
+}
+
+.compliance-notice-detail-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--color-text-sub);
+  font-size: 10px;
+}
+
+.compliance-notice-detail-content > p {
+  min-height: 160px;
+  margin: 22px 0 0;
+  color: #40516c;
+  font-size: 12px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
 
 /* 공지사항 작성 폼 */
 
