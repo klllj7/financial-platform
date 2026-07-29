@@ -3,15 +3,30 @@ import { ShieldCheck } from "lucide-react";
 import { 
   getAdminUsers, 
   getAdminRoles, 
-  getAdminDepartments, 
+  getAdminDepartments,
+  getAdminUserLoginHistories,
   updateAdminUserRole, 
-  updateAdminUserStatus, 
+  updateAdminUserStatus,
 } from "../../api/adminApi";
 import "./AdminAccountPage.css";
 
 const STATUS_LABEL_MAP = {
   ACTIVE: "활성",
   INACTIVE: "비활성",
+};
+
+// 로그인 이력 상태 표시용 라벨
+// DB에는 SUCCESS / FAIL로 저장하고, 화면에서는 한글로 표시
+const LOGIN_HISTORY_STATUS_LABEL_MAP = {
+  SUCCESS: "성공",
+  FAIL: "실패",
+};
+
+// 로그인 실패 사유 표시용 라벨
+// DB에는 코드값으로 저장하고, 화면에서는 관리자가 이해하기 쉬운 문구로 표시
+const LOGIN_FAIL_REASON_LABEL_MAP = {
+  INVALID_PASSWORD: "비밀번호 불일치",
+  INACTIVE_ACCOUNT: "비활성 계정 로그인 시도",
 };
 
 // 날짜/시간 표시 형식 변환
@@ -63,6 +78,9 @@ function AdminAccountPage() {
   const [selectedUser, setSelectedUser] = useState(null); // 권한 변경 버튼을 누른 사용자 정보
   const [selectedRole, setSelectedRole] = useState("");   // 모달에서 선택한 새 권한
 
+  const [loginHistoryUser, setLoginHistoryUser] = useState(null);               // 로그인 이력 모달에서 보여줄 사용자 정보
+  const [loginHistories, setLoginHistories] = useState([]);                     // 선택한 사용자의 로그인 이력 목록
+  const [isLoginHistoryLoading, setIsLoginHistoryLoading] = useState(false);  // 로그인 이력 조회 로딩 상태
 
   // 관리자 사용자 목록 조회
   const fetchUsers = async () => {
@@ -180,6 +198,41 @@ function AdminAccountPage() {
           "계정 상태 변경에 실패했습니다."
       );
     }
+  };
+
+  // 로그인 이력 버튼 클릭 시 진행
+  const handleLoginHistoryClick = async (user) => {
+    try {
+      setIsLoginHistoryLoading(true);
+
+      // 먼저 모달에 표시할 사용자 정보를 저장
+      setLoginHistoryUser(user);
+
+      // 해당 사용자의 로그인 이력 API 호출
+      const result = await getAdminUserLoginHistories(user.id);
+
+      console.log("로그인 이력 조회 성공: ", result);
+
+      setLoginHistories(result.data.histories);
+    } catch (error) {
+      console.error("로그인 이력 조회 실패: ", error);
+
+      alert(
+        error.response?.data?.error?.message || "로그인 이력을 불러오지 못했습니다."
+      );
+
+      // 조회 실패 시 모달을 닫고 상태를 초기화
+      setLoginHistoryUser(null);
+      setLoginHistories([]);
+    } finally {
+      setIsLoginHistoryLoading(false);
+    }
+  };
+
+  // 로그인 이력 모달 닫기
+  const handleCloseLoginHistoryModal = () => {
+    setLoginHistoryUser(null);
+    setLoginHistories([]);
   };
 
   useEffect(() => {
@@ -373,13 +426,23 @@ function AdminAccountPage() {
                     </td>
 
                     <td>
-                      <button
-                        type="button"
-                        className="admin-manage-button"
-                        onClick={() => handleRoleChangeClick(user)}
-                      >
-                        권한 변경
-                      </button>
+                      <div className="admin-action-buttons">
+                        <button
+                          type="button"
+                          className="admin-manage-button"
+                          onClick={() => handleRoleChangeClick(user)}
+                        >
+                          권한 변경
+                        </button>
+
+                        <button 
+                          type="button"
+                          className="admin-login-history-button"
+                          onClick={() => handleLoginHistoryClick(user)}
+                        >
+                          로그인 이력
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -477,6 +540,114 @@ function AdminAccountPage() {
                 onClick={handleSaveRoleChange}
               >
                 저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 로그인 이력 모달 */}
+      {loginHistoryUser && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-login-history-modal">
+            <div className="admin-role-modal-header">
+              <div>
+                <p>로그인 이력</p>
+                <h3>{loginHistoryUser.name} 사용자 접속 기록</h3>
+              </div>
+
+              <button
+                type="button"
+                className="admin-modal-close-button"
+                onClick={handleCloseLoginHistoryModal}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="admin-login-history-summary">
+              <div>
+                <span>사용자</span>
+                <strong>{loginHistoryUser.name}</strong>
+              </div>
+
+              <div>
+                <span>이메일</span>
+                <strong>{loginHistoryUser.email}</strong>
+              </div>
+
+              <div>
+                <span>권한</span>
+                <strong>{loginHistoryUser.role?.name || loginHistoryUser.role?.code || "-"}</strong>
+              </div>
+            </div>
+
+            <div className="admin-login-history-body">
+              {isLoginHistoryLoading ? (
+                <p className="admin-login-history-empty">
+                  로그인 이력을 불러오는 중입니다...
+                </p>
+              ) : loginHistories.length === 0 ? (
+                <p className="admin-login-history-empty">
+                  저장된 로그인 이력이 없습니다.
+                </p>
+              ) : (
+                <div className="admin-login-history-table-wrapper">
+                  <table className="admin-login-history-table">
+                    <thead>
+                      <tr>
+                        <th>상태</th>
+                        <th>실패 사유</th>
+                        <th>IP</th>
+                        <th>접속 환경</th>
+                        <th>로그인 시각</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {loginHistories.map((history) => {
+                        const statusLabel = LOGIN_HISTORY_STATUS_LABEL_MAP[history.status] || history.status;
+                        const failReasonLabel = LOGIN_FAIL_REASON_LABEL_MAP[history.failReason] || history.failReason || "-";
+
+                        return (
+                          <tr key={history.id}>
+                            <td>
+                              <span
+                                className={
+                                  history.status === "SUCCESS" ? "admin-login-status-badge success" : "admin-login-status-badge fail"
+                                }
+                              >
+                                {statusLabel}
+                              </span>
+                            </td>
+
+                            <td>{failReasonLabel}</td>
+                            <td>{history.ipAddress || "-"}</td>
+
+                            <td
+                              className="admin-login-user-agent"
+                              title={history.userAgent || "-"}
+                            >
+                              {history.userAgent || "-"}
+                            </td>
+
+                            <td>{formatDateTime(history.loggedInAt)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="admin-role-modal-footer">
+              <button
+                type="button"
+                className="admin-modal-cancel-button"
+                onClick={handleCloseLoginHistoryModal}
+              >
+                닫기
               </button>
             </div>
           </div>

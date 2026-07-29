@@ -106,10 +106,29 @@ const getDepartments = async (req,res) => {
   }
 };
 
+//  관리자 - 특정 사용자 로그인 이력 조회 Controller
+const getUserLoginHistories = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await adminService.getUserLoginHistories(userId);
+
+    return success(res, result, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "ADMIN_LOGIN_HISTORIES_FAILED",
+      error.message || "로그인 이력 조회에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   getUsers,
   updateUserRole,
   updateUserStatus,
   getRoles,
   getDepartments,
+  getUserLoginHistories,
 };

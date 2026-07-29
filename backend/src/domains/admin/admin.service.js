@@ -175,10 +175,49 @@ const updateUserStatus = async (userId, status) => {
   return updatedUser;
 };
 
+// 관리자 - 특정 사용자 로그인 이력 조회
+const getUserLoginHistories = async (userId) => {
+  // 먼저 사용자가 실제로 존재하는지 확인
+  const user = await User.findByPk(userId, {
+    attributes: ["id", "name", "email"],
+  });
+
+  if (!user) {
+    const error = new Error("사용자를 찾을 수 없습니다.");
+    error.statusCode= 404;
+    error.code = "ADMIN_USER_NOT_FOUND";
+    throw error;
+  }
+
+  // 최근 20건만 조회, 내림차순 정렬
+  const histories = await LoginHistory.findAll({
+    where: {
+      userId,
+    },
+    attributes: [
+      "id",
+      "status",
+      "ipAddress",
+      "userAgent",
+      "failReason",
+      "loggedInAt",
+      "createdAt",
+    ],
+    order: [["loggedInAt", "DESC"]],
+    limit: 20,
+  });
+
+  return {
+    user,
+    histories,
+  };
+};
+
 module.exports = {
   getUsers,
   updateUserRole,
   updateUserStatus,
   getRoles,
   getDepartments,
+  getUserLoginHistories,
 };
