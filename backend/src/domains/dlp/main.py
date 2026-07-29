@@ -45,18 +45,25 @@ def gateway_chat(request: ChatRequest):
 
     db = SessionLocal()
     try:
-        usage_log = UsageLog(user_id=request.user_id, description=request.prompt[:200])
+        masked_description = mask_text(request.prompt, detected) if detected else request.prompt
+        usage_log = UsageLog(
+            user_id=request.user_id,
+            description=request.prompt[:200],
+            masked_description=masked_description[:200],
+        )
         db.add(usage_log)
         db.commit()
         db.refresh(usage_log)
 
         if detected:
             detection_type = ",".join(sorted(set(d["type"] for d in detected)))
+            similarity_scores = [d["score"] for d in detected if "score" in d]
             event_log = EventLog(
                 event_id=usage_log.id,
                 detection_type=detection_type,
                 masked_yn=(action_status == "masked"),
                 grade=compute_grade(detected),
+                similarity_score=max(similarity_scores) if similarity_scores else None,
             )
             db.add(event_log)
 
@@ -169,11 +176,13 @@ def list_events():
             result.append({
                 "event_id": event.event_id,
                 "description": usage_log.description if usage_log else None,
+                "masked_description": usage_log.masked_description if usage_log else None,
                 "user_name": user.name if user else None,
                 "department_name": department.name if department else None,
                 "detection_type": event.detection_type,
                 "grade": event.grade,
                 "masked_yn": event.masked_yn,
+                "similarity_score": event.similarity_score,
                 "created_at": event.created_at,
                 "actions": [
                     {
