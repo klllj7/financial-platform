@@ -70,6 +70,8 @@ function ComplianceNoticePage() {
   */
   const [searchKeyword, setSearchKeyword] =
     useState("");
+  const [selectedNotice, setSelectedNotice] =
+    useState(null);
 
   /* 페이지 진입 시 백엔드에서 전체 공지사항을 조회한다. */
   useEffect(() => {
@@ -330,6 +332,15 @@ function ComplianceNoticePage() {
               <article
                 key={notice.id}
                 className="compliance-notice-card"
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedNotice(notice)}
+                onKeyDown={(event) => {
+                  if (["Enter", " "].includes(event.key)) {
+                    event.preventDefault();
+                    setSelectedNotice(notice);
+                  }
+                }}
               >
                 {/* 카테고리, 고정 상태, 날짜 */}
                 <div className="compliance-notice-card-top">
@@ -382,6 +393,66 @@ function ComplianceNoticePage() {
           </div>
         )}
       </section>
+
+      {selectedNotice && (
+        <div
+          className="compliance-notice-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedNotice(null);
+            }
+          }}
+        >
+          <section
+            className="compliance-notice-modal compliance-notice-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="compliance-notice-detail-title"
+          >
+            <header className="compliance-notice-modal-header">
+              <div>
+                <div className="compliance-notice-detail-badges">
+                  <span className="compliance-notice-category">
+                    {selectedNotice.category}
+                  </span>
+                  {selectedNotice.isPinned && (
+                    <span className="compliance-notice-pinned">
+                      <Pin size={11} />
+                      중요
+                    </span>
+                  )}
+                </div>
+                <h3 id="compliance-notice-detail-title">
+                  {selectedNotice.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                aria-label="공지사항 상세 창 닫기"
+                onClick={() => setSelectedNotice(null)}
+              >
+                <X size={19} />
+              </button>
+            </header>
+            <div className="compliance-notice-detail-content">
+              <div className="compliance-notice-detail-meta">
+                <span>
+                  작성자 {selectedNotice.authorName || "관리자"}
+                  {" · "}
+                  {selectedNotice.departmentName || "-"}
+                </span>
+                <time>
+                  {new Date(selectedNotice.createdAt).toLocaleDateString(
+                    "ko-KR",
+                  )}
+                </time>
+              </div>
+              <p>{selectedNotice.content}</p>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* ==================================================
           공지사항 작성 모달

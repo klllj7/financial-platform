@@ -57,6 +57,21 @@
   background: #f9fbff;
 }
 
+.notice-page-item[role="button"] {
+  cursor: pointer;
+}
+
+.notice-page-item[role="button"]:focus-visible {
+  outline: 2px solid #2f6fed;
+  outline-offset: -2px;
+}
+
+.notice-page-item.is-pinned {
+  background: #fff8eb;
+  border-left: 4px solid #f2a93b;
+  padding-left: 16px;
+}
+
 /* 공지사항 왼쪽 내용 */
 .notice-page-item-main {
   min-width: 0;
@@ -88,6 +103,19 @@
 
 .notice-page-new {
   color: #ff4d5e;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.notice-page-important {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 7px;
+  color: #a85a00;
+  background: #ffe5b0;
+  border-radius: 5px;
   font-size: 9px;
   font-weight: 800;
 }
@@ -124,6 +152,83 @@
 
   color: #8a98af;
   font-size: 11px;
+}
+
+.notice-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(16, 29, 52, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.notice-detail-modal {
+  width: min(680px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 24px 65px rgba(12, 29, 58, 0.24);
+}
+
+.notice-detail-modal > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notice-detail-badges {
+  display: flex;
+  gap: 7px;
+}
+
+.notice-detail-modal > header > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #71809a;
+  background: #f5f7fb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.notice-detail-content {
+  padding: 22px;
+}
+
+.notice-detail-content h3 {
+  margin: 0;
+  color: #253653;
+  font-size: 20px;
+}
+
+.notice-detail-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 10px;
+  color: #8a98af;
+  font-size: 11px;
+}
+
+.notice-detail-content > p {
+  min-height: 150px;
+  margin: 22px 0 0;
+  color: #40516c;
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
 }
 
 /* 모바일 화면 */

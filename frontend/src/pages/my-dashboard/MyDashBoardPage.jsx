@@ -1,4 +1,4 @@
-// 월 선택 상태와 대시보드 API 조회 시점을 관리하기 위해 사용
+// 대시보드 API 조회 시점을 관리하기 위해 사용
 import { useEffect, useState } from "react";
 
 // 버튼 클릭 시 다른 페이지로 이동하기 위해 useNavigate를 사용
@@ -36,20 +36,7 @@ import {
 } from "../../api/dashboardApi";
 
 /* 대시보드 전용 CSS */
-import "./MyDashboardPage.css";
-
-/*
-  월 선택 탭에 표시할 목록
-
-  현재는 선택한 월의 버튼 표시만 변경되고,
-  실제 월별 데이터 변경은 백엔드 연결 후 구현
-*/
-const MONTH_OPTIONS = [
-  "2026년 07월",
-  "2026년 06월",
-  "2026년 05월",
-  "2026년 04월",
-];
+import "./MyDashBoardPage.css";
 
 const EMPTY_SUMMARY = {
   riskEventCount: 0,
@@ -61,10 +48,6 @@ const EMPTY_SUMMARY = {
 };
 
 const MODEL_COLORS = ["#2f6fed", "#7a5af8", "#30b795", "#f5a623"];
-
-/* 화면의 한글 월 표시를 API에서 사용하는 YYYY-MM 형식으로 변환한다. */
-const toMonthQuery = (monthLabel) =>
-  monthLabel.replace("년 ", "-").replace("월", "");
 
 /*
   위험 등급에 맞는 CSS 클래스 이름을 반환
@@ -99,15 +82,6 @@ function MyDashboardPage() {
   */
   const navigate = useNavigate();
 
-  /*
-    현재 선택된 월을 저장
-
-    처음 대시보드에 들어오면
-    2026년 07월이 선택되어 있음
-  */
-  const [selectedMonth, setSelectedMonth] =
-    useState("2026년 07월");
-
   /* 대시보드에는 서버에서 조회한 최신 데이터 3건만 저장한다. */
   const [notices, setNotices] = useState([]);
   const [toolApplications, setToolApplications] =
@@ -121,11 +95,14 @@ function MyDashboardPage() {
 
   /*
     정해진 개인 대시보드 API 명세에 따라 요약·추이·모델·최근 이력을 조회한다.
-    선택 월이 바뀌면 월간 요약과 모델 비율도 함께 갱신한다.
+    월간 요약과 모델 비율은 현재 월을 기준으로 조회한다.
   */
   useEffect(() => {
     const fetchPersonalDashboard = async () => {
-      const month = toMonthQuery(selectedMonth);
+      const today = new Date();
+      const month = `${today.getFullYear()}-${String(
+        today.getMonth() + 1,
+      ).padStart(2, "0")}`;
 
       try {
         const [summaryResponse, trendResponse, modelsResponse, recentResponse] =
@@ -172,7 +149,7 @@ function MyDashboardPage() {
     };
 
     fetchPersonalDashboard();
-  }, [selectedMonth]);
+  }, []);
 
   /*
     백엔드 응답을 기존 대시보드 카드가 사용하는 표시 형식으로 변환한다.
@@ -196,19 +173,35 @@ function MyDashboardPage() {
           ? applicationResponse.data
           : [];
 
+        const normalizedNotices = noticeData.map((notice) => ({
+          ...notice,
+          isPinned: Boolean(notice.isPinned ?? notice.is_pinned),
+        }));
+
         setNotices(
-          noticeData.slice(0, 3).map((notice) => {
+          normalizedNotices
+            .sort((firstNotice, secondNotice) => {
+              if (
+                Boolean(firstNotice.isPinned) !==
+                Boolean(secondNotice.isPinned)
+              ) {
+                return Number(Boolean(secondNotice.isPinned)) -
+                  Number(Boolean(firstNotice.isPinned));
+              }
+
+              return new Date(secondNotice.createdAt).getTime() -
+                new Date(firstNotice.createdAt).getTime();
+            })
+            .slice(0, 3)
+            .map((notice) => {
             const createdAt = new Date(notice.createdAt);
-            const isNew =
-              Date.now() - createdAt.getTime() <=
-              3 * 24 * 60 * 60 * 1000;
 
             return {
               id: notice.id,
               category: notice.category,
               title: notice.title,
               createdAt: createdAt.toLocaleDateString("ko-KR"),
-              isNew,
+              isPinned: notice.isPinned,
             };
           }),
         );
@@ -279,33 +272,9 @@ function MyDashboardPage() {
 
   return (
     <div className="my-dashboard-page">
-      {/* 페이지 제목과 월 선택 영역 */}
+      {/* 페이지 제목 */}
       <section className="dashboard-heading">
-        <div>
-          {/* 대시보드 본문 제목 */}
-          <h2>마이 대시보드</h2>
-
-          {/* 현재 선택된 조회 월 */}
-          <p>
-            당월: <strong>{selectedMonth}</strong>
-          </p>
-        </div>
-
-        {/* 월 선택 버튼 목록 */}
-        <div className="month-tab-list">
-          {MONTH_OPTIONS.map((month) => (
-            <button
-              key={month}
-              type="button"
-              className={`month-tab ${
-                selectedMonth === month ? "active" : ""
-              }`}
-              onClick={() => setSelectedMonth(month)}
-            >
-              {month}
-            </button>
-          ))}
-        </div>
+        <h2>마이 대시보드</h2>
       </section>
 
       {/* 상단 요약 카드 */}
@@ -546,28 +515,21 @@ function MyDashboardPage() {
               <button
                 key={notice.id}
                 type="button"
-                className="dashboard-notice-item"
+                className={`dashboard-notice-item ${
+                  notice.isPinned ? "is-pinned" : ""
+                }`}
                 onClick={handleNoticeClick}
               >
-                {/* 카테고리와 NEW 표시 */}
-                <div className="notice-item-top">
+                <div className="dashboard-notice-item-main">
                   <span className="notice-category">
                     {notice.category}
                   </span>
 
-                  {notice.isNew && (
-                    <span className="notice-new-badge">
-                      NEW
-                    </span>
-                  )}
+                  <strong className="notice-item-title">
+                    {notice.title}
+                  </strong>
                 </div>
 
-                {/* 공지사항 제목 */}
-                <strong className="notice-item-title">
-                  {notice.title}
-                </strong>
-
-                {/* 공지사항 등록 날짜 */}
                 <span className="notice-item-date">
                   {notice.createdAt}
                 </span>
