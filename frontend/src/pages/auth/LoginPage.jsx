@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../api/authApi";
 // import { getHealthCheck } from "../../api/healthApi"; // backend server test
-import AppFooter from "../../components/layout/AppFooter";
 import "./LoginPage.css";
 
 function LoginPage() {
@@ -174,7 +173,7 @@ function LoginPage() {
   };
 
   return (
-    <main className="login-page">
+    <div className="login-page">
       <section className="login-container">
         {/* 왼쪽 서비스 소개/이미지 영역 */}
         <section className="login-left">
@@ -338,10 +337,7 @@ function LoginPage() {
           </div>
         </section>
       </section>
-
-      {/* 로그인 화면 하단 개인정보처리방침 Footer */}
-      <AppFooter />
-    </main>
+    </div>
   );
 }
 

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { confirmPasswordReset } from "../../api/authApi";
-import AppFooter from "../../components/layout/AppFooter";
 import "./ResetPasswordConfirmPage.css";
 
 function ResetPasswordConfirmPage() {
@@ -86,7 +85,7 @@ function ResetPasswordConfirmPage() {
   };
 
   return (
-    <main className="reset-confirm-page">
+    <div className="reset-confirm-page">
       <section className="reset-confirm-card">
         <div className="reset-confirm-header">
           <p>Password Reset</p>
@@ -175,10 +174,7 @@ function ResetPasswordConfirmPage() {
           </button>
         </div>
       </section>
-
-      {/* 화면 하단 개인정보처리방침 Footer */}
-      <AppFooter />
-    </main>
+    </div>
   );
 }
 
