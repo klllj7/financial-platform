@@ -24,5 +24,12 @@ router.patch(
   evidenceController.updateItemResult
 );
 
+router.post(
+  "/:itemNo/generate",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  evidenceController.generateEvidenceItem,
+);
+
 
 module.exports = router;

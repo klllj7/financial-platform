@@ -13,7 +13,11 @@ import {
   CATEGORY_META,
   NA_CATEGORIES,
 } from "../../mocks/evidenceChecklistMock";
-import { getEvidenceChecklist, updateEvidenceItemResult } from "../../api/reportApi";
+import {
+  getEvidenceChecklist,
+  updateEvidenceItemResult,
+  generateEvidenceItem,
+} from "../../api/reportApi";
 
 import "./EvidenceChecklistPage.css";
 
@@ -33,7 +37,10 @@ export function resultBadgeClass(result) {
   return map[result] || "ce-badge ce-badge-na";
 }
 
-const GENERATION_MODES = ["자동", "반자동", "수동", "조건부"];
+// 백엔드(evidence.service.js GENERATORS_BY_ITEM_NO)가 실제로 자동생성을 지원하는
+// 항목 번호. 여기 없는 번호는 백엔드 구현 전이라 기존 수동 선택 방식으로 남겨둔다.
+// 백엔드에 항목이 추가되면 이 배열에도 번호를 함께 추가해야 한다.
+const AUTO_GENERATE_SUPPORTED_ITEM_NOS = ["5", "6", "7"];
 
 // 상시평가 대상연도. 현재는 화면 문구("2026년 자체평가")와 동일하게 고정값으로 둔다.
 const TARGET_YEAR = 2026;
@@ -63,12 +70,17 @@ function EvidenceChecklistPage() {
   const [filterCategory, setFilterCategory] = useState("전체");
   const [filterResult, setFilterResult] = useState("전체");
   const [filterEvidence, setFilterEvidence] = useState("전체");
-  const [filterMode, setFilterMode] = useState("전체");
   const [activeTab, setActiveTab] = useState("detail");
 
-  // "생성" 버튼을 눌러 팝업을 띄운 대상 항목 (없으면 팝업 닫힘)
+  // 팝업을 띄운 대상 항목 (없으면 팝업 닫힘). "생성" 버튼 또는 결과 배지 클릭으로 연다.
   const [generateTarget, setGenerateTarget] = useState(null);
+  // "confirm-generate": 실제 생성 실행 단계 (⑤⑥⑦만) / "pick-result": 이행·부분이행·미이행 선택 단계
+  const [modalStep, setModalStep] = useState("pick-result");
+  // true면 결과값만 바꾸고 evidence/file은 건드리지 않는다 (결과 배지 클릭, 생성 직후 확정 단계).
+  // false면 기존 수동 항목 흐름(evidence를 "준비완료"로, 임시 파일명 부여)을 그대로 쓴다.
+  const [pickResultOnly, setPickResultOnly] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [generateError, setGenerateError] = useState(null);
 
   const departmentId = getStoredUser()?.department?.id ?? null;
 
@@ -98,8 +110,7 @@ function EvidenceChecklistPage() {
     list.filter(
       (i) =>
         (filterResult === "전체" || i.result === filterResult) &&
-        (filterEvidence === "전체" || i.evidence === filterEvidence) &&
-        (filterMode === "전체" || i.generationMode === filterMode)
+        (filterEvidence === "전체" || i.evidence === filterEvidence)
     );
 
   const visibleCategories =
@@ -107,12 +118,37 @@ function EvidenceChecklistPage() {
       ? CATEGORY_META
       : CATEGORY_META.filter((c) => c.key === filterCategory);
 
+  // 팝업을 닫고 상태를 초기화한다 (모달을 다시 열 때 이전 단계가 남아있지 않도록).
+  const closeModal = () => {
+    if (saving) return;
+    setGenerateError(null);
+    setGenerateTarget(null);
+  };
+
+  // "생성" 버튼 클릭. 실제 자동생성을 지원하는 항목(⑤⑥⑦)은 먼저 파일을 만들게 하고,
+  // 아직 지원하지 않는 항목은 기존처럼 결과값을 바로 고르게 한다.
+  const openGenerateModal = (item) => {
+    setGenerateError(null);
+    const supported = AUTO_GENERATE_SUPPORTED_ITEM_NOS.includes(item.no);
+    setPickResultOnly(!supported);
+    setModalStep(supported ? "confirm-generate" : "pick-result");
+    setGenerateTarget(item);
+  };
+
+  // 결과 배지를 클릭했을 때. 이미 준비된 항목이든 아니든, 결과값만 바로 수정할 수 있게 한다.
+  const openEditResultModal = (item) => {
+    setGenerateError(null);
+    setPickResultOnly(true);
+    setModalStep("pick-result");
+    setGenerateTarget(item);
+  };
+
   /*
-    팝업에서 결과값을 선택하면:
+    아직 자동생성이 연결되지 않은 항목(①②③⑧⑨ 등)에서 결과값을 고르면:
     1) result는 실제 백엔드(PATCH /report/evidence/:itemNo/result)에 저장한다.
-    2) evidence/file은 아직 실제 업로드·자동생성 API가 없어서 화면에서만 "준비완료"로
-       바뀐 것처럼 보여준다 (새로고침하면 원래 상태로 돌아간다 — 백엔드에 자동생성/업로드
-       API가 추가되면 이 부분도 실제로 저장하도록 바꿔야 한다).
+    2) evidence/file은 실제 자동생성 API가 없어서 화면에서만 "준비완료"로 바뀐 것처럼
+       보여준다 (새로고침하면 원래 상태로 돌아간다 — 백엔드에 이 항목의 자동생성 API가
+       추가되면 handleAutoGenerate 쪽으로 옮겨야 한다).
   */
   const handleGenerateConfirm = async (resultValue) => {
     if (!generateTarget || !departmentId) return;
@@ -142,6 +178,70 @@ function EvidenceChecklistPage() {
     } catch (err) {
       console.error("결과 저장 실패", err);
       alert("결과 저장에 실패했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 결과 배지 클릭으로 열었을 때, 또는 ⑤⑥⑦ 실제 생성 직후 결과를 확정할 때 쓴다.
+  // evidence/file은 이미 올바른 값이 들어있으므로(또는 애초에 건드릴 필요가 없으므로)
+  // result만 바꾼다.
+  const handleResultOnlyUpdate = async (resultValue) => {
+    if (!generateTarget || !departmentId) return;
+
+    setSaving(true);
+    try {
+      await updateEvidenceItemResult({
+        departmentId,
+        targetYear: TARGET_YEAR,
+        itemNo: generateTarget.no,
+        result: resultValue,
+      });
+
+      setItems((prev) =>
+        prev.map((i) => (i.no === generateTarget.no ? { ...i, result: resultValue } : i))
+      );
+      setGenerateTarget(null);
+    } catch (err) {
+      console.error("결과 저장 실패", err);
+      alert("결과 저장에 실패했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /*
+    ⑤⑥⑦번처럼 백엔드가 실제로 자동생성을 지원하는 항목은 실제 탐지 로그 기반으로
+    파일을 만든다. 결과값(이행/부분이행/미이행)은 여기서 자동으로 정하지 않고,
+    생성이 끝나면 pick-result 단계로 넘어가 사람이 직접 고르게 한다
+    (기본값은 "미이행" — backend upsertGeneratedEvidence 참고).
+  */
+  const handleAutoGenerate = async () => {
+    if (!generateTarget || !departmentId) return;
+
+    setSaving(true);
+    setGenerateError(null);
+    try {
+      const res = await generateEvidenceItem({
+        departmentId,
+        targetYear: TARGET_YEAR,
+        itemNo: generateTarget.no,
+      });
+      const { fileName, filePath, result } = res.data;
+
+      setItems((prev) =>
+        prev.map((i) =>
+          i.no === generateTarget.no
+            ? { ...i, evidence: "준비완료", file: fileName, filePath, result }
+            : i
+        )
+      );
+      setModalStep("pick-result");
+    } catch (err) {
+      console.error("증빙자료 생성 실패", err);
+      setGenerateError(
+        err.response?.data?.error?.message || "증빙자료 생성에 실패했습니다."
+      );
     } finally {
       setSaving(false);
     }
@@ -226,12 +326,6 @@ function EvidenceChecklistPage() {
               <option value="준비완료">준비완료</option>
               <option value="미준비">미준비</option>
             </select>
-            <select className="ce-select" value={filterMode} onChange={(e) => setFilterMode(e.target.value)}>
-              <option value="전체">자료 준비방식: 전체</option>
-              {GENERATION_MODES.map((mode) => (
-                <option key={mode} value={mode}>{mode}</option>
-              ))}
-            </select>
           </div>
 
           <div className="ce-category-list">
@@ -285,7 +379,14 @@ function EvidenceChecklistPage() {
                               <td className="ce-col-no">{item.no}</td>
                               <td>{item.title}</td>
                               <td>
-                                <span className={resultBadgeClass(item.result)}>{item.result}</span>
+                                <button
+                                  type="button"
+                                  className="ce-result-badge-button"
+                                  onClick={() => openEditResultModal(item)}
+                                  title="클릭해서 결과 수정"
+                                >
+                                  <span className={resultBadgeClass(item.result)}>{item.result}</span>
+                                </button>
                               </td>
                               <td>
                                 {item.evidence === "준비완료" ? (
@@ -295,7 +396,16 @@ function EvidenceChecklistPage() {
                                 )}
                               </td>
                               <td>
-                                {item.file ? (
+                                {item.filePath ? (
+                                  <a
+                                    className="ce-file-link"
+                                    href={item.filePath}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <FileText size={12} />{item.file}
+                                  </a>
+                                ) : item.file ? (
                                   <span className="ce-file-link"><FileText size={12} />{item.file}</span>
                                 ) : item.generationMode === "수동" ? (
                                   <button type="button" className="ce-upload-button">
@@ -305,7 +415,7 @@ function EvidenceChecklistPage() {
                                   <button
                                     type="button"
                                     className="ce-generate-button"
-                                    onClick={() => setGenerateTarget(item)}
+                                    onClick={() => openGenerateModal(item)}
                                   >
                                     <Sparkles size={12} /> 생성
                                   </button>
@@ -341,7 +451,7 @@ function EvidenceChecklistPage() {
             <div
               className="ce-modal-backdrop"
               role="presentation"
-              onMouseDown={() => !saving && setGenerateTarget(null)}
+              onMouseDown={closeModal}
             >
               <div
                 className="ce-modal"
@@ -350,11 +460,14 @@ function EvidenceChecklistPage() {
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 <header className="ce-modal-header">
-                  <h3>증빙자료 생성 — {generateTarget.no}. {generateTarget.title}</h3>
+                  <h3>
+                    {modalStep === "confirm-generate" ? "증빙자료 생성" : "결과 확인·수정"}
+                    {" — "}{generateTarget.no}. {generateTarget.title}
+                  </h3>
                   <button
                     type="button"
                     className="ce-modal-close"
-                    onClick={() => setGenerateTarget(null)}
+                    onClick={closeModal}
                     disabled={saving}
                   >
                     닫기
@@ -363,34 +476,63 @@ function EvidenceChecklistPage() {
 
                 <div className="ce-modal-body">
                   <p className="ce-modal-desc">{generateTarget.preparedMaterial}</p>
-                  <p className="ce-modal-hint">생성 후 표시할 결과값을 선택하세요.</p>
 
-                  <div className="ce-modal-options">
-                    <button
-                      type="button"
-                      className="ce-modal-option ce-modal-option-done"
-                      disabled={saving}
-                      onClick={() => handleGenerateConfirm("이행")}
-                    >
-                      이행으로 표시
-                    </button>
-                    <button
-                      type="button"
-                      className="ce-modal-option ce-modal-option-partial"
-                      disabled={saving}
-                      onClick={() => handleGenerateConfirm("부분이행")}
-                    >
-                      부분이행으로 표시
-                    </button>
-                    <button
-                      type="button"
-                      className="ce-modal-option ce-modal-option-none"
-                      disabled={saving}
-                      onClick={() => handleGenerateConfirm("미이행")}
-                    >
-                      미이행으로 유지
-                    </button>
-                  </div>
+                  {modalStep === "confirm-generate" ? (
+                    <>
+                      <p className="ce-modal-hint">
+                        실제 탐지·처리 로그를 기반으로 증빙자료를 생성합니다. 생성 후 결과값(이행/부분이행/미이행)을 선택하는 단계로 이어집니다.
+                      </p>
+                      {generateError && <p className="ce-modal-error">{generateError}</p>}
+                      <div className="ce-modal-options">
+                        <button
+                          type="button"
+                          className="ce-modal-option ce-modal-option-done"
+                          disabled={saving}
+                          onClick={handleAutoGenerate}
+                        >
+                          {saving ? "생성 중..." : "지금 생성하기"}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="ce-modal-hint">
+                        결과값을 선택하세요. 선택하지 않고 닫으면 기본값인 "미이행"으로 유지됩니다.
+                      </p>
+                      <div className="ce-modal-options">
+                        <button
+                          type="button"
+                          className="ce-modal-option ce-modal-option-done"
+                          disabled={saving}
+                          onClick={() =>
+                            pickResultOnly ? handleResultOnlyUpdate("이행") : handleGenerateConfirm("이행")
+                          }
+                        >
+                          이행으로 표시
+                        </button>
+                        <button
+                          type="button"
+                          className="ce-modal-option ce-modal-option-partial"
+                          disabled={saving}
+                          onClick={() =>
+                            pickResultOnly ? handleResultOnlyUpdate("부분이행") : handleGenerateConfirm("부분이행")
+                          }
+                        >
+                          부분이행으로 표시
+                        </button>
+                        <button
+                          type="button"
+                          className="ce-modal-option ce-modal-option-none"
+                          disabled={saving}
+                          onClick={() =>
+                            pickResultOnly ? handleResultOnlyUpdate("미이행") : handleGenerateConfirm("미이행")
+                          }
+                        >
+                          미이행으로 유지
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
