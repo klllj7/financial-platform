@@ -14,6 +14,38 @@ const STATUS_LABEL_MAP = {
   INACTIVE: "비활성",
 };
 
+// 날짜/시간 표시 형식 변환
+const formatDateTime = (dateValue) => {
+  // 로그인 이력이 없는 경우
+  if (!dateValue) {
+    return "-";
+  }
+
+  const date = new Date(dateValue);
+
+  // 잘못된 날짜 값이 들어온 경우 화면이 깨지지 않도록 처리
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const formatter = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  /*
+    ko-KR 기본 결과는 "2026. 07. 29. 14:12"처럼 공백이 들어갈 수 있음
+    화면에서는 조금 더 깔끔하게 보이도록 공백 정리 
+  */
+  return formatter.format(date).replace(/\.\s/g, ".").replace(".", ".");
+};
+
 function AdminAccountPage() {
   // 부서, 역할 필터
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
@@ -228,7 +260,7 @@ function AdminAccountPage() {
             )}
           </div>
         </div>
-        
+
         <div className="admin-filter-group">
           <label htmlFor="departmentFilter">부서별 필터</label>
           <select
@@ -294,7 +326,7 @@ function AdminAccountPage() {
                 const statusName = STATUS_LABEL_MAP[status] || status;
 
                 // 아직 최근 로그인 컬럼이 없으면 createdAt을 임시로 표시
-                const lastLoginText = user.lastLoginAt || user.createdAt || "-";
+                const lastLoginText = formatDateTime(user.lastLoginAt);
 
                 return (
                   <tr key={user.id}>
@@ -420,7 +452,7 @@ function AdminAccountPage() {
 
                 <div>
                   <span>최근 로그인</span>
-                  <strong>{selectedUser.lastLoginAt || selectedUser.createdAt || "-"}</strong>
+                  <strong>{formatDateTime(selectedUser.lastLoginAt)}</strong>
                 </div>
 
                 <div>
