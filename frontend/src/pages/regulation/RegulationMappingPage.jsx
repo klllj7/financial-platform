@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getDocuments, getClauses } from "../../api/regulationApi";
+import {
+  getDocuments,
+  getClauses,
+  createDocument,
+  createClause,
+} from "../../api/regulationApi";
 import "./RegulationMappingPage.css";
 
 function RegulationMappingPage() {
@@ -9,18 +14,43 @@ function RegulationMappingPage() {
 
   // 오른쪽: 선택된 문서의 조항 목록
   const [clauses, setClauses] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  // "법령 문서 추가" 모달이 열려있는지, 입력 중인 제목
+  const [isAddDocModalOpen, setIsAddDocModalOpen] = useState(false);
+  const [newDocName, setNewDocName] = useState("");
+
+  // "조항 추가" 모달이 열려있는지, 입력 중인 값들
+  const [isAddClauseModalOpen, setIsAddClauseModalOpen] = useState(false);
+  const [newClauseNo, setNewClauseNo] = useState("");
+  const [newClauseTitle, setNewClauseTitle] = useState("");
+  const [newClauseDescription, setNewClauseDescription] = useState("");
+  const [newClauseFile, setNewClauseFile] = useState(null);
+
+  // 문서 목록을 서버에서 다시 불러온다.
+  // 처음 화면에 들어올 때뿐 아니라, 새 문서를 등록한 직후에도 다시 불러야 해서
+  // useEffect 밖에 별도 함수로 뺐다.
+  const loadDocuments = async () => {
+    try {
+      const result = await getDocuments();
+      setDocuments(result.data);
+    } catch (error) {
+      console.error("법령 문서 조회 실패:", error);
+    }
+  };
+
+  // 선택된 문서의 조항 목록을 서버에서 다시 불러온다.
+  // 새 조항을 등록한 직후에도 다시 불러야 해서 별도 함수로 뺐다.
+  const loadClauses = async (docId, search) => {
+    try {
+      const result = await getClauses(docId, search);
+      setClauses(result.data);
+    } catch (error) {
+      console.error("조항 목록 조회 실패:", error);
+    }
+  };
 
   // 처음 화면에 들어오면 문서 목록을 한 번 불러온다.
   useEffect(() => {
-    const loadDocuments = async () => {
-      try {
-        const result = await getDocuments();
-        setDocuments(result.data);
-      } catch (error) {
-        console.error("법령 문서 조회 실패:", error);
-      }
-    };
-
     loadDocuments();
   }, []);
 
@@ -31,17 +61,62 @@ function RegulationMappingPage() {
       return;
     }
 
-    const loadClauses = async () => {
-      try {
-        const result = await getClauses(selectedDocId);
-        setClauses(result.data);
-      } catch (error) {
-        console.error("조항 목록 조회 실패:", error);
-      }
-    };
+    loadClauses(selectedDocId, searchKeyword);
+  }, [selectedDocId, searchKeyword]);
 
-    loadClauses();
-  }, [selectedDocId]);
+  // "법령 문서 추가" 모달의 등록 버튼 클릭
+  const handleAddDocument = async (event) => {
+    event.preventDefault();
+
+    if (!newDocName.trim()) {
+      alert("법령 제목을 입력해주세요.");
+      return;
+    }
+
+    try {
+      await createDocument(newDocName);
+      setNewDocName("");
+      setIsAddDocModalOpen(false);
+      await loadDocuments();
+    } catch (error) {
+      console.error("법령 문서 등록 실패:", error);
+      alert("법령 문서 등록에 실패했습니다.");
+    }
+  };
+
+  // "조항 추가" 모달의 등록 버튼 클릭
+  const handleAddClause = async (event) => {
+    event.preventDefault();
+
+    if (!newClauseNo.trim() || !newClauseTitle.trim()) {
+      alert("조항 번호와 제목을 입력해주세요.");
+      return;
+    }
+
+    try {
+      await createClause(
+        selectedDocId,
+        {
+          clause_no: newClauseNo,
+          title: newClauseTitle,
+          description: newClauseDescription,
+        },
+        newClauseFile
+      );
+
+      // 입력 폼 초기화 + 모달 닫기
+      setNewClauseNo("");
+      setNewClauseTitle("");
+      setNewClauseDescription("");
+      setNewClauseFile(null);
+      setIsAddClauseModalOpen(false);
+
+      await loadClauses(selectedDocId);
+    } catch (error) {
+      console.error("조항 등록 실패:", error);
+      alert("조항 등록에 실패했습니다.");
+    }
+  };
 
   return (
     <main className="regulation-page">
@@ -54,7 +129,16 @@ function RegulationMappingPage() {
       <section className="regulation-page-body">
         {/* 왼쪽: 문서 목록 */}
         <aside className="regulation-document-list">
-          <h3>법령 문서</h3>
+          <div className="regulation-document-list-header">
+            <h3>법령 문서</h3>
+            <button
+              className="regulation-add-button"
+              onClick={() => setIsAddDocModalOpen(true)}
+            >
+              + 추가
+            </button>
+          </div>
+
           <ul>
             {documents.map((document) => (
               <li key={document.id}>
@@ -73,7 +157,27 @@ function RegulationMappingPage() {
 
         {/* 오른쪽: 선택된 문서의 조항 목록 */}
         <section className="regulation-clause-list">
-          <h3>조항 목록</h3>
+          <div className="regulation-document-list-header">
+            <h3>조항 목록</h3>
+            {selectedDocId && (
+              <button
+                className="regulation-add-button"
+                onClick={() => setIsAddClauseModalOpen(true)}
+              >
+                + 추가
+              </button>
+            )}
+          </div>
+
+          {selectedDocId && (
+            <input
+              type="text"
+              className="regulation-search-input"
+              placeholder="조항 번호, 제목, 내용으로 검색"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+            />
+          )}
 
           {!selectedDocId && <p>왼쪽에서 법령 문서를 선택해주세요.</p>}
 
@@ -85,10 +189,125 @@ function RegulationMappingPage() {
               <p className="regulation-clause-description">
                 {clause.description}
               </p>
+              {clause.file_name && (
+                <a
+                  className="regulation-clause-file-link"
+                  href={`http://localhost:8080${clause.file_path}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  첨부파일: {clause.file_name}
+                </a>
+              )}
             </div>
           ))}
         </section>
       </section>
+
+      {/* 법령 문서 추가 모달 */}
+      {isAddDocModalOpen && (
+        <div
+          className="regulation-modal-backdrop"
+          onClick={() => setIsAddDocModalOpen(false)}
+        >
+          <div
+            className="regulation-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="regulation-modal-header">
+              <h3>법령 문서 추가</h3>
+              <button
+                className="regulation-modal-close-button"
+                onClick={() => setIsAddDocModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form
+              className="regulation-modal-body"
+              onSubmit={handleAddDocument}
+            >
+              <label>법령 제목</label>
+              <input
+                type="text"
+                placeholder="예: 개인정보 보호법"
+                value={newDocName}
+                onChange={(event) => setNewDocName(event.target.value)}
+              />
+
+              <button type="submit" className="regulation-modal-save-button">
+                등록
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 조항 추가 모달 */}
+      {isAddClauseModalOpen && (
+        <div
+          className="regulation-modal-backdrop"
+          onClick={() => setIsAddClauseModalOpen(false)}
+        >
+          <div
+            className="regulation-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="regulation-modal-header">
+              <h3>조항 추가</h3>
+              <button
+                className="regulation-modal-close-button"
+                onClick={() => setIsAddClauseModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form
+              className="regulation-modal-body"
+              onSubmit={handleAddClause}
+            >
+              <label>조항 번호</label>
+              <input
+                type="text"
+                placeholder="예: 제23조"
+                value={newClauseNo}
+                onChange={(event) => setNewClauseNo(event.target.value)}
+              />
+
+              <label>조항 제목</label>
+              <input
+                type="text"
+                placeholder="예: 민감정보의 처리 제한"
+                value={newClauseTitle}
+                onChange={(event) => setNewClauseTitle(event.target.value)}
+              />
+
+              <label>내용</label>
+              <textarea
+                placeholder="조항 내용을 입력하세요"
+                value={newClauseDescription}
+                onChange={(event) =>
+                  setNewClauseDescription(event.target.value)
+                }
+              />
+
+              <label>원본 파일 (선택)</label>
+              <input
+                type="file"
+                onChange={(event) =>
+                  setNewClauseFile(event.target.files[0] || null)
+                }
+              />
+
+              <button type="submit" className="regulation-modal-save-button">
+                등록
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

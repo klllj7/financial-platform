@@ -1,5 +1,6 @@
 const express = require("express"); // Express 서버 사용
 const cors = require("cors");       // Frontend-Backend 통신 설정
+const path = require("path");       // 업로드 폴더 경로 계산용
 const policyInfo = require("./domains/policy/models/policyInfo"); // PolicyInfo 모델 불러오기
 const regulationRoutes = require("./domains/regulation/routes/regulationRoutes");
 const policyRoutes = require("./domains/policy/routes/policyRoutes"); // Policy 관련 라우터 불러오기
@@ -26,6 +27,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// 업로드된 규제 원본 파일을 /uploads/... 경로로 직접 다운로드/조회할 수 있게 정적 서빙
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 app.use("/api/regulations", regulationRoutes);
 app.use("/api/policies", policyRoutes);
 

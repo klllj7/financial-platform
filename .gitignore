@@ -39,3 +39,7 @@ __pycache__/
 # 개인 작업 메모 (팀 공유 안 함)
 docs/d-policy-work-summary.md
 
+# 사용자가 업로드한 파일 (폴더 구조만 유지, 파일 자체는 공유 안 함)
+backend/uploads/**/*
+!backend/uploads/**/.gitkeep
+

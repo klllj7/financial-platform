@@ -19,6 +19,18 @@ const RegulationClause = sequelize.define("RegulationClause", {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    file_name: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    file_path: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    file_type: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
 }, {
     tableName: "regulation_clause",
     underscored: true,
