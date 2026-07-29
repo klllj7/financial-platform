@@ -66,6 +66,28 @@ const validatePassword = (password) => {
   return "";
 };
 
+// 로그인 이력 저장 공통 함수
+const saveLoginHistory = async ({
+  userId,
+  status,
+  ipAddress,
+  userAgent,
+  failReason = null,
+}) => {
+  try {
+    await LoginHistory.create({
+      userId,
+      status,
+      ipAddress,
+      userAgent,
+      failReason,
+    });
+  } catch (error) {
+    // 로그인 이력 저장 실패는 서버 로그로만 남긴다.
+    console.error("로그인 이력 저장 실패: ", error);
+  }
+};
+
 // 회원가입
 const signup = async ({ name, email, password, department }) => {
   // 회원가입 요청값 기본 검증
@@ -173,7 +195,16 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
   // 비밀번호 비교
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
+  // 가입된 이메일이지만 비밀번호가 틀린 경우 실패 이력 저장
   if (!isPasswordValid) {
+    await saveLoginHistory({
+      userId: user.id,
+      status: "FAIL",
+      ipAddress,
+      userAgent,
+      failReason: "INVALID_PASSWORD",
+    });
+
     const error = new Error("이메일 또는 비밀번호가 올바르지 않습니다.");
     error.statusCode = 401;
     error.code = "AUTH_004";
@@ -181,8 +212,16 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
   }
 
   // 계정 상태 확인
-  // 관리자가 비활성화한 계정은 비밀번호가 맞아도 로그인할 수 없음
+  // 관리자가 비활성화한 계정은 비밀번호가 맞아도 로그인은 차단하고 실패 이력으로 저장
   if (user.status === "INACTIVE") {
+    await saveLoginHistory({
+      userId: user.id,
+      status: "FAIL",
+      ipAddress,
+      userAgent,
+      failReason: "INACTIVE_ACCOUNT",
+    });
+
     const error = new Error("비활성화된 계정입니다. 관리자에게 문의해주세요.");
     error.statusCode = 403;
     error.code = "AUTH_ACCOUNT_INACTIVE";
@@ -191,7 +230,7 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
 
   // 로그인 성공 이력 저장
   // 사용자가 정상적으로 로그인했을 때 로그인 시각, IP, 접속 환경을 기록
-  await LoginHistory.create({
+  await saveLoginHistory({
     userId: user.id,
     status: "SUCCESS",
     ipAddress,

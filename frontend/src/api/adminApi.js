@@ -38,3 +38,13 @@ export const getAdminDepartments = async () => {
   const response = await axiosInstance.get("/admin/departments");
   return response.data;
 };
+
+// 관리자 - 특정 사용자 로그인 이력 조회 API
+// 실제 요청 주소: GET /api/admin/users/:userId/login-histories
+export const getAdminUserLoginHistories = async (userId) => {
+  const response = await axiosInstance.get(
+    `/admin/users/${userId}/login-histories`
+  );
+
+  return response.data;
+};

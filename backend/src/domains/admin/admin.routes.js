@@ -16,6 +16,9 @@ router.get("/roles", authenticate, authorize("ADMIN"), adminController.getRoles)
 // 관리자 - 부서 목록 조회
 router.get("/departments", authenticate, authorize("ADMIN"), adminController.getDepartments);
 
+// 관리자 - 특정 사용자 로그인 이력 조회
+router.get("/users/:userId/login-histories", authenticate, authorize("ADMIN"), adminController.getUserLoginHistories);
+
 // 관리자 - 사용자 권한 변경
 router.patch("/users/:userId/role", authenticate, authorize("ADMIN"), adminController.updateUserRole);
 

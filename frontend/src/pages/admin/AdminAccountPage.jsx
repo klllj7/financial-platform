@@ -3,9 +3,10 @@ import { ShieldCheck } from "lucide-react";
 import { 
   getAdminUsers, 
   getAdminRoles, 
-  getAdminDepartments, 
+  getAdminDepartments,
+  getAdminUserLoginHistories,
   updateAdminUserRole, 
-  updateAdminUserStatus, 
+  updateAdminUserStatus,
 } from "../../api/adminApi";
 import "./AdminAccountPage.css";
 
@@ -14,20 +15,72 @@ const STATUS_LABEL_MAP = {
   INACTIVE: "비활성",
 };
 
+// 로그인 이력 상태 표시용 라벨
+// DB에는 SUCCESS / FAIL로 저장하고, 화면에서는 한글로 표시
+const LOGIN_HISTORY_STATUS_LABEL_MAP = {
+  SUCCESS: "성공",
+  FAIL: "실패",
+};
+
+// 로그인 실패 사유 표시용 라벨
+// DB에는 코드값으로 저장하고, 화면에서는 관리자가 이해하기 쉬운 문구로 표시
+const LOGIN_FAIL_REASON_LABEL_MAP = {
+  INVALID_PASSWORD: "비밀번호 불일치",
+  INACTIVE_ACCOUNT: "비활성 계정 로그인 시도",
+};
+
+// 날짜/시간 표시 형식 변환
+const formatDateTime = (dateValue) => {
+  // 로그인 이력이 없는 경우
+  if (!dateValue) {
+    return "-";
+  }
+
+  const date = new Date(dateValue);
+
+  // 잘못된 날짜 값이 들어온 경우 화면이 깨지지 않도록 처리
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const formatter = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  /*
+    ko-KR 기본 결과는 "2026. 07. 29. 14:12"처럼 공백이 들어갈 수 있음
+    화면에서는 조금 더 깔끔하게 보이도록 공백 정리 
+  */
+  return formatter.format(date).replace(/\.\s/g, ".").replace(".", ".");
+};
+
 function AdminAccountPage() {
   // 부서, 역할 필터
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
   const [roleFilter, setRoleFilter] = useState("ALL");
 
+  const [searchKeyword, setSearchKeyword] = useState(""); // 검색
+
   const [users, setUsers] = useState([]);                 // DB에서 불러온 사용자 목록
   const [roles, setRoles] = useState([]);                 // DB에서 조회한 권한 목록
   const [departments, setDepartments] = useState([]);     // DB에서 조회한 부서 목록
+
   const [isLoading, setIsLoading] = useState(false);      // 목록 로딩 상태
   const [errorMessage, setErrorMessage] = useState("");   // 목록 조회 에러 메시지
 
   const [selectedUser, setSelectedUser] = useState(null); // 권한 변경 버튼을 누른 사용자 정보
   const [selectedRole, setSelectedRole] = useState("");   // 모달에서 선택한 새 권한
 
+  const [loginHistoryUser, setLoginHistoryUser] = useState(null);               // 로그인 이력 모달에서 보여줄 사용자 정보
+  const [loginHistories, setLoginHistories] = useState([]);                     // 선택한 사용자의 로그인 이력 목록
+  const [isLoginHistoryLoading, setIsLoginHistoryLoading] = useState(false);  // 로그인 이력 조회 로딩 상태
 
   // 관리자 사용자 목록 조회
   const fetchUsers = async () => {
@@ -147,23 +200,74 @@ function AdminAccountPage() {
     }
   };
 
+  // 로그인 이력 버튼 클릭 시 진행
+  const handleLoginHistoryClick = async (user) => {
+    try {
+      setIsLoginHistoryLoading(true);
+
+      // 먼저 모달에 표시할 사용자 정보를 저장
+      setLoginHistoryUser(user);
+
+      // 해당 사용자의 로그인 이력 API 호출
+      const result = await getAdminUserLoginHistories(user.id);
+
+      console.log("로그인 이력 조회 성공: ", result);
+
+      setLoginHistories(result.data.histories);
+    } catch (error) {
+      console.error("로그인 이력 조회 실패: ", error);
+
+      alert(
+        error.response?.data?.error?.message || "로그인 이력을 불러오지 못했습니다."
+      );
+
+      // 조회 실패 시 모달을 닫고 상태를 초기화
+      setLoginHistoryUser(null);
+      setLoginHistories([]);
+    } finally {
+      setIsLoginHistoryLoading(false);
+    }
+  };
+
+  // 로그인 이력 모달 닫기
+  const handleCloseLoginHistoryModal = () => {
+    setLoginHistoryUser(null);
+    setLoginHistories([]);
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchAccountOptions();
   }, []);
 
-  // 선택된 부서/역할 조건에 맞 사용자 목록 필터링
+  // 선택된 부서/역할 조건 및 검색어에 맞게 사용자 목록 필터링
   const filteredUsers = useMemo(() => {
+    const normalizedKeyword = searchKeyword.trim().toLowerCase();
+
     return users.filter((user) => {
-      const departmentName = user.department?.name || "-";
-      const roleCode = user.role?.code || "-";
+      const departmentCode = user.department?.code ?? "";
+      const departmentName = user.department?.name ?? "";
+      const roleCode = user.role?.code ?? "";
+      const roleName = user.role?.name ?? "";
 
-      const matchesDepartment = departmentFilter === "ALL" || user.department?.code === departmentFilter;
-      const matchesRole = roleFilter === "ALL" || user.role?.code === roleFilter;
+      const matchesDepartment = departmentFilter === "ALL" || departmentCode === departmentFilter;
+      const matchesRole = roleFilter === "ALL" || roleCode === roleFilter;
 
-      return matchesDepartment && matchesRole;
+      const matchesSearch = normalizedKeyword === "" ||
+      [
+        user.name,
+        user.email,
+        roleCode,
+        roleName,
+        departmentCode,
+        departmentName,
+      ]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedKeyword));
+
+      return matchesDepartment && matchesRole && matchesSearch;
     });
-  }, [users, departmentFilter, roleFilter]);
+  }, [users, departmentFilter, roleFilter, searchKeyword, ]);
 
   return (
     <section className="admin-account-page">
@@ -185,6 +289,31 @@ function AdminAccountPage() {
 
       {/* 필터 영역 */}
       <div className="admin-filter-card">
+        {/* 사용자 검색 */}
+        <div className="admin-filter-group admin-search-group">
+          <label htmlFor="adminUserSearch">사용자 검색</label>
+
+          <div className="admin-account-search">
+            <input
+              id="adminUserSearch"
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="이름, 이메일, 부서, 권한 검색"
+            />
+
+            {searchKeyword && (
+              <button
+                type="button"
+                onClick={() => setSearchKeyword("")}
+                aria-label="검색어 초기화"
+              >
+                초기화
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="admin-filter-group">
           <label htmlFor="departmentFilter">부서별 필터</label>
           <select
@@ -245,12 +374,12 @@ function AdminAccountPage() {
               {filteredUsers.map((user) => {
                 const departmentName = user.department?.name || "-";
                 const roleCode = user.role?.code || "-";
-                const roleName = user.role?.name || ROLE_LABEL_MAP[roleCode] || "-";
+                const roleName = user.role?.name || roleCode || "-";
                 const status = user.status || "-";
                 const statusName = STATUS_LABEL_MAP[status] || status;
 
                 // 아직 최근 로그인 컬럼이 없으면 createdAt을 임시로 표시
-                const lastLoginText = user.lastLoginAt || user.createdAt || "-";
+                const lastLoginText = formatDateTime(user.lastLoginAt);
 
                 return (
                   <tr key={user.id}>
@@ -275,7 +404,7 @@ function AdminAccountPage() {
 
                     <td>
                       {/* 활성/비활성 상태를 변경하는 토글 스위치 */}
-                      <div clasName="admin-status-toggle-cell">
+                      <div className="admin-status-toggle-cell">
                         <button
                           type="button"
                           className={
@@ -297,13 +426,23 @@ function AdminAccountPage() {
                     </td>
 
                     <td>
-                      <button
-                        type="button"
-                        className="admin-manage-button"
-                        onClick={() => handleRoleChangeClick(user)}
-                      >
-                        권한 변경
-                      </button>
+                      <div className="admin-action-buttons">
+                        <button
+                          type="button"
+                          className="admin-manage-button"
+                          onClick={() => handleRoleChangeClick(user)}
+                        >
+                          권한 변경
+                        </button>
+
+                        <button 
+                          type="button"
+                          className="admin-login-history-button"
+                          onClick={() => handleLoginHistoryClick(user)}
+                        >
+                          로그인 이력
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -355,7 +494,7 @@ function AdminAccountPage() {
               <div className="admin-modal-info-list">
                 <div>
                   <span>현재 권한</span>
-                  <strong>{selectedUser.role?.name || ROLE_LABEL_MAP[selectedUser.role?.code] || "-"}</strong>
+                  <strong>{selectedUser.role?.name || selectedUser.role?.code || "-"}</strong>
                 </div>
 
                 <div className="admin-role-select-area">
@@ -376,7 +515,7 @@ function AdminAccountPage() {
 
                 <div>
                   <span>최근 로그인</span>
-                  <strong>{selectedUser.lastLoginAt || selectedUser.createdAt || "-"}</strong>
+                  <strong>{formatDateTime(selectedUser.lastLoginAt)}</strong>
                 </div>
 
                 <div>
@@ -401,6 +540,114 @@ function AdminAccountPage() {
                 onClick={handleSaveRoleChange}
               >
                 저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 로그인 이력 모달 */}
+      {loginHistoryUser && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-login-history-modal">
+            <div className="admin-role-modal-header">
+              <div>
+                <p>로그인 이력</p>
+                <h3>{loginHistoryUser.name} 사용자 접속 기록</h3>
+              </div>
+
+              <button
+                type="button"
+                className="admin-modal-close-button"
+                onClick={handleCloseLoginHistoryModal}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="admin-login-history-summary">
+              <div>
+                <span>사용자</span>
+                <strong>{loginHistoryUser.name}</strong>
+              </div>
+
+              <div>
+                <span>이메일</span>
+                <strong>{loginHistoryUser.email}</strong>
+              </div>
+
+              <div>
+                <span>권한</span>
+                <strong>{loginHistoryUser.role?.name || loginHistoryUser.role?.code || "-"}</strong>
+              </div>
+            </div>
+
+            <div className="admin-login-history-body">
+              {isLoginHistoryLoading ? (
+                <p className="admin-login-history-empty">
+                  로그인 이력을 불러오는 중입니다...
+                </p>
+              ) : loginHistories.length === 0 ? (
+                <p className="admin-login-history-empty">
+                  저장된 로그인 이력이 없습니다.
+                </p>
+              ) : (
+                <div className="admin-login-history-table-wrapper">
+                  <table className="admin-login-history-table">
+                    <thead>
+                      <tr>
+                        <th>상태</th>
+                        <th>실패 사유</th>
+                        <th>IP</th>
+                        <th>접속 환경</th>
+                        <th>로그인 시각</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {loginHistories.map((history) => {
+                        const statusLabel = LOGIN_HISTORY_STATUS_LABEL_MAP[history.status] || history.status;
+                        const failReasonLabel = LOGIN_FAIL_REASON_LABEL_MAP[history.failReason] || history.failReason || "-";
+
+                        return (
+                          <tr key={history.id}>
+                            <td>
+                              <span
+                                className={
+                                  history.status === "SUCCESS" ? "admin-login-status-badge success" : "admin-login-status-badge fail"
+                                }
+                              >
+                                {statusLabel}
+                              </span>
+                            </td>
+
+                            <td>{failReasonLabel}</td>
+                            <td>{history.ipAddress || "-"}</td>
+
+                            <td
+                              className="admin-login-user-agent"
+                              title={history.userAgent || "-"}
+                            >
+                              {history.userAgent || "-"}
+                            </td>
+
+                            <td>{formatDateTime(history.loggedInAt)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="admin-role-modal-footer">
+              <button
+                type="button"
+                className="admin-modal-cancel-button"
+                onClick={handleCloseLoginHistoryModal}
+              >
+                닫기
               </button>
             </div>
           </div>
