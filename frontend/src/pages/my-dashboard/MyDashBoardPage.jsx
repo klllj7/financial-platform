@@ -560,6 +560,7 @@ function MyDashboardPage() {
             <button
               type="button"
               className="view-all-button"
+              onClick={() => navigate("/usage-history")}
             >
               전체 보기
               <ArrowRight size={16} />

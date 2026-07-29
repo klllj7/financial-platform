@@ -1,5 +1,9 @@
 const AiToolApplication = require("./ai-tool-application.model");
 const { User, Department } = require("../auth/auth.models");
+const { encryptCredential } = require("../../common/utils/credentialCrypto");
+const {
+  testOpenAiCompatibleConnection,
+} = require("../chat/openai-compatible.client");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -118,16 +122,70 @@ const createManagedTool = async ({ adminId, payload }) => {
 };
 
 /* 승인과 반려 결과 및 검토 담당자를 함께 기록한다. */
-const reviewApplication = async ({ applicationId, reviewerId, status, reviewComment }) => {
+const reviewApplication = async ({
+  applicationId,
+  reviewerId,
+  status,
+  reviewComment,
+  connection,
+}) => {
   const application = await AiToolApplication.findByPk(applicationId);
   if (!application) throw serviceError("AI_TOOL_APPLICATION_NOT_FOUND", "신청 내역을 찾을 수 없습니다.", 404);
 
-  return application.update({
+  const updateValues = {
     status,
     reviewerId,
     reviewComment: reviewComment || null,
     reviewedAt: new Date(),
-  });
+  };
+
+  if (status === "APPROVED") {
+    const { apiKey, apiBaseUrl, apiModelId } = connection || {};
+    if (!apiKey || !apiBaseUrl || !apiModelId) {
+      throw serviceError(
+        "AI_TOOL_CONNECTION_REQUIRED",
+        "승인하려면 API Key, Base URL, 모델 ID가 필요합니다.",
+        400,
+      );
+    }
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(apiBaseUrl);
+    } catch {
+      throw serviceError(
+        "AI_TOOL_BASE_URL_INVALID",
+        "유효한 API Base URL을 입력해 주세요.",
+        400,
+      );
+    }
+    if (parsedUrl.protocol !== "https:") {
+      throw serviceError(
+        "AI_TOOL_BASE_URL_HTTPS_REQUIRED",
+        "API Base URL은 HTTPS 주소만 사용할 수 있습니다.",
+        400,
+      );
+    }
+
+    await testOpenAiCompatibleConnection({
+      apiKey,
+      baseUrl: parsedUrl.toString().replace(/\/$/, ""),
+      modelId: apiModelId,
+    });
+    const encrypted = encryptCredential(apiKey);
+    Object.assign(updateValues, {
+      apiBaseUrl: parsedUrl.toString().replace(/\/$/, ""),
+      apiModelId,
+      apiKeyEncrypted: encrypted.encrypted,
+      apiKeyIv: encrypted.iv,
+      apiKeyAuthTag: encrypted.authTag,
+      credentialConfigured: true,
+      isActive: true,
+    });
+  }
+
+  await application.update(updateValues);
+  return AiToolApplication.findByPk(applicationId);
 };
 
 /* 승인된 AI Tool의 사용자 노출 여부를 관리자가 변경한다. */

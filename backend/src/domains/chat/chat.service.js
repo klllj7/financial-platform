@@ -2,6 +2,10 @@ const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
 const AiToolApplication = require("../ai-tools/ai-tool-application.model");
 const { createSolarMessage } = require("./solar.client");
+const {
+  createOpenAiCompatibleMessage,
+} = require("./openai-compatible.client");
+const { decryptCredential } = require("../../common/utils/credentialCrypto");
 const { Op } = require("sequelize");
 
 const DEFAULT_SOLAR_TOOL_KEY = "DEFAULT_SOLAR";
@@ -110,7 +114,7 @@ const findApprovedTool = async ({
     );
   }
 
-  const application = await AiToolApplication.findOne({
+  const application = await AiToolApplication.scope("withCredential").findOne({
     where: {
       id: aiToolApplicationId,
       status: "APPROVED",
@@ -176,10 +180,30 @@ const sendMessage = async ({
     modelName = solarResponse.modelName;
     inputTokens = solarResponse.inputTokens;
     outputTokens = solarResponse.outputTokens;
+  } else if (
+    approvedTool.credentialConfigured &&
+    approvedTool.apiKeyEncrypted &&
+    approvedTool.apiKeyIv &&
+    approvedTool.apiKeyAuthTag
+  ) {
+    const providerResponse = await createOpenAiCompatibleMessage({
+      apiKey: decryptCredential({
+        encrypted: approvedTool.apiKeyEncrypted,
+        iv: approvedTool.apiKeyIv,
+        authTag: approvedTool.apiKeyAuthTag,
+      }),
+      baseUrl: approvedTool.apiBaseUrl,
+      modelId: approvedTool.apiModelId,
+      messages: [...previousMessages, userMessage],
+    });
+    reply = providerResponse.content;
+    modelName = providerResponse.modelName;
+    inputTokens = providerResponse.inputTokens;
+    outputTokens = providerResponse.outputTokens;
   } else {
     throw serviceError(
       "CHAT_TOOL_PROVIDER_NOT_CONFIGURED",
-      `${approvedTool.toolName} 제공자 API가 아직 연결되지 않았습니다.`,
+      `${approvedTool.toolName} API 연결정보가 설정되지 않았습니다.`,
       503,
     );
   }

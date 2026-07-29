@@ -541,6 +541,17 @@
   outline: none;
 }
 
+.admin-model-credential-notice {
+  margin: 0;
+  padding: 12px 13px;
+  color: #3d5f8f;
+  background: #eef5ff;
+  border: 1px solid #d5e5fb;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 /* input/select 높이 */
 .admin-model-form-group input,
 .admin-model-form-group select {

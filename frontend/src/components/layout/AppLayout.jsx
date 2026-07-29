@@ -15,6 +15,7 @@ import "./layout.css";
 /* URL에 따라 상단 헤더에 표시할 제목 */
 const PAGE_TITLES = {
   "/my-dashboard": "마이 대시보드",
+  "/usage-history": "AI 사용 이력",
   "/ai-chat": "AI 사용하기",
   "/notices": "공지사항",
   "/ai-tools": "AI Tool 신청",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* 전사 대시보드에 표시할 아이콘 */
@@ -150,6 +150,13 @@ const formatOccurredAt = (value) => {
   });
 };
 
+const formatDateInputValue = (date) => [
+  date.getFullYear(),
+  String(date.getMonth() + 1).padStart(2, "0"),
+  String(date.getDate()).padStart(2, "0"),
+].join("-");
+
+const TODAY_DATE_INPUT = formatDateInputValue(new Date());
 
 function ComplianceDashboardPage({ isAdminView = false }) {
   /*
@@ -160,7 +167,10 @@ function ComplianceDashboardPage({ isAdminView = false }) {
   /* 대시보드 카드에는 API에서 받은 최신 항목 3건만 표시한다. */
   const [notices, setNotices] = useState([]);
   const [actionItems, setActionItems] = useState([]);
-  const [departmentData, setDepartmentData] = useState([]);
+  const [riskEvents, setRiskEvents] = useState([]);
+  const [departmentPeriod, setDepartmentPeriod] = useState("date");
+  const [departmentDate, setDepartmentDate] =
+    useState(TODAY_DATE_INPUT);
   const [usageTrendData, setUsageTrendData] = useState([]);
   const [dashboardSummary, setDashboardSummary] =
     useState(EMPTY_SUMMARY);
@@ -231,21 +241,14 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           ? eventResult.value.data
           : [];
 
-        // 부서와 위험 등급별 이벤트 수를 누적해 막대 차트 데이터로 만든다.
-        const departmentBuckets = new Map();
+        setRiskEvents(eventData);
         const nextRiskSummary = { ...EMPTY_RISK_SUMMARY };
+
+        // 상단 위험 현황은 기존처럼 전체 이벤트를 기준으로 집계한다.
         eventData.forEach((event) => {
-          const department = event.department_name || "미지정 부서";
-          const current = departmentBuckets.get(department) || {
-            department,
-            high: 0,
-            medium: 0,
-            low: 0,
-          };
           const grade = String(event.grade || "LOW").toLowerCase();
 
-          if (Object.hasOwn(current, grade)) {
-            current[grade] += 1;
+          if (Object.hasOwn(nextRiskSummary, grade)) {
             nextRiskSummary[grade] += 1;
           }
           if (
@@ -254,18 +257,9 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           ) {
             nextRiskSummary.urgentActionCount += 1;
           }
-          departmentBuckets.set(department, current);
         });
+
         setRiskSummary(nextRiskSummary);
-        setDepartmentData(
-          [...departmentBuckets.values()].sort(
-            (first, second) =>
-              second.high +
-              second.medium +
-              second.low -
-              (first.high + first.medium + first.low),
-          ),
-        );
 
         // 최신 이벤트 3건만 대시보드 위험 이벤트 관리 영역에 표시한다.
         setActionItems(
@@ -367,6 +361,55 @@ function ComplianceDashboardPage({ isAdminView = false }) {
 
     fetchDashboardData();
   }, [isAdminView]);
+
+  const departmentData = useMemo(() => {
+    let periodStart;
+    let periodEnd;
+
+    if (departmentPeriod === "date") {
+      const [year, month, day] = departmentDate.split("-").map(Number);
+      periodStart = new Date(year, month - 1, day);
+      periodEnd = new Date(year, month - 1, day + 1);
+    } else {
+      periodStart = new Date();
+      periodStart.setHours(0, 0, 0, 0);
+      periodStart.setDate(periodStart.getDate() - (departmentPeriod - 1));
+    }
+    const departmentBuckets = new Map();
+
+    riskEvents.forEach((event) => {
+      const occurredAt = new Date(event.created_at);
+      if (
+        Number.isNaN(occurredAt.getTime()) ||
+        occurredAt < periodStart ||
+        (periodEnd && occurredAt >= periodEnd)
+      ) {
+        return;
+      }
+
+      const department = event.department_name || "미지정 부서";
+      const current = departmentBuckets.get(department) || {
+        department,
+        high: 0,
+        medium: 0,
+        low: 0,
+      };
+      const grade = String(event.grade || "LOW").toLowerCase();
+
+      if (Object.hasOwn(current, grade)) {
+        current[grade] += 1;
+      }
+      departmentBuckets.set(department, current);
+    });
+
+    return [...departmentBuckets.values()].sort(
+      (first, second) =>
+        second.high +
+        second.medium +
+        second.low -
+        (first.high + first.medium + first.low),
+    );
+  }, [departmentDate, departmentPeriod, riskEvents]);
 
   useEffect(() => {
     if (isAdminView) return;
@@ -1068,27 +1111,66 @@ function ComplianceDashboardPage({ isAdminView = false }) {
             <h3>부서별 위험 이벤트</h3>
 
             <p>
-              막대를 클릭하면 해당 부서의 위험 이벤트를
-              확인할 수 있습니다.
+              선택한 기간의 부서별 위험 이벤트입니다.
             </p>
           </div>
 
-          {/* 그래프 색상 설명 */}
-          <div className="compliance-chart-legend">
-            <span>
-              <i className="chart-dot-high" />
-              HIGH
-            </span>
+          <div className="compliance-department-chart-controls">
+            <div
+              className="compliance-department-period-filter"
+              aria-label="부서별 위험 이벤트 조회 기간"
+            >
+              {[
+                { value: 7, label: "최근 7일" },
+                { value: 30, label: "최근 30일" },
+              ].map((period) => (
+                <button
+                  key={period.value}
+                  type="button"
+                  className={
+                    departmentPeriod === period.value ? "active" : ""
+                  }
+                  onClick={() => setDepartmentPeriod(period.value)}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+            <label
+              className={`compliance-department-date-filter ${
+                departmentPeriod === "date" ? "active" : ""
+              }`}
+            >
+              <span>날짜</span>
+              <input
+                type="date"
+                value={departmentDate}
+                max={TODAY_DATE_INPUT}
+                onChange={(event) => {
+                  if (!event.target.value) return;
+                  setDepartmentDate(event.target.value);
+                  setDepartmentPeriod("date");
+                }}
+              />
+            </label>
 
-            <span>
-              <i className="chart-dot-medium" />
-              MEDIUM
-            </span>
+            {/* 그래프 색상 설명 */}
+            <div className="compliance-chart-legend">
+              <span>
+                <i className="chart-dot-high" />
+                HIGH
+              </span>
 
-            <span>
-              <i className="chart-dot-low" />
-              LOW
-            </span>
+              <span>
+                <i className="chart-dot-medium" />
+                MEDIUM
+              </span>
+
+              <span>
+                <i className="chart-dot-low" />
+                LOW
+              </span>
+            </div>
           </div>
         </div>
 

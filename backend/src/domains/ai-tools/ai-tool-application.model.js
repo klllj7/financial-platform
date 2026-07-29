@@ -15,6 +15,23 @@ const AiToolApplication = sequelize.define("AiToolApplication", {
   reviewerId: { type: DataTypes.INTEGER, allowNull: true },
   reviewComment: { type: DataTypes.TEXT, allowNull: true },
   reviewedAt: { type: DataTypes.DATE, allowNull: true },
-}, { tableName: "ai_tool_applications", underscored: true });
+  apiBaseUrl: { type: DataTypes.STRING(500), allowNull: true },
+  apiModelId: { type: DataTypes.STRING(200), allowNull: true },
+  apiKeyEncrypted: { type: DataTypes.TEXT, allowNull: true },
+  apiKeyIv: { type: DataTypes.STRING(100), allowNull: true },
+  apiKeyAuthTag: { type: DataTypes.STRING(100), allowNull: true },
+  credentialConfigured: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+}, {
+  tableName: "ai_tool_applications",
+  underscored: true,
+  defaultScope: {
+    attributes: {
+      exclude: ["apiKeyEncrypted", "apiKeyIv", "apiKeyAuthTag"],
+    },
+  },
+  scopes: {
+    withCredential: {},
+  },
+});
 
 module.exports = AiToolApplication;
