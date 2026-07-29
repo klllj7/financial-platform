@@ -55,9 +55,13 @@ function ComplianceRiskEventsPage() {
   const [keyword, setKeyword] = useState("");
   const [riskFilter, setRiskFilter] = useState("전체");
   const [statusFilter, setStatusFilter] = useState("전체");
+  const [departmentFilter, setDepartmentFilter] = useState("전체");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selectedEventId, setSelectedEventId] = useState(
     location.state?.selectedEventId ?? null,
   );
+  const [showRawText, setShowRawText] = useState(false);
   const [actionType, setActionType] = useState(ACTION_FORM_TYPES[0].value);
   const [actionReason, setActionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -69,6 +73,7 @@ function ComplianceRiskEventsPage() {
       .then((res) => {
         const mapped = res.data.map((event) => {
           const status = deriveActionStatus(event.actions);
+          const createdAt = new Date(event.created_at);
           return {
             id: event.event_id,
             riskLevel: event.grade,
@@ -76,10 +81,14 @@ function ComplianceRiskEventsPage() {
             department: event.department_name ?? "-",
             eventType: event.detection_type,
             modelName: "-", // TODO: ai_tool_info 연동되면 실제 값으로 교체 (B 담당자)
-            promptSummary: event.description,
+            // 목록/기본 노출은 마스킹본으로 하고, 원문은 상세보기에서 토글로만 연다.
+            maskedPromptSummary: event.masked_description ?? event.description,
+            rawPromptSummary: event.description,
+            similarityScore: event.similarity_score,
             actionStatus: status.label,
             actionStatusType: status.type,
             occurredAt: formatOccurredAt(event.created_at),
+            createdAt,
             actions: event.actions,
           };
         });
@@ -93,17 +102,42 @@ function ComplianceRiskEventsPage() {
     queueMicrotask(fetchEvents);
   }, []);
 
+  // 목록에 실제로 나타난 부서만 선택지로 보여준다.
+  const departmentOptions = useMemo(() => {
+    const unique = new Set(events.map((event) => event.department).filter(Boolean));
+    return ["전체", ...Array.from(unique).sort()];
+  }, [events]);
+
+  // 같은 사용자가 같은 달에 몇 번째 걸린 건인지 계산한다 (반복 위반자 파악용).
+  const monthlyViolationCounts = useMemo(() => {
+    const counts = {};
+    events.forEach((event) => {
+      const key = `${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`;
+      counts[key] = (counts[key] ?? 0) + 1;
+    });
+    return counts;
+  }, [events]);
+
+  const getMonthlyCount = (event) =>
+    monthlyViolationCounts[`${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`] ?? 1;
+
   const filteredEvents = useMemo(() => {
     const query = keyword.trim().toLowerCase();
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59`) : null;
+
     return events.filter((event) => {
-      const text = [event.userName, event.department, event.eventType, event.modelName, event.promptSummary]
+      const text = [event.userName, event.department, event.eventType, event.modelName, event.maskedPromptSummary]
         .join(" ")
         .toLowerCase();
       return (riskFilter === "전체" || event.riskLevel === riskFilter)
         && (statusFilter === "전체" || event.actionStatus === statusFilter)
+        && (departmentFilter === "전체" || event.department === departmentFilter)
+        && (!from || event.createdAt >= from)
+        && (!to || event.createdAt <= to)
         && (!query || text.includes(query));
     });
-  }, [events, keyword, riskFilter, statusFilter]);
+  }, [events, keyword, riskFilter, statusFilter, departmentFilter, dateFrom, dateTo]);
 
   const selectedEvent = events.find((event) => event.id === selectedEventId);
   const countBy = (key, value) => events.filter((event) => event[key] === value).length;
@@ -112,6 +146,7 @@ function ComplianceRiskEventsPage() {
     setSelectedEventId(eventId);
     setActionType(ACTION_FORM_TYPES[0].value);
     setActionReason("");
+    setShowRawText(false);
   };
 
   const handleSubmitAction = async () => {
@@ -166,6 +201,15 @@ function ComplianceRiskEventsPage() {
           <label><span>조치 상태</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
             {STATUS_FILTERS.map((filter) => <option key={filter}>{filter}</option>)}
           </select></label>
+          <label><span>부서</span><select value={departmentFilter} onChange={(event) => setDepartmentFilter(event.target.value)}>
+            {departmentOptions.map((department) => <option key={department}>{department}</option>)}
+          </select></label>
+          <label className="risk-events-date-range">
+            <span>기간</span>
+            <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+            <span>~</span>
+            <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+          </label>
         </div>
 
         {loading ? (
@@ -174,17 +218,28 @@ function ComplianceRiskEventsPage() {
           <div className="risk-events-table-wrap">
             <table className="risk-events-table">
               <thead><tr><th>발생 시각</th><th>위험 등급</th><th>사용자 / 부서</th><th>탐지 유형</th><th>사용 모델</th><th>조치 상태</th><th /></tr></thead>
-              <tbody>{filteredEvents.map((event) => (
+              <tbody>{filteredEvents.map((event) => {
+                const monthlyCount = getMonthlyCount(event);
+                return (
                 <tr key={event.id}>
                   <td>{event.occurredAt}</td>
                   <td><span className={`risk-level ${event.riskLevel.toLowerCase()}`}>{event.riskLevel}</span></td>
-                  <td><strong>{event.userName}</strong><small>{event.department}</small></td>
-                  <td><strong>{event.eventType}</strong><small>{event.promptSummary}</small></td>
+                  <td>
+                    <strong>{event.userName}</strong>
+                    {monthlyCount > 1 && (
+                      <span className="risk-repeat-badge" title="이 사용자가 이번 달 발생한 위험 이벤트 건수">
+                        이번 달 {monthlyCount}번째
+                      </span>
+                    )}
+                    <small>{event.department}</small>
+                  </td>
+                  <td><strong>{event.eventType}</strong><small>{event.maskedPromptSummary}</small></td>
                   <td>{event.modelName}</td>
                   <td><span className={`risk-status ${event.actionStatusType}`}>{event.actionStatus}</span></td>
                   <td><button type="button" className="risk-view-button" onClick={() => openEventDetail(event.id)}><Eye size={15} />상세</button></td>
                 </tr>
-              ))}</tbody>
+                );
+              })}</tbody>
             </table>
             {filteredEvents.length === 0 && <div className="risk-events-empty">조건에 맞는 위험 이벤트가 없습니다.</div>}
           </div>
@@ -200,7 +255,25 @@ function ComplianceRiskEventsPage() {
               <div><dt>발생 시각</dt><dd>{selectedEvent.occurredAt}</dd></div>
               <div><dt>사용 모델</dt><dd>{selectedEvent.modelName}</dd></div>
               <div><dt>조치 상태</dt><dd>{selectedEvent.actionStatus}</dd></div>
-              <div className="wide"><dt>탐지 내용</dt><dd>{selectedEvent.promptSummary}</dd></div>
+              {getMonthlyCount(selectedEvent) > 1 && (
+                <div><dt>이번 달 발생 건수</dt><dd>{getMonthlyCount(selectedEvent)}번째 (반복 발생)</dd></div>
+              )}
+              {selectedEvent.similarityScore != null && (
+                <div><dt>탐지 신뢰도(유사도)</dt><dd>{(selectedEvent.similarityScore * 100).toFixed(1)}%</dd></div>
+              )}
+              <div className="wide">
+                <dt>
+                  탐지 내용
+                  <button
+                    type="button"
+                    className="risk-raw-toggle-button"
+                    onClick={() => setShowRawText((prev) => !prev)}
+                  >
+                    {showRawText ? "마스킹본 보기" : "원문 보기"}
+                  </button>
+                </dt>
+                <dd>{showRawText ? selectedEvent.rawPromptSummary : selectedEvent.maskedPromptSummary}</dd>
+              </div>
             </dl>
 
             <div className="risk-event-action-form">

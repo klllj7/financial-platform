@@ -9,7 +9,11 @@ class UsageLog(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=True)
+    # 원문. 컴플라이언스 담당자가 오탐 여부를 판단하거나 증빙자료로 써야 해서
+    # 보관은 하되, 목록 화면 기본 노출은 마스킹본으로 하고 원문은 상세보기에서만 연다.
     description = Column(String)
+    # 화면에 기본으로 보여줄 마스킹본. 탐지된 게 없으면 원문과 동일하다.
+    masked_description = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

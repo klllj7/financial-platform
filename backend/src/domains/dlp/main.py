@@ -45,7 +45,12 @@ def gateway_chat(request: ChatRequest):
 
     db = SessionLocal()
     try:
-        usage_log = UsageLog(user_id=request.user_id, description=request.prompt[:200])
+        masked_description = mask_text(request.prompt, detected) if detected else request.prompt
+        usage_log = UsageLog(
+            user_id=request.user_id,
+            description=request.prompt[:200],
+            masked_description=masked_description[:200],
+        )
         db.add(usage_log)
         db.commit()
         db.refresh(usage_log)
@@ -171,6 +176,7 @@ def list_events():
             result.append({
                 "event_id": event.event_id,
                 "description": usage_log.description if usage_log else None,
+                "masked_description": usage_log.masked_description if usage_log else None,
                 "user_name": user.name if user else None,
                 "department_name": department.name if department else None,
                 "detection_type": event.detection_type,
