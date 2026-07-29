@@ -789,11 +789,41 @@
 
 .compliance-summary-grid.admin-view {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-areas: "risk cost notice";
+  grid-template-areas:
+    "risk model notice"
+    "cost model notice";
+}
+
+.compliance-summary-grid.admin-view > .compliance-admin-model-panel {
+  grid-area: model;
 }
 
 .compliance-dashboard-page.admin-view .compliance-dashboard-second-row {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.compliance-dashboard-detail-grid.admin-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "actions department"
+    "usage usage";
+  align-items: stretch;
+  gap: 18px;
+}
+
+.compliance-dashboard-detail-grid.admin-view > .compliance-dashboard-second-row {
+  grid-area: actions;
+  margin-bottom: 0;
+}
+
+.compliance-dashboard-detail-grid.admin-view > .compliance-department-risk-panel {
+  grid-area: department;
+  margin-bottom: 0;
+}
+
+.compliance-dashboard-detail-grid.admin-view > .compliance-usage-trend-panel {
+  grid-area: usage;
 }
 
 .compliance-risk-summary-card,
@@ -1113,6 +1143,67 @@
   background: #ffe7e8;
 }
 
+.compliance-dashboard-request-cards {
+  gap: 10px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.compliance-dashboard-request-cards > button {
+  align-items: flex-start;
+  min-height: 105px;
+  padding: 13px 14px;
+  background: #f8faff;
+  border: 1px solid #dfe7f3;
+  border-radius: 12px;
+}
+
+.compliance-dashboard-request-cards > button:last-child {
+  border-bottom: 1px solid #dfe7f3;
+}
+
+.compliance-dashboard-request-cards > button:hover {
+  background: #f1f6ff;
+  border-color: #c6d5ec;
+}
+
+.compliance-dashboard-request-cards > button > div {
+  flex: 1;
+}
+
+.compliance-dashboard-request-cards strong {
+  font-size: 11px;
+}
+
+.compliance-dashboard-request-cards small {
+  font-size: 9px;
+}
+
+.compliance-dashboard-request-cards p {
+  display: -webkit-box;
+  margin: 10px 0 0;
+  overflow: hidden;
+  color: #526582;
+  font-size: 9px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.compliance-dashboard-request-cards time {
+  display: block;
+  margin-top: 10px;
+  color: #8794a8;
+  font-size: 8px;
+}
+
+.compliance-dashboard-request-cards > button > span {
+  margin-top: 0;
+  padding: 6px 8px;
+  border: 1px solid currentColor;
+}
+
 .compliance-request-status-empty {
   display: flex;
   align-items: center;
@@ -1123,6 +1214,83 @@
   color: #8794a8;
   font-size: 10px;
   text-align: center;
+}
+
+.compliance-admin-model-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.compliance-admin-model-metrics > button {
+  min-width: 0;
+  min-height: 92px;
+  padding: 11px 8px;
+  background: #f8faff;
+  border: 1px solid #e0e7f2;
+  border-radius: 12px;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.compliance-admin-model-metrics > button:hover {
+  background: #eef4ff;
+  border-color: #aac3eb;
+  transform: translateY(-1px);
+}
+
+.compliance-admin-model-metrics span {
+  display: block;
+  color: #617493;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.compliance-admin-model-metrics strong {
+  display: block;
+  margin-top: 9px;
+  color: #2f6fed;
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.compliance-admin-model-metrics small {
+  display: block;
+  margin-top: 7px;
+  color: #8a97aa;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.compliance-admin-recent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 15px;
+  color: #354968;
+  background: #fbfcfe;
+  border-top: 1px solid #edf1f6;
+  border-bottom: 1px solid #edf1f6;
+  font-size: 9px;
+}
+
+.compliance-admin-recent-header > span {
+  color: #8a97aa;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.compliance-admin-recent-list > button {
+  min-height: 47px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.compliance-admin-recent-list .compliance-request-status-empty {
+  min-height: 104px;
 }
 
 /* ==================================================
@@ -1445,6 +1613,16 @@
   background: #f8faff;
 }
 
+.compliance-notice-item.is-pinned {
+  background: #eef8ff;
+  border-left: 3px solid #63b3ed;
+  padding-left: 12px;
+}
+
+.compliance-notice-item.is-pinned:hover {
+  background: #e3f3ff;
+}
+
 /* 공지사항 내용 */
 .compliance-notice-item > div {
   display: flex;
@@ -1715,7 +1893,20 @@
     grid-template-areas:
       "risk"
       "cost"
+      "model"
       "notice";
+  }
+
+  .compliance-dashboard-page.admin-view .compliance-dashboard-second-row {
+    grid-template-columns: 1fr;
+  }
+
+  .compliance-dashboard-detail-grid.admin-view {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "actions"
+      "department"
+      "usage";
   }
 
   .compliance-dashboard-second-row {

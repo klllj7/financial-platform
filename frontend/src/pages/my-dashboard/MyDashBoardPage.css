@@ -10,7 +10,7 @@
 }
 
 
-/* 페이지 제목과 월 선택 탭 */
+/* 페이지 제목 */
 
 .dashboard-heading {
   display: flex;
@@ -30,55 +30,6 @@
   font-weight: 800;
   letter-spacing: -0.5px;
 }
-
-/* 현재 조회 중인 월 */
-.dashboard-heading p {
-  margin: 7px 0 0;
-
-  color: var(--color-text-sub);
-  font-size: 13px;
-}
-
-.dashboard-heading p strong {
-  color: #64789b;
-}
-
-/* 월 선택 버튼 목록 */
-.month-tab-list {
-  display: flex;
-  align-items: center;
-
-  padding: 4px;
-
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-}
-
-/* 월 선택 버튼 */
-.month-tab {
-  height: 34px;
-  padding: 0 16px;
-
-  color: #71809a;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  transition:
-    color 0.2s,
-    background-color 0.2s;
-}
-
-/* 현재 선택된 월 */
-.month-tab.active {
-  color: #ffffff;
-  background: var(--color-primary);
-}
-
 
 /* 상단 요약 카드 */
 .dashboard-summary-grid {
@@ -375,7 +326,6 @@
 /* 공지사항 목록 */
 .dashboard-notice-list {
   display: flex;
-  flex: 1;
   flex-direction: column;
 }
 
@@ -385,14 +335,13 @@
   -webkit-appearance: none;
 
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
 
   width: 100%;
-  min-height: 66px;
-  padding: 11px 16px;
+  min-height: 36px;
+  padding: 7px 15px;
 
   color: inherit;
   background: #ffffff;
@@ -413,13 +362,22 @@
   background: #f7faff;
 }
 
-/* 카테고리와 NEW 표시 */
-.notice-item-top {
+.dashboard-notice-item.is-pinned {
+  background: #eef8ff;
+  border-left: 3px solid #63b3ed;
+  padding-left: 12px;
+}
+
+.dashboard-notice-item.is-pinned:hover {
+  background: #e3f3ff;
+}
+
+/* 카테고리, 중요 표시, 제목 */
+.dashboard-notice-item-main {
   display: flex;
   align-items: center;
   gap: 6px;
-
-  margin-bottom: 5px;
+  min-width: 0;
 }
 
 /* 공지사항 카테고리 */
@@ -427,48 +385,34 @@
   display: inline-flex;
   align-items: center;
 
-  height: 20px;
-  padding: 0 7px;
+  flex-shrink: 0;
+  padding: 3px 5px;
 
   color: #315b99;
   background: #edf4ff;
   border-radius: 5px;
 
-  font-size: 10px;
-  font-weight: 700;
-}
-
-/* 새로운 공지사항 표시 */
-.notice-new-badge {
-  color: #ff4d5e;
-
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
 }
 
 /* 공지사항 제목 */
 .notice-item-title {
-  width: 100%;
-
+  display: block;
+  min-width: 0;
   color: #2d3e5c;
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 700;
-  line-height: 1.45;
-
-  display: -webkit-box;
   overflow: hidden;
-
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 공지사항 등록일 */
 .notice-item-date {
-  margin-top: 5px;
-
+  flex-shrink: 0;
   color: #8a98af;
-  font-size: 10px;
+  font-size: 8px;
 }
 
 
@@ -966,20 +910,6 @@
     grid-template-columns: 1fr;
   }
 
-  /* 공지사항을 두 열로 표시 */
-  .dashboard-notice-list {
-    display: grid;
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-  .dashboard-notice-item {
-    min-height: 86px;
-  }
-
-  .dashboard-notice-item:nth-child(odd) {
-    border-right: 1px solid #e8edf5;
-  }
 }
 
 @media (max-width: 800px) {
@@ -987,21 +917,6 @@
     padding: 22px 18px 28px;
   }
 
-  /* 제목과 월 선택 영역을 세로로 배치 */
-  .dashboard-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  /* 월 선택 버튼이 넘치면 가로로 스크롤 */
-  .month-tab-list {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  .month-tab {
-    flex-shrink: 0;
-  }
 }
 
 @media (max-width: 760px) {
@@ -1012,15 +927,6 @@
 }
 
 @media (max-width: 600px) {
-  /* 공지사항을 한 열로 표시 */
-  .dashboard-notice-list {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-notice-item:nth-child(odd) {
-    border-right: none;
-  }
-
   /* AI Tool 신청 현황 제목을 세로로 정렬 */
   .tool-application-header {
     align-items: flex-start;
