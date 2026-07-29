@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { getAdminUsers, updateAdminUserRole, updateAdminUserStatus, } from "../../api/adminApi";
+import { 
+  getAdminUsers, 
+  getAdminRoles, 
+  getAdminDepartments, 
+  updateAdminUserRole, 
+  updateAdminUserStatus, 
+} from "../../api/adminApi";
 import "./AdminAccountPage.css";
-
-const ROLE_LABEL_MAP = {
-  ADMIN: "관리자",
-  COMPLIANCE_MANAGER: "보안/컴플라이언스",
-  EMPLOYEE: "임직원",
-};
 
 const STATUS_LABEL_MAP = {
   ACTIVE: "활성",
@@ -20,6 +20,8 @@ function AdminAccountPage() {
   const [roleFilter, setRoleFilter] = useState("ALL");
 
   const [users, setUsers] = useState([]);                 // DB에서 불러온 사용자 목록
+  const [roles, setRoles] = useState([]);                 // DB에서 조회한 권한 목록
+  const [departments, setDepartments] = useState([]);     // DB에서 조회한 부서 목록
   const [isLoading, setIsLoading] = useState(false);      // 목록 로딩 상태
   const [errorMessage, setErrorMessage] = useState("");   // 목록 조회 에러 메시지
 
@@ -47,6 +49,24 @@ function AdminAccountPage() {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAccountOptions = async () => {
+    try {
+      const [rolesResult, departmentsResult] = await Promise.all([
+        getAdminRoles(),
+        getAdminDepartments(),
+      ]);
+
+      setRoles(rolesResult.data);
+      setDepartments(departmentsResult.data);
+    } catch (error) {
+      console.error("부서/권한 목록 조회 실패: ", error);
+
+      alert(
+        error.response?.data?.error?.message || "부서/권한 목록을 불러오지 못했습니다."
+      );
     }
   };
 
@@ -129,6 +149,7 @@ function AdminAccountPage() {
 
   useEffect(() => {
     fetchUsers();
+    fetchAccountOptions();
   }, []);
 
   // 선택된 부서/역할 조건에 맞 사용자 목록 필터링
@@ -137,8 +158,8 @@ function AdminAccountPage() {
       const departmentName = user.department?.name || "-";
       const roleCode = user.role?.code || "-";
 
-      const matchesDepartment = departmentFilter === "ALL" || departmentName === departmentFilter;
-      const matchesRole = roleFilter === "ALL" || roleCode === roleFilter;
+      const matchesDepartment = departmentFilter === "ALL" || user.department?.code === departmentFilter;
+      const matchesRole = roleFilter === "ALL" || user.role?.code === roleFilter;
 
       return matchesDepartment && matchesRole;
     });
@@ -172,10 +193,11 @@ function AdminAccountPage() {
             onChange={(e) => setDepartmentFilter(e.target.value)}
           >
             <option value="ALL">전체 부서</option>
-            <option value="IT보안팀">IT보안팀</option>
-            <option value="준법감시팀">준법감시팀</option>
-            <option value="마케팅팀">마케팅팀</option>
-            <option value="고객지원팀">고객지원팀</option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.code}>
+                {department.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -187,9 +209,11 @@ function AdminAccountPage() {
             onChange={(e) => setRoleFilter(e.target.value)}
           >
             <option value="ALL">전체 역할</option>
-            <option value="ADMIN">관리자</option>
-            <option value="COMPLIANCE_MANAGER">보안/컴플라이언스</option>
-            <option value="EMPLOYEE">임직원</option>
+            {roles.map((role) => (
+              <option key={role.id} value={role.code}>
+                {role.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -342,9 +366,11 @@ function AdminAccountPage() {
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value)}
                   >
-                    <option value="EMPLOYEE">임직원</option>
-                    <option value="COMPLIANCE_MANAGER">보안/컴플라이언스 담당자</option>
-                    <option value="ADMIN">관리자</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.code}>
+                        {role.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

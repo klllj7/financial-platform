@@ -24,3 +24,17 @@ export const updateAdminUserStatus = async (userId, status) => {
 
   return response.data;
 };
+
+// 관리자 - 권한 목록 조회 API
+// 실제 요청 주소: GET /api/admin/roles
+export const getAdminRoles = async () => {
+  const response = await axiosInstance.get("/admin/roles");
+  return response.data;
+};
+
+// 관리자 - 부서 목록 조회 API
+// 실제 요청 주소: GET /api/admin/departments
+export const getAdminDepartments = async () => {
+  const response = await axiosInstance.get("/admin/departments");
+  return response.data;
+};

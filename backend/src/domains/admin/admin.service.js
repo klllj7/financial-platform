@@ -1,5 +1,25 @@
 const { User, Role, Department, LoginHistory } = require("../auth/auth.models");
 
+// 관리자 - 권한 목록 조회
+const getRoles = async () => {
+  const roles = await Role.findAll({
+    attributes: ["id", "code", "name"],
+    order: [["id", "ASC"]],
+  });
+
+  return roles;
+};
+
+// 관리자 - 부서 목록 조회
+const getDepartments = async () => {
+  const departments = await Department.findAll({
+    attributes: ["id", "code", "name"],
+    order: [["id", "ASC"]],
+  });
+
+  return departments;
+};
+
 // 관리자 - 전체 사용자 목록 조회
 const getUsers = async () => {
   const users = await User.findAll({
@@ -159,4 +179,6 @@ module.exports = {
   getUsers,
   updateUserRole,
   updateUserStatus,
+  getRoles,
+  getDepartments,
 };
