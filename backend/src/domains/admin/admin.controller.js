@@ -74,8 +74,42 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
+// 관리자 - 권한 목록 조회 Controller
+const getRoles = async (req, res) => {
+  try {
+    const roles = await adminService.getRoles();
+
+    return success(res, roles, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "ADMIN_ROLES_FAILED",
+      error.message || "권한 목록 조회에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
+// 관리자 - 부서 목록 조회 Controller
+const getDepartments = async (req,res) => {
+  try {
+    const departments = await adminService.getDepartments();
+
+    return success(res, departments, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "ADMIN_DEPARTMENTS_FAILED",
+      error.message || "부서 목록 조회에 실패했습니다.",
+      error.statusCode || 500
+    );
+  }
+};
+
 module.exports = {
   getUsers,
   updateUserRole,
   updateUserStatus,
+  getRoles,
+  getDepartments,
 };
