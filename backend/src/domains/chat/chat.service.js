@@ -156,12 +156,28 @@ const sendMessage = async ({
     );
   }
 
+  /*
+    AI가 생성한 답변 자체에 민감정보가 들어있을 수 있어서(참조 데이터를
+    그대로 인용하거나 잘못 생성하는 경우), 입력과 마찬가지로 응답도
+    DLP로 한 번 더 검사한다. 입력이 이미 차단된 경우(reply가 안내 문구일
+    뿐 실제 AI 응답이 아님)에는 다시 검사할 필요가 없어 건너뛴다.
+  */
+  let outputInspection = { blocked: false, maskApplied: false };
+  if (!inspection.blocked) {
+    outputInspection = await inspectPrompt(reply, userId);
+    if (outputInspection.blocked) {
+      reply = "AI가 생성한 답변에 민감한 내용이 포함되어 있어 표시할 수 없습니다. 다른 방식으로 다시 질문해 주세요.";
+    } else if (outputInspection.maskApplied) {
+      reply = outputInspection.safePrompt;
+    }
+  }
+
   const assistantMessage = await ChatMessage.create({
     sessionId: session.id,
     role: "ASSISTANT",
     content: reply,
-    blocked: inspection.blocked,
-    maskApplied: inspection.maskApplied,
+    blocked: inspection.blocked || outputInspection.blocked,
+    maskApplied: inspection.maskApplied || outputInspection.maskApplied,
     modelName,
     inputTokens,
     outputTokens,

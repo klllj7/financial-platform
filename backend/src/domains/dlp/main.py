@@ -52,11 +52,13 @@ def gateway_chat(request: ChatRequest):
 
         if detected:
             detection_type = ",".join(sorted(set(d["type"] for d in detected)))
+            similarity_scores = [d["score"] for d in detected if "score" in d]
             event_log = EventLog(
                 event_id=usage_log.id,
                 detection_type=detection_type,
                 masked_yn=(action_status == "masked"),
                 grade=compute_grade(detected),
+                similarity_score=max(similarity_scores) if similarity_scores else None,
             )
             db.add(event_log)
 
@@ -145,6 +147,7 @@ def list_events():
                 "detection_type": event.detection_type,
                 "grade": event.grade,
                 "masked_yn": event.masked_yn,
+                "similarity_score": event.similarity_score,
                 "created_at": event.created_at,
                 "actions": [
                     {

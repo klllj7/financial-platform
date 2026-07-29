@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.sql import func
 from db import Base
 
@@ -38,6 +38,9 @@ class EventLog(Base):
     detection_type = Column(String)
     masked_yn = Column(Boolean, default=False)
     grade = Column(String)
+    # Embedding Similarity 탐지의 근거(코사인 유사도)를 감사용으로 남긴다.
+    # 정규식 탐지만 걸린 경우엔 값이 없다(NULL).
+    similarity_score = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
