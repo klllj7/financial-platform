@@ -47,6 +47,12 @@ function AdminModelPage() {
   // 반려 사유를 입력받을 팝업 상태다.
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [connectionForm, setConnectionForm] = useState({
+    apiBaseUrl: "",
+    apiModelId: "",
+    apiKey: "",
+  });
 
   // 관리자 페이지 진입 시 전체 AI Tool 신청 내역을 조회한다.
   useEffect(() => {
@@ -95,7 +101,12 @@ function AdminModelPage() {
   ).length;
 
   // 승인·반려 API 처리 결과를 목록에도 즉시 반영한다.
-  const submitReview = async (application, status, reviewComment) => {
+  const submitReview = async (
+    application,
+    status,
+    reviewComment,
+    connection,
+  ) => {
     if (reviewingId) return;
 
     setReviewingId(application.id);
@@ -105,6 +116,7 @@ function AdminModelPage() {
       const response = await reviewAiToolApplication(application.id, {
         status,
         reviewComment,
+        ...connection,
       });
 
       setApplications((current) =>
@@ -114,6 +126,8 @@ function AdminModelPage() {
       );
       setRejectTarget(null);
       setRejectReason("");
+      setApproveTarget(null);
+      setConnectionForm({ apiBaseUrl: "", apiModelId: "", apiKey: "" });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.error?.message ||
@@ -122,6 +136,46 @@ function AdminModelPage() {
     } finally {
       setReviewingId(null);
     }
+  };
+
+  const openApproveModal = (application) => {
+    const normalizedProvider = application.provider.toLowerCase();
+    const defaultBaseUrl = normalizedProvider.includes("upstage")
+      ? "https://api.upstage.ai/v1"
+      : normalizedProvider.includes("openai")
+        ? "https://api.openai.com/v1"
+        : "";
+
+    setErrorMessage("");
+    setApproveTarget(application);
+    setConnectionForm({
+      apiBaseUrl: defaultBaseUrl,
+      apiModelId: "",
+      apiKey: "",
+    });
+  };
+
+  const handleApprove = (event) => {
+    event.preventDefault();
+    if (
+      !connectionForm.apiBaseUrl.trim() ||
+      !connectionForm.apiModelId.trim() ||
+      !connectionForm.apiKey.trim()
+    ) {
+      setErrorMessage("API Base URL, 모델 ID, API Key를 모두 입력해 주세요.");
+      return;
+    }
+
+    submitReview(
+      approveTarget,
+      "APPROVED",
+      "API 연결 확인 후 승인 처리",
+      {
+        apiBaseUrl: connectionForm.apiBaseUrl.trim(),
+        apiModelId: connectionForm.apiModelId.trim(),
+        apiKey: connectionForm.apiKey.trim(),
+      },
+    );
   };
 
   const handleReject = (event) => {
@@ -371,9 +425,7 @@ function AdminModelPage() {
                       <button
                         type="button"
                         className="admin-model-approve-button"
-                        onClick={() =>
-                          submitReview(application, "APPROVED", "승인 처리")
-                        }
+                        onClick={() => openApproveModal(application)}
                         disabled={
                           application.status !== "PENDING" ||
                           reviewingId === application.id
@@ -638,6 +690,108 @@ function AdminModelPage() {
                   disabled={reviewingId === rejectTarget.id}
                 >
                   반려 처리
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {approveTarget && (
+        <div className="admin-model-modal-backdrop">
+          <div
+            className="admin-model-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-model-approve-title"
+          >
+            <div className="admin-model-modal-header">
+              <div>
+                <p>API 연결 후 승인</p>
+                <h3 id="admin-model-approve-title">
+                  {approveTarget.toolName}
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="admin-model-modal-close"
+                onClick={() => setApproveTarget(null)}
+                aria-label="닫기"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleApprove}>
+              <div className="admin-model-modal-body">
+                <p className="admin-model-credential-notice">
+                  연결 테스트에 성공한 경우에만 승인됩니다. API Key는
+                  서버에서 암호화되어 저장되며 다시 화면에 표시되지 않습니다.
+                </p>
+                <div className="admin-model-form-group">
+                  <label htmlFor="approveApiBaseUrl">API Base URL</label>
+                  <input
+                    id="approveApiBaseUrl"
+                    type="url"
+                    value={connectionForm.apiBaseUrl}
+                    placeholder="https://api.example.com/v1"
+                    onChange={(event) =>
+                      setConnectionForm((current) => ({
+                        ...current,
+                        apiBaseUrl: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="admin-model-form-group">
+                  <label htmlFor="approveApiModelId">모델 ID</label>
+                  <input
+                    id="approveApiModelId"
+                    type="text"
+                    value={connectionForm.apiModelId}
+                    placeholder="예: solar-pro3"
+                    onChange={(event) =>
+                      setConnectionForm((current) => ({
+                        ...current,
+                        apiModelId: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="admin-model-form-group">
+                  <label htmlFor="approveApiKey">API Key</label>
+                  <input
+                    id="approveApiKey"
+                    type="password"
+                    value={connectionForm.apiKey}
+                    autoComplete="new-password"
+                    placeholder="API Key를 입력해 주세요."
+                    onChange={(event) =>
+                      setConnectionForm((current) => ({
+                        ...current,
+                        apiKey: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+              <div className="admin-model-modal-footer">
+                <button
+                  type="button"
+                  className="admin-model-cancel-button"
+                  onClick={() => setApproveTarget(null)}
+                  disabled={reviewingId === approveTarget.id}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="admin-model-save-button"
+                  disabled={reviewingId === approveTarget.id}
+                >
+                  {reviewingId === approveTarget.id
+                    ? "연결 확인 중..."
+                    : "연결 확인 후 승인"}
                 </button>
               </div>
             </form>

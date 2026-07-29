@@ -254,10 +254,41 @@ const getUsage = async ({
   page,
   size,
   month,
+  date,
   riskLevel,
   aiToolId,
 }) => {
-  const { start, end } = getMonthRange(month);
+  let { start, end } = getMonthRange(month);
+  if (date) {
+    const matchedDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+    const selectedDate = matchedDate
+      ? new Date(
+        Number(matchedDate[1]),
+        Number(matchedDate[2]) - 1,
+        Number(matchedDate[3]),
+      )
+      : null;
+
+    if (
+      !selectedDate ||
+      Number.isNaN(selectedDate.getTime()) ||
+      selectedDate.getFullYear() !== Number(matchedDate[1]) ||
+      selectedDate.getMonth() !== Number(matchedDate[2]) - 1 ||
+      selectedDate.getDate() !== Number(matchedDate[3])
+    ) {
+      const error = new Error("date는 YYYY-MM-DD 형식의 유효한 날짜여야 합니다.");
+      error.statusCode = 400;
+      error.code = "DASHBOARD_INVALID_DATE";
+      throw error;
+    }
+
+    start = selectedDate;
+    end = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate() + 1,
+    );
+  }
   const where = {
     role: "ASSISTANT",
     createdAt: { [Op.gte]: start, [Op.lt]: end },

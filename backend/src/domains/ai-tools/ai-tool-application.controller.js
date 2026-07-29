@@ -83,6 +83,13 @@ const reviewApplication = async (req, res) => {
       reviewerId: req.user.userId,
       status,
       reviewComment: req.body.reviewComment?.trim(),
+      connection: status === "APPROVED"
+        ? {
+          apiKey: req.body.apiKey?.trim(),
+          apiBaseUrl: req.body.apiBaseUrl?.trim(),
+          apiModelId: req.body.apiModelId?.trim(),
+        }
+        : null,
     }));
   } catch (error) {
     return fail(res, error.code || "AI_TOOL_REVIEW_FAILED", error.message, error.statusCode || 500);

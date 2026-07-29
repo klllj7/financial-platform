@@ -68,6 +68,7 @@ const usage = (req, res) => {
       page,
       size,
       month: req.query.month,
+      date: req.query.date,
       riskLevel: req.query.riskLevel,
       aiToolId: req.query.aiToolId,
     }),

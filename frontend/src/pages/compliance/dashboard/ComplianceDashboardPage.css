@@ -1731,6 +1731,83 @@
   min-height: 320px;
 }
 
+.compliance-department-chart-controls {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: flex-end;
+  justify-items: end;
+  gap: 8px;
+}
+
+.compliance-department-chart-controls > .compliance-chart-legend {
+  grid-column: 1 / -1;
+}
+
+.compliance-department-period-filter {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  padding: 3px;
+  background: #f1f5fb;
+  border: 1px solid #dfe6f1;
+  border-radius: 9px;
+}
+
+.compliance-department-period-filter button {
+  white-space: nowrap;
+  padding: 5px 8px;
+  color: #71809a;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.compliance-department-period-filter button.active {
+  color: #ffffff;
+  background: #2f6fed;
+  box-shadow: 0 2px 6px rgba(47, 111, 237, 0.2);
+}
+
+.compliance-department-date-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.compliance-department-date-filter > span {
+  color: #71809a;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.compliance-department-date-filter input {
+  height: 29px;
+  padding: 0 7px;
+  color: #385477;
+  background: #f8faff;
+  border: 1px solid #d7e1ef;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.compliance-department-date-filter input::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.compliance-department-date-filter.active input {
+  color: #245bb5;
+  background: #edf4ff;
+  border-color: #78a4eb;
+}
+
 /* 그래프 색상 범례 */
 .compliance-chart-legend {
   display: flex;
