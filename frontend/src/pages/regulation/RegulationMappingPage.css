@@ -60,6 +60,34 @@
   flex: 1;
 }
 
+.regulation-document-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.regulation-document-list-header h3 {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.regulation-document-list-header .regulation-add-button {
+  flex-shrink: 0;
+  width: auto;
+  padding: 5px 10px;
+
+  font-size: 12px;
+  white-space: nowrap;
+
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .regulation-document-list ul {
   list-style: none;
   margin: 0;
@@ -87,6 +115,15 @@
   border-color: var(--color-primary);
 }
 
+.regulation-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
 .regulation-clause-card {
   padding: 16px;
   margin-bottom: 14px;
@@ -105,4 +142,89 @@
   margin: 0;
   color: var(--color-text-muted);
   font-size: 14px;
+}
+
+/* 법령 문서 추가 모달 */
+.regulation-modal-backdrop {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 100;
+}
+
+.regulation-modal {
+  width: 420px;
+  padding: 24px;
+
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.regulation-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.regulation-modal-header h3 {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.regulation-modal-close-button {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.regulation-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.regulation-modal-body label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.regulation-modal-body input,
+.regulation-modal-body textarea {
+  padding: 8px 12px;
+  font-family: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.regulation-modal-body textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.regulation-clause-file-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--color-primary);
+  font-size: 13px;
+}
+
+.regulation-modal-save-button {
+  margin-top: 12px;
+  padding: 10px 0;
+
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
