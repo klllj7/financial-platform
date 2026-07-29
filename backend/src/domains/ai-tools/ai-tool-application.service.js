@@ -39,6 +39,41 @@ const createApplication = async ({ userId, payload }) => {
   });
   if (!user) throw serviceError("AI_TOOL_USER_NOT_FOUND", "신청자 정보를 찾을 수 없습니다.", 404);
 
+  const previousApplications = await AiToolApplication.findAll({
+    order: [["createdAt", "DESC"]],
+  });
+  const normalizedToolName = payload.toolName.toLocaleLowerCase();
+  const normalizedProvider = payload.provider.toLocaleLowerCase();
+  const duplicate = previousApplications.find(
+    (application) =>
+      application.toolName.trim().toLocaleLowerCase() === normalizedToolName &&
+      application.provider.trim().toLocaleLowerCase() === normalizedProvider,
+  );
+
+  if (duplicate?.status === "REJECTED") {
+    const reason =
+      duplicate.reviewComment?.trim() || "관리자 검토 결과 승인되지 않음";
+    throw serviceError(
+      "AI_TOOL_REAPPLICATION_BLOCKED",
+      `해당 AI는 '${reason}'의 이유로 사용이 중지되었습니다.`,
+      409,
+    );
+  }
+  if (duplicate?.status === "PENDING") {
+    throw serviceError(
+      "AI_TOOL_APPLICATION_PENDING",
+      "해당 AI는 이미 신청되어 검토 중입니다.",
+      409,
+    );
+  }
+  if (duplicate?.status === "APPROVED") {
+    throw serviceError(
+      "AI_TOOL_ALREADY_APPROVED",
+      "해당 AI는 이미 승인되어 사용할 수 있습니다.",
+      409,
+    );
+  }
+
   return AiToolApplication.create({
     userId,
     applicantName: user.name,
