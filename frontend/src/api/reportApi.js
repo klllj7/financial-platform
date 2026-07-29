@@ -22,3 +22,11 @@ export const updateEvidenceItemResult = async ({ departmentId, targetYear, itemN
   });
   return response.data;
 };
+
+export const generateEvidenceItem = async ({ departmentId, targetYear, itemNo }) => {
+  const response = await axiosInstance.post(`/report/evidence/${itemNo}/generate`, {
+    departmentId,
+    targetYear,
+  });
+  return response.data;
+};

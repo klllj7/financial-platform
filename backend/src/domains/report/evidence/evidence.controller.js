@@ -68,9 +68,37 @@ const getEvidenceSummary = async (req, res) => {
     );
   }
 };
+const generateEvidenceItem = async (req, res) => {
+  try {
+    const { itemNo } = req.params;
+    const { departmentId, targetYear, from, to } = req.body;
+
+    if (!departmentId || !targetYear) {
+      return fail(res, "EVIDENCE_GENERATE_PARAMS_REQUIRED", "departmentId와 targetYear는 필수입니다.", 400);
+    }
+
+    const data = await evidenceService.generateEvidenceItem({
+      departmentId: Number(departmentId),
+      targetYear: Number(targetYear),
+      itemNo, // item_no는 STRING 컬럼이라 Number 캐스팅하지 않는다
+      from: from ? new Date(from) : undefined,
+      to: to ? new Date(to) : undefined,
+    });
+
+    return success(res, data, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "EVIDENCE_GENERATE_FAILED",
+      error.message || "증빙자료 생성에 실패했습니다",
+      error.statusCode || 500
+    );
+  }
+};
 
 module.exports = {
   getEvidenceChecklist,
   updateItemResult,
   getEvidenceSummary,
+  generateEvidenceItem, 
 };

@@ -386,6 +386,13 @@
 .ce-badge-none { color: #cd4048; background: #ffe7e8; border: 1px solid #f0b0b4; }
 .ce-badge-na { color: #64738b; background: #eef1f6; border: 1px solid #d7dde7; }
 
+.ce-result-badge-button {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
 .ce-evidence-done,
 .ce-evidence-pending {
   display: inline-flex;
@@ -571,6 +578,19 @@
 
   color: var(--color-text-sub);
   font-size: 12px;
+}
+
+.ce-modal-error {
+  margin: 0 0 16px;
+  padding: 8px 12px;
+
+  color: #cd4048;
+  background: #ffe7e8;
+  border: 1px solid #f0b0b4;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .ce-modal-options {
