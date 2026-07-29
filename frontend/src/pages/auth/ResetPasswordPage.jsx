@@ -50,7 +50,7 @@ function ResetPasswordPage() {
   };
 
   return (
-    <main className="reset-password-page">
+    <div className="reset-password-page">
       <section className="reset-password-card">
         <div className="reset-password-header">
           <p>Password Recovery</p>
@@ -97,7 +97,7 @@ function ResetPasswordPage() {
           </button>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

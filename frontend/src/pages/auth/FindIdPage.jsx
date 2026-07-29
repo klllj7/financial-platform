@@ -83,7 +83,7 @@ function FindIdPage() {
   }, []);
 
   return (
-    <main className="find-id-page">
+    <div className="find-id-page">
       <section className="find-id-card">
         <div className="find-id-header">
           <p>Account Recovery</p>
@@ -146,7 +146,7 @@ function FindIdPage() {
           </button>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

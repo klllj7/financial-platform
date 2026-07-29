@@ -166,7 +166,7 @@ function SignupPage() {
   }, []);
 
   return (
-    <main className="signup-page">
+    <div className="signup-page">
       <section className="signup-container">
         {/* 상단 브랜드 영역 */}
         <header className="signup-header">
@@ -319,7 +319,7 @@ function SignupPage() {
           </div>
         </section>
       </section>
-    </main>
+    </div>
   );
 }
 

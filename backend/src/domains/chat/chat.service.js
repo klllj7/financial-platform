@@ -2,6 +2,7 @@ const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
 const AiToolApplication = require("../ai-tools/ai-tool-application.model");
 const { createSolarMessage } = require("./solar.client");
+const { Op } = require("sequelize");
 
 const DEFAULT_SOLAR_TOOL_KEY = "DEFAULT_SOLAR";
 const DLP_SERVICE_URL = process.env.DLP_SERVICE_URL || "http://localhost:8000";
@@ -10,13 +11,15 @@ const serviceError = (code, message, statusCode) => Object.assign(new Error(mess
 
 /* 요청한 채팅방이 현재 로그인 사용자의 것인지 확인한다. */
 const findOwnedSession = async (userId, sessionId) => {
-  const session = await ChatSession.findOne({ where: { id: sessionId, userId } });
+  const session = await ChatSession.findOne({
+    where: { id: sessionId, userId, deletedAt: { [Op.is]: null } },
+  });
   if (!session) throw serviceError("CHAT_SESSION_NOT_FOUND", "채팅을 찾을 수 없습니다.", 404);
   return session;
 };
 
 const getSessions = (userId) => ChatSession.findAll({
-  where: { userId },
+  where: { userId, deletedAt: { [Op.is]: null } },
   order: [["isPinned", "DESC"], ["updatedAt", "DESC"]],
 });
 
@@ -28,6 +31,31 @@ const getMessages = async ({ userId, sessionId }) => {
 const updatePin = async ({ userId, sessionId, isPinned }) => {
   const session = await findOwnedSession(userId, sessionId);
   return session.update({ isPinned });
+};
+
+/* 목록에서는 숨기되 감사 로그 보존을 위해 세션과 메시지는 실제 삭제하지 않는다. */
+const softDeleteSessions = async ({ userId, sessionIds }) => {
+  const sessions = await ChatSession.findAll({
+    where: {
+      id: { [Op.in]: sessionIds },
+      userId,
+      deletedAt: { [Op.is]: null },
+    },
+  });
+  const ownedIds = sessions.map((session) => session.id);
+  if (ownedIds.length === 0) {
+    throw serviceError(
+      "CHAT_SESSION_NOT_FOUND",
+      "삭제할 채팅을 찾을 수 없습니다.",
+      404,
+    );
+  }
+
+  await ChatSession.update(
+    { deletedAt: new Date(), isPinned: false },
+    { where: { id: { [Op.in]: ownedIds }, userId } },
+  );
+  return { sessionIds: ownedIds };
 };
 
 /*
@@ -191,5 +219,6 @@ module.exports = {
   getSessions,
   getMessages,
   updatePin,
+  softDeleteSessions,
   sendMessage,
 };

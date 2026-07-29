@@ -173,7 +173,7 @@ function LoginPage() {
   };
 
   return (
-    <main className="login-page">
+    <div className="login-page">
       <section className="login-container">
         {/* 왼쪽 서비스 소개/이미지 영역 */}
         <section className="login-left">
@@ -337,7 +337,7 @@ function LoginPage() {
           </div>
         </section>
       </section>
-    </main>
+    </div>
   );
 }
 

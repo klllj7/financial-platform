@@ -7,6 +7,7 @@ router.use(authenticate);
 router.get("/sessions", controller.getSessions);
 router.get("/sessions/:sessionId/messages", controller.getMessages);
 router.patch("/sessions/:sessionId/pin", controller.updatePin);
+router.delete("/sessions", controller.deleteSessions);
 router.post("/messages", controller.sendMessage);
 
 module.exports = router;

@@ -85,7 +85,7 @@ function ResetPasswordConfirmPage() {
   };
 
   return (
-    <main className="reset-confirm-page">
+    <div className="reset-confirm-page">
       <section className="reset-confirm-card">
         <div className="reset-confirm-header">
           <p>Password Reset</p>
@@ -174,7 +174,7 @@ function ResetPasswordConfirmPage() {
           </button>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 
