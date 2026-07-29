@@ -130,6 +130,11 @@
 
   border: 1px solid var(--color-border);
   border-radius: 12px;
+  cursor: pointer;
+}
+
+.regulation-clause-card:hover {
+  border-color: var(--color-primary);
 }
 
 .regulation-clause-title {
@@ -216,6 +221,48 @@
   margin-top: 8px;
   color: var(--color-primary);
   font-size: 13px;
+}
+
+.regulation-detail-modal {
+  width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.regulation-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.regulation-detail-description {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.regulation-detail-file {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.regulation-detail-file > a {
+  color: var(--color-primary);
+  font-size: 14px;
+}
+
+.regulation-detail-file-preview {
+  width: 100%;
+  height: 360px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .regulation-modal-save-button {

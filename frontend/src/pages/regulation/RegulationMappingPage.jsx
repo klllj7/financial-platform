@@ -25,7 +25,7 @@ function RegulationMappingPage() {
   const [newClauseTitle, setNewClauseTitle] = useState("");
   const [newClauseDescription, setNewClauseDescription] = useState("");
   const [newClauseFile, setNewClauseFile] = useState(null);
-
+  const [selectedClause, setSelectedClause] = useState(null);
   // 문서 목록을 서버에서 다시 불러온다.
   // 처음 화면에 들어올 때뿐 아니라, 새 문서를 등록한 직후에도 다시 불러야 해서
   // useEffect 밖에 별도 함수로 뺐다.
@@ -182,7 +182,8 @@ function RegulationMappingPage() {
           {!selectedDocId && <p>왼쪽에서 법령 문서를 선택해주세요.</p>}
 
           {clauses.map((clause) => (
-            <div key={clause.id} className="regulation-clause-card">
+            <div key={clause.id} className="regulation-clause-card"
+            onClick = {() => setSelectedClause(clause)}>
               <p className="regulation-clause-title">
                 {clause.clause_no} {clause.title}
               </p>
@@ -195,6 +196,7 @@ function RegulationMappingPage() {
                   href={`http://localhost:8080${clause.file_path}`}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={(event) => event.stopPropagation()}
                 >
                   첨부파일: {clause.file_name}
                 </a>
@@ -305,6 +307,66 @@ function RegulationMappingPage() {
                 등록
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 조항 상세보기 모달 */}
+      {selectedClause && (
+        <div
+          className="regulation-modal-backdrop"
+          onClick={() => setSelectedClause(null)}
+        >
+          <div
+            className="regulation-modal regulation-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="regulation-modal-header">
+              <h3>
+                {selectedClause.clause_no} {selectedClause.title}
+              </h3>
+              <button
+                className="regulation-modal-close-button"
+                onClick={() => setSelectedClause(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="regulation-detail-body">
+              <p className="regulation-detail-description">
+                {selectedClause.description}
+              </p>
+
+              {selectedClause.file_name && (
+                <div className="regulation-detail-file">
+                  <a
+                    href={`http://localhost:8080${selectedClause.file_path}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    원본 파일 다운로드: {selectedClause.file_name}
+                  </a>
+
+                  {/* PDF와 이미지는 모달 안에서 바로 미리볼 수 있게, 나머지 파일은 다운로드 링크만 제공한다. */}
+                  {selectedClause.file_type === "application/pdf" && (
+                    <iframe
+                      className="regulation-detail-file-preview"
+                      title="원본 파일 미리보기"
+                      src={`http://localhost:8080${selectedClause.file_path}`}
+                    />
+                  )}
+                  {selectedClause.file_type &&
+                    selectedClause.file_type.startsWith("image/") && (
+                      <img
+                        className="regulation-detail-file-preview"
+                        alt="원본 파일 미리보기"
+                        src={`http://localhost:8080${selectedClause.file_path}`}
+                      />
+                    )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
