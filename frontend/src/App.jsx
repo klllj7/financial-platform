@@ -18,6 +18,7 @@ import PrivacyPolicyPage from "./pages/privacy/PrivacyPolicyPage";
 
 // 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
+import AuthLayout from "./components/layout/AuthLayout";
 
 // 임직원용 기능 페이지
 import AiChatPage from "./pages/ai-chat/AiChatPage";
@@ -57,30 +58,32 @@ function App() {
         {/* ==================================================
             로그인 및 회원가입
         ================================================== */}
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
- 
-        <Route
-          path="/signup"
-          element={<SignupPage />}
-        />
- 
-        <Route
-          path="/find-id"
-          element={<FindIdPage />}
-        />
+        <Route element={<AuthLayout />}>
+          <Route
+            path="/login"
+            element={<LoginPage />}
+          />
+  
+          <Route
+            path="/signup"
+            element={<SignupPage />}
+          />
+  
+          <Route
+            path="/find-id"
+            element={<FindIdPage />}
+          />
 
-        <Route
-          path="/reset-password"
-          element={<ResetPasswordPage />} 
-        />
+          <Route
+            path="/reset-password"
+            element={<ResetPasswordPage />} 
+          />
 
-        <Route
-          path="/reset-password/confirm"
-          element={<ResetPasswordConfirmPage />}
-        />
+          <Route
+            path="/reset-password/confirm"
+            element={<ResetPasswordConfirmPage />}
+          />
+        </Route>
 
         {/* ==================================================
             개인정보처리방침 페이지

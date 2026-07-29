@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signup, getDepartments } from "../../api/authApi";
 import { Eye, EyeOff } from "lucide-react";
-import AppFooter from "../../components/layout/AppFooter";
 import "./SignupPage.css";
 
 function SignupPage() {
@@ -167,7 +166,7 @@ function SignupPage() {
   }, []);
 
   return (
-    <main className="signup-page">
+    <div className="signup-page">
       <section className="signup-container">
         {/* 상단 브랜드 영역 */}
         <header className="signup-header">
@@ -320,10 +319,7 @@ function SignupPage() {
           </div>
         </section>
       </section>
-
-      {/* 회원가입 화면 하단 개인정보처리방침 Footer */}
-      <AppFooter />
-    </main>
+    </div>
   );
 }
 

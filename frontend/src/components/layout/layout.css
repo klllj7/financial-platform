@@ -678,6 +678,42 @@
   background: var(--color-background);
 }
 
+/* 
+  =========================================
+  AuthLayout: 로그인 전 인증 화면 전체 레이아웃
+  =========================================
+*/
+.auth-layout {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #eef4fb;
+}
+
+/* 실제 인증 페이지가 들어가는 영역 */
+.auth-layout-content {
+  flex: 1;
+
+  /*
+    각 인증 페이지가 기존 레이아웃을 유지할 수 있도록
+    콘텐츠 영역이 남은 높이를 모두 차지하게 한다.
+  */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 인증 화면에서는 Footer를 화면 하단에 배치한다. */
+.auth-layout .app-footer {
+  padding: 16px 24px 24px;
+}
+
+/* 인증 화면 Footer 내용은 가운데 정렬한다. */
+.auth-layout .app-footer-inner {
+  justify-content: center;
+  gap: 18px;
+}
 
 /* 태블릿 반응형 */
 
