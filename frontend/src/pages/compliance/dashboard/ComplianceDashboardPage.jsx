@@ -32,6 +32,7 @@ import {
 /* 최근 공지와 위험 이벤트를 각각의 백엔드에서 조회한다. */
 import { getNotices } from "../../../api/noticeApi";
 import { getEvents } from "../../../api/dlpApi";
+import { formatDetectionType } from "../../../utils/detectionType";
 import { getEvidenceSummary } from "../../../api/reportApi";
 import { getPolicies } from "../../../api/policyApi";
 import { getAiToolApplications } from "../../../api/aiToolApi";
@@ -278,7 +279,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 riskLevel: event.grade || "LOW",
                 userName: event.user_name || "-",
                 department: event.department_name || "-",
-                eventType: event.detection_type || "-",
+                eventType: formatDetectionType(event.detection_type) || "-",
                 modelName: event.ai_tool_name || "-",
                 actionStatus: status.label,
                 actionStatusType: status.type,
