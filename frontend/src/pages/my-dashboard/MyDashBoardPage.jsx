@@ -13,18 +13,6 @@ import {
   ClipboardList,
 } from "lucide-react";
 
-/* 최근 7일 사용 추이 그래프에 사용할 Recharts 컴포넌트 */
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-
 /* 공지사항과 AI Tool 신청 현황을 백엔드에서 조회한다. */
 import { getNotices } from "../../api/noticeApi";
 import { getAiToolApplications } from "../../api/aiToolApi";
@@ -32,7 +20,6 @@ import {
   getMyDashboardModels,
   getMyDashboardRecent,
   getMyDashboardSummary,
-  getMyDashboardTrend,
 } from "../../api/dashboardApi";
 
 /* 대시보드 전용 CSS */
@@ -86,7 +73,6 @@ function MyDashboardPage() {
   const [notices, setNotices] = useState([]);
   const [toolApplications, setToolApplications] =
     useState([]);
-  const [usageTrendData, setUsageTrendData] = useState([]);
   const [dashboardSummary, setDashboardSummary] =
     useState(EMPTY_SUMMARY);
   const [modelAllocationData, setModelAllocationData] =
@@ -105,27 +91,14 @@ function MyDashboardPage() {
       ).padStart(2, "0")}`;
 
       try {
-        const [summaryResponse, trendResponse, modelsResponse, recentResponse] =
+        const [summaryResponse, modelsResponse, recentResponse] =
           await Promise.all([
             getMyDashboardSummary(month),
-            getMyDashboardTrend(7),
             getMyDashboardModels(month),
             getMyDashboardRecent(5),
           ]);
 
         setDashboardSummary(summaryResponse.data || EMPTY_SUMMARY);
-        setUsageTrendData(
-          Array.isArray(trendResponse.data?.items)
-            ? trendResponse.data.items.map((item) => ({
-              ...item,
-              date: new Date(`${item.date}T00:00:00`).toLocaleDateString(
-                "ko-KR",
-                { month: "numeric", day: "numeric" },
-              ),
-              riskCount: item.riskEventCount,
-            }))
-            : [],
-        );
         setModelAllocationData(
           Array.isArray(modelsResponse.data?.models)
             ? modelsResponse.data.models
@@ -142,7 +115,6 @@ function MyDashboardPage() {
       } catch (error) {
         console.error("개인 대시보드 조회 실패", error);
         setDashboardSummary(EMPTY_SUMMARY);
-        setUsageTrendData([]);
         setModelAllocationData([]);
         setRecentUsageData([]);
       }
@@ -388,105 +360,57 @@ function MyDashboardPage() {
         </article>
       </section>
 
-      {/* 최근 7일 사용 추이와 공지사항 */}
+      {/* 최근 사용 이력과 공지사항 */}
       <section className="dashboard-main-grid">
-        {/* 최근 7일 사용 추이 그래프 */}
-        <section className="dashboard-panel trend-panel">
-          <h3>최근 7일 사용 추이</h3>
-
-          {/*
-            ResponsiveContainer는 부모 요소의 크기에 맞게
-            그래프 너비와 높이를 자동으로 조절
-          */}
-          <div className="trend-chart-container">
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
+        <section className="dashboard-panel history-panel dashboard-main-history">
+          <div className="panel-header">
+            <h3>최근 사용 이력 ({recentUsageData.length}건)</h3>
+            <button
+              type="button"
+              className="view-all-button"
+              onClick={() => navigate("/usage-history")}
             >
-              <LineChart
-                data={usageTrendData}
-                margin={{
-                  top: 14,
-                  right: 18,
-                  left: -18,
-                  bottom: 0,
-                }}
-              >
-                {/* 그래프 배경 점선 */}
-                <CartesianGrid
-                  stroke="#e5eaf3"
-                  strokeDasharray="4 4"
-                />
+              전체 보기
+              <ArrowRight size={16} />
+            </button>
+          </div>
 
-                {/* 그래프 아래쪽 날짜 축 */}
-                <XAxis
-                  dataKey="date"
-                  tick={{
-                    fill: "#6f7c91",
-                    fontSize: 12,
-                  }}
-                  axisLine={{
-                    stroke: "#b8c3d5",
-                  }}
-                  tickLine={false}
-                />
-
-                {/* 그래프 왼쪽 수치 축 */}
-                <YAxis
-                  allowDecimals={false}
-                  tick={{
-                    fill: "#6f7c91",
-                    fontSize: 12,
-                  }}
-                  axisLine={{
-                    stroke: "#b8c3d5",
-                  }}
-                  tickLine={false}
-                />
-
-                {/* 마우스를 올렸을 때 상세 수치 표시 */}
-                <Tooltip />
-
-                {/* 그래프 아래 범례 */}
-                <Legend />
-
-                {/* AI 사용 횟수 그래프 */}
-                <Line
-                  type="monotone"
-                  dataKey="usageCount"
-                  name="AI 사용 횟수"
-                  stroke="#2f6fed"
-                  strokeWidth={3}
-                  dot={{
-                    r: 4,
-                    fill: "#ffffff",
-                    stroke: "#2f6fed",
-                    strokeWidth: 2,
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
-                />
-
-                {/* 위험 이벤트 발생 건수 그래프 */}
-                <Line
-                  type="monotone"
-                  dataKey="riskCount"
-                  name="위험 이벤트 발생 건수"
-                  stroke="#ff4d5e"
-                  strokeWidth={3}
-                  dot={{
-                    r: 4,
-                    fill: "#ffffff",
-                    stroke: "#ff4d5e",
-                    strokeWidth: 2,
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="history-table-wrapper">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>발생시각</th>
+                  <th>사용도구(플랫폼)</th>
+                  <th>탐지유형</th>
+                  <th>위험등급</th>
+                  <th>조치상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentUsageData.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.occurredAt}</td>
+                    <td>
+                      <strong>{item.toolName}</strong>
+                      <span className="provider-name">
+                        {" "}({item.provider})
+                      </span>
+                    </td>
+                    <td>{item.detectionType}</td>
+                    <td>
+                      <span className={getRiskClassName(item.riskLevel)}>
+                        {item.riskLevel}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={getActionClassName(item.actionStatus)}>
+                        {item.actionStatus}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -537,96 +461,9 @@ function MyDashboardPage() {
             ))}
           </div>
         </aside>
-      </section>
 
-      {/* 최근 사용 이력과 AI Tool 신청 현황
-
-          두 영역이 dashboard-bottom-grid 안에
-          함께 들어가 있어야 가로로 배치
-      */}
+      {/* AI Tool 신청 현황 */}
       <section className="dashboard-bottom-grid">
-        {/* 최근 사용 이력 */}
-        <section className="dashboard-panel history-panel">
-          {/* 제목과 전체 보기 버튼 */}
-          <div className="panel-header">
-            <h3>
-              최근 사용 이력 ({recentUsageData.length}건)
-            </h3>
-
-            {/*
-              전체 사용 이력 페이지는 아직 없기 때문에
-              현재는 버튼 디자인만 표시
-            */}
-            <button
-              type="button"
-              className="view-all-button"
-              onClick={() => navigate("/usage-history")}
-            >
-              전체 보기
-              <ArrowRight size={16} />
-            </button>
-          </div>
-
-          {/* 작은 화면에서는 표를 가로 스크롤한다. */}
-          <div className="history-table-wrapper">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>발생시각</th>
-                  <th>사용도구(플랫폼)</th>
-                  <th>탐지유형</th>
-                  <th>위험등급</th>
-                  <th>조치상태</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {recentUsageData.map((item) => (
-                  <tr key={item.id}>
-                    {/* AI 사용 시각 */}
-                    <td>{item.occurredAt}</td>
-
-                    {/* 사용한 AI Tool과 공급자 */}
-                    <td>
-                      <strong>{item.toolName}</strong>
-
-                      <span className="provider-name">
-                        {" "}
-                        ({item.provider})
-                      </span>
-                    </td>
-
-                    {/* 탐지 유형 */}
-                    <td>{item.detectionType}</td>
-
-                    {/* 위험 등급 */}
-                    <td>
-                      <span
-                        className={getRiskClassName(
-                          item.riskLevel,
-                        )}
-                      >
-                        {item.riskLevel}
-                      </span>
-                    </td>
-
-                    {/* 조치 상태 */}
-                    <td>
-                      <span
-                        className={getActionClassName(
-                          item.actionStatus,
-                        )}
-                      >
-                        {item.actionStatus}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         {/* AI Tool 신청 현황 */}
         <aside className="dashboard-panel tool-application-panel">
           {/* 신청 현황 제목과 전체 보기 버튼 */}
@@ -721,6 +558,7 @@ function MyDashboardPage() {
             )}
           </div>
         </aside>
+      </section>
       </section>
     </div>
   );

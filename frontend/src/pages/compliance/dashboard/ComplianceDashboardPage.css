@@ -788,14 +788,18 @@
 }
 
 .compliance-summary-grid.admin-view {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-areas:
-    "risk model notice"
-    "cost model notice";
+    "risk model policy notice"
+    "cost model policy notice";
 }
 
 .compliance-summary-grid.admin-view > .compliance-admin-model-panel {
   grid-area: model;
+}
+
+.compliance-summary-grid.admin-view > .compliance-admin-policy-panel {
+  grid-area: policy;
 }
 
 .compliance-dashboard-page.admin-view .compliance-dashboard-second-row {
@@ -1863,6 +1867,32 @@
   margin-bottom: 0;
 }
 
+.compliance-usage-month-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.compliance-usage-month-filter > span {
+  color: #71809a;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.compliance-usage-month-filter select {
+  min-width: 118px;
+  height: 32px;
+  padding: 0 9px;
+  color: #385477;
+  background: #f8faff;
+  border: 1px solid #d7e1ef;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
 /* 30일 사용 추이 그래프 */
 .compliance-usage-chart {
   width: 100%;
@@ -1889,6 +1919,14 @@
 
   .compliance-dashboard-second-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compliance-summary-grid.admin-view {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "risk model"
+      "cost model"
+      "policy notice";
   }
 
 }
@@ -1971,6 +2009,7 @@
       "risk"
       "cost"
       "model"
+      "policy"
       "notice";
   }
 

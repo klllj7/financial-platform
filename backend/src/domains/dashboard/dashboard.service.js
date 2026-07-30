@@ -23,6 +23,15 @@ const getMonthRange = (month) => {
   };
 };
 
+const getLocalDateKey = (value) => {
+  const date = new Date(value);
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+};
+
 /* 로그인 사용자의 채팅만 조회하도록 모든 통계 쿼리에 동일한 조건을 사용한다. */
 const ownedSessionInclude = (userId) => [{
   model: ChatSession,
@@ -112,7 +121,7 @@ const getTrend = async ({ userId, days }) => {
   for (let index = 0; index < days; index += 1) {
     const date = new Date(start);
     date.setDate(start.getDate() + index);
-    const key = date.toISOString().slice(0, 10);
+    const key = getLocalDateKey(date);
     buckets.set(key, {
       date: key,
       usageCount: 0,
@@ -121,7 +130,7 @@ const getTrend = async ({ userId, days }) => {
   }
 
   messages.forEach((message) => {
-    const key = new Date(message.createdAt).toISOString().slice(0, 10);
+    const key = getLocalDateKey(message.createdAt);
     const bucket = buckets.get(key);
     if (!bucket) return;
     bucket.usageCount += 1;
@@ -131,14 +140,9 @@ const getTrend = async ({ userId, days }) => {
   return { items: [...buckets.values()] };
 };
 
-/* 모든 임직원의 AI 응답을 날짜별로 집계해 전사 사용 추이를 반환한다. */
-const getComplianceTrend = async ({ days }) => {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - (days - 1));
-  const end = new Date();
-  end.setDate(end.getDate() + 1);
-  end.setHours(0, 0, 0, 0);
+/* 선택한 월의 모든 임직원 AI 응답을 날짜별로 집계한다. */
+const getComplianceTrend = async ({ month }) => {
+  const { start, end } = getMonthRange(month);
 
   const messages = await ChatMessage.findAll({
     attributes: ["createdAt"],
@@ -149,9 +153,11 @@ const getComplianceTrend = async ({ days }) => {
   });
   const buckets = new Map();
 
-  for (let index = 0; index < days; index += 1) {
+  for (
     const date = new Date(start);
-    date.setDate(start.getDate() + index);
+    date < end;
+    date.setDate(date.getDate() + 1)
+  ) {
     const key = date.toISOString().slice(0, 10);
     buckets.set(key, { date: key, usageCount: 0 });
   }
@@ -258,7 +264,8 @@ const getUsage = async ({
   riskLevel,
   aiToolId,
 }) => {
-  let { start, end } = getMonthRange(month);
+  let start;
+  let end;
   if (date) {
     const matchedDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
     const selectedDate = matchedDate
@@ -288,11 +295,15 @@ const getUsage = async ({
       selectedDate.getMonth(),
       selectedDate.getDate() + 1,
     );
+  } else if (month) {
+    ({ start, end } = getMonthRange(month));
   }
   const where = {
     role: "ASSISTANT",
-    createdAt: { [Op.gte]: start, [Op.lt]: end },
   };
+  if (start && end) {
+    where.createdAt = { [Op.gte]: start, [Op.lt]: end };
+  }
 
   if (aiToolId) where.modelName = aiToolId;
   if (riskLevel === "HIGH") where.blocked = true;

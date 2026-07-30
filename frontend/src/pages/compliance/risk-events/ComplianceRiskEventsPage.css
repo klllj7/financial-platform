@@ -175,7 +175,7 @@
     align-items: center; 
     justify-content: space-between; 
     gap: 20px; 
-    padding: 13px 20px;
+    padding: 15px 20px;
     background: #fbfcfe; 
     border-bottom: 1px solid #e6eaf1;
 }
@@ -189,19 +189,19 @@
 .risk-events-filters span { 
     margin-right: 4px; 
     color: #647590; 
-    font-size: 10px; 
+    font-size: 12px; 
     font-weight: 800; 
 }
 
 .risk-events-filters button { 
-    min-height: 29px; 
-    padding: 0 10px; 
+    min-height: 36px; 
+    padding: 0 13px; 
     color: #687995; 
     background: #fff; 
     border: 1px solid #dce3ed; 
     border-radius: 7px; 
     font-family: inherit; 
-    font-size: 9px; 
+    font-size: 12px; 
     font-weight: 800; 
     cursor: pointer; 
 }
@@ -213,37 +213,37 @@
 }
 
 .risk-events-filters select { 
-    min-height: 31px; 
-    padding: 0 10px; 
+    min-height: 38px; 
+    padding: 0 12px; 
     color: #445a7b; 
     background: #fff; 
     border: 1px solid #dce3ed; 
     border-radius: 7px; 
     font-family: inherit; 
-    font-size: 10px; 
+    font-size: 12px; 
     font-weight: 700; 
 }
 
 .risk-events-date-range input[type="date"] {
-    min-height: 31px;
-    padding: 0 8px;
+    min-height: 38px;
+    padding: 0 10px;
     color: #445a7b;
     background: #fff;
     border: 1px solid #dce3ed;
     border-radius: 7px;
     font-family: inherit;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .risk-repeat-badge {
     display: inline-block;
-    margin-left: 6px;
+    margin-top: 6px;
     padding: 2px 6px;
     color: #b3261e;
     background: #fdeceb;
     border: 1px solid #f5c2bd;
     border-radius: 5px;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
     white-space: nowrap;
 }
@@ -265,27 +265,27 @@
 
 .risk-events-table { 
     width: 100%; 
-    min-width: 980px; 
+    min-width: 1040px; 
     border-collapse: collapse; 
 }
 
 .risk-events-table th { 
-    height: 44px; 
+    height: 48px; 
     padding: 0 14px; 
     color: #70819b; 
     background: #f7f9fc; 
     border-bottom: 1px solid #dfe5ef; 
-    font-size: 9px; 
+    font-size: 12px; 
     font-weight: 800; 
     text-align: left; 
     white-space: nowrap; 
 }
 
 .risk-events-table td { 
-    padding: 13px 14px; 
+    padding: 15px 14px; 
     color: #536783; 
     border-bottom: 1px solid #edf0f5; 
-    font-size: 10px; 
+    font-size: 13px; 
     vertical-align: middle; 
 }
 
@@ -293,24 +293,39 @@
 
 .risk-events-table td strong, .risk-events-table td small { display: block; }
 
-.risk-events-table td strong { color: #2b3e5c; font-size: 11px; }
+.risk-events-table td strong { color: #2b3e5c; font-size: 13px; }
 
 .risk-events-table td small { 
     max-width: 300px; 
     margin-top: 4px; 
     overflow: hidden; 
     color: #8794a8; 
-    font-size: 9px; 
+    font-size: 11px; 
     text-overflow: ellipsis; 
     white-space: nowrap; }
-.risk-level, .risk-status { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 0 8px; border-radius: 6px; font-size: 9px; font-weight: 800; }
+.risk-level, .risk-status { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 9px; border-radius: 6px; font-size: 11px; font-weight: 800; }
 .risk-level.high { color: #e12632; background: #fff0f1; border: 1px solid #ffbec4; }
 .risk-level.medium { color: #a96109; background: #fff7d9; border: 1px solid #f5d261; }
 .risk-level.low { color: #07815f; background: #e9f9f3; border: 1px solid #a9e5d2; }
 .risk-status.none { color: #687995; background: #f0f3f8; border: 1px solid #dbe2ec; }
 .risk-status.monitoring, .risk-status.processing { color: #2266d7; background: #eaf2ff; border: 1px solid #bed4ff; }
 .risk-status.completed { color: #07815f; background: #e9f9f3; border: 1px solid #a9e5d2; }
-.risk-view-button { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 0 9px; color: #315b99; background: #fff; border: 1px solid #cad7ea; border-radius: 7px; font-family: inherit; font-size: 9px; font-weight: 800; cursor: pointer; }
+.risk-view-button {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.risk-view-button:hover {
+  text-decoration: underline;
+}
 .risk-events-empty { padding: 50px 20px; color: #7b8aa2; font-size: 12px; text-align: center; }
 .risk-event-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15,28,48,.46); }
 .risk-event-modal { width: min(590px, 100%); overflow: hidden; background: #fff; border-radius: 16px; box-shadow: 0 24px 70px rgba(10,22,42,.24); }

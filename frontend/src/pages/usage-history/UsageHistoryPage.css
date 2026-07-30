@@ -95,6 +95,25 @@
   -webkit-appearance: none;
 }
 
+.usage-history-all-period {
+  height: 34px;
+  padding: 0 11px;
+  color: #5f7392;
+  background: #f8faff;
+  border: 1px solid #d8e1ef;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.usage-history-all-period.active {
+  color: #ffffff;
+  background: #2f6fed;
+  border-color: #2f6fed;
+}
+
 .usage-history-table-wrapper {
   position: relative;
   overflow-x: auto;
