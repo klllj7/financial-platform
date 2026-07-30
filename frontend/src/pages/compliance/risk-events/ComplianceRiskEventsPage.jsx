@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Clock3, Search, ShieldAlert } from "lucide-react";
 
 import { getEvents, postEventAction } from "../../../api/dlpApi";
+import { formatDetectionType } from "../../../utils/detectionType";
 import "./ComplianceRiskEventsPage.css";
 
 const RISK_FILTERS = ["전체", "HIGH", "MEDIUM", "LOW"];
@@ -143,7 +144,7 @@ function ComplianceRiskEventsPage() {
     const to = dateTo ? new Date(`${dateTo}T23:59:59`) : null;
 
     return events.filter((event) => {
-      const text = [event.userName, event.department, event.eventType, event.modelName, event.maskedPromptSummary]
+      const text = [event.userName, event.department, formatDetectionType(event.eventType), event.modelName, event.maskedPromptSummary]
         .join(" ")
         .toLowerCase();
       return (riskFilter === "전체" || event.riskLevel === riskFilter)
@@ -249,7 +250,7 @@ function ComplianceRiskEventsPage() {
                       </span>
                     )}
                   </td>
-                  <td><strong>{event.eventType}</strong><small>{event.maskedPromptSummary}</small></td>
+                  <td><strong>{formatDetectionType(event.eventType)}</strong><small>{event.maskedPromptSummary}</small></td>
                   <td>{event.modelName}</td>
                   <td><span className={`risk-status ${event.actionStatusType}`}>{event.actionStatus}</span></td>
                   <td>
@@ -273,7 +274,7 @@ function ComplianceRiskEventsPage() {
       {selectedEvent && (
         <div className="risk-event-modal-backdrop" role="presentation" onMouseDown={() => setSelectedEventId(null)}>
           <section className="risk-event-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
-            <header><div><span className={`risk-level ${selectedEvent.riskLevel.toLowerCase()}`}>{selectedEvent.riskLevel}</span><h3>{selectedEvent.eventType}</h3></div><button type="button" onClick={() => setSelectedEventId(null)}>닫기</button></header>
+            <header><div><span className={`risk-level ${selectedEvent.riskLevel.toLowerCase()}`}>{selectedEvent.riskLevel}</span><h3>{formatDetectionType(selectedEvent.eventType)}</h3></div><button type="button" onClick={() => setSelectedEventId(null)}>닫기</button></header>
             <dl>
               <div><dt>사용자</dt><dd>{selectedEvent.userName} · {selectedEvent.department}</dd></div>
               <div><dt>발생 시각</dt><dd>{selectedEvent.occurredAt}</dd></div>
