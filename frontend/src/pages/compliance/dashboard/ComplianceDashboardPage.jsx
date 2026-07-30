@@ -40,6 +40,7 @@ import {
   getComplianceDashboardSummary,
   getComplianceDashboardTrend,
 } from "../../../api/dashboardApi";
+import { markNoticeAsRead } from "../../../utils/noticeReadState";
 
 /*
   전사 대시보드 전용 CSS
@@ -158,6 +159,19 @@ const formatDateInputValue = (date) => [
 ].join("-");
 
 const TODAY_DATE_INPUT = formatDateInputValue(new Date());
+const USAGE_MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+  const today = new Date();
+  const date = new Date(today.getFullYear(), today.getMonth() - index, 1);
+  const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0",
+  )}`;
+
+  return {
+    value,
+    label: `${date.getFullYear()}년 ${date.getMonth() + 1}월`,
+  };
+});
 
 function ComplianceDashboardPage({ isAdminView = false }) {
   /*
@@ -172,6 +186,8 @@ function ComplianceDashboardPage({ isAdminView = false }) {
   const [departmentPeriod, setDepartmentPeriod] = useState("date");
   const [departmentDate, setDepartmentDate] =
     useState(TODAY_DATE_INPUT);
+  const [usageTrendMonth, setUsageTrendMonth] =
+    useState(TODAY_DATE_INPUT.slice(0, 7));
   const [usageTrendData, setUsageTrendData] = useState([]);
   const [dashboardSummary, setDashboardSummary] =
     useState(EMPTY_SUMMARY);
@@ -198,7 +214,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         await Promise.allSettled([
         getNotices(),
         getEvents(),
-        getComplianceDashboardTrend(30),
+        getComplianceDashboardTrend(usageTrendMonth),
         getComplianceDashboardSummary(),
         isAdminView
           ? Promise.resolve({ data: EMPTY_EVIDENCE_SUMMARY })
@@ -336,7 +352,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         );
       } else {
         console.error(
-          "전사 30일 사용 추이 조회 실패",
+          "전사 월별 사용 추이 조회 실패",
           usageTrendResult.reason,
         );
       }
@@ -361,7 +377,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
     };
 
     fetchDashboardData();
-  }, [isAdminView]);
+  }, [isAdminView, usageTrendMonth]);
 
   const departmentData = useMemo(() => {
     let periodStart;
@@ -502,13 +518,6 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         application.isActive !== false,
     ).length,
   };
-  const recentAdminApplications = [...aiToolApplications]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime(),
-    )
-    .slice(0, 3);
   const adminPolicyMetrics = {
     pending: policyRequests.filter(
       (policy) => policy.approval_status === "pending",
@@ -520,13 +529,6 @@ function ComplianceDashboardPage({ isAdminView = false }) {
       (policy) => policy.approval_status === "rejected",
     ).length,
   };
-  const recentAdminPolicies = [...policyRequests]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime(),
-    )
-    .slice(0, 3);
 
   /*
     공지사항 전체 보기 버튼을 누르면
@@ -540,7 +542,8 @@ function ComplianceDashboardPage({ isAdminView = false }) {
     개별 공지를 누른 경우에도
     현재는 공지사항 전체 페이지로 이동
   */
-  const handleNoticeClick = () => {
+  const handleNoticeClick = (noticeId) => {
+    markNoticeAsRead(noticeId);
     navigate("/compliance/notices");
   };
 
@@ -628,7 +631,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                   className={`compliance-notice-item ${
                     notice.isPinned ? "is-pinned" : ""
                   }`}
-                  onClick={handleNoticeClick}
+                  onClick={() => handleNoticeClick(notice.id)}
                 >
                   <div>
                     <span className="compliance-notice-category">
@@ -853,47 +856,6 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               <small>현재 사용 가능한 모델</small>
             </button>
           </div>
-          <div className="compliance-admin-recent-header">
-            <strong>최근 신청 목록</strong>
-            <span>최신 3건</span>
-          </div>
-          <div className="compliance-request-status-list compliance-admin-recent-list">
-            {recentAdminApplications.length > 0 ? (
-              recentAdminApplications.map((application) => (
-                <button
-                  key={application.id}
-                  type="button"
-                  onClick={handleAdminModelViewAll}
-                >
-                  <div>
-                    <strong>{application.toolName}</strong>
-                    <small>
-                      {application.applicantName || "신청자 미지정"}
-                      {" · "}
-                      {application.createdAt
-                        ? new Date(application.createdAt).toLocaleDateString(
-                            "ko-KR",
-                          )
-                        : "신청일 미지정"}
-                    </small>
-                  </div>
-                  <span
-                    className={`status-${String(
-                      application.status || "PENDING",
-                    ).toLowerCase()}`}
-                  >
-                    {REQUEST_STATUS_LABELS[application.status] ||
-                      application.status ||
-                      "검토 중"}
-                  </span>
-                </button>
-              ))
-            ) : (
-              <p className="compliance-request-status-empty">
-                최근 AI 모델 신청이 없습니다.
-              </p>
-            )}
-          </div>
         </section>
         )}
 
@@ -925,44 +887,6 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               <strong>{adminPolicyMetrics.rejected}</strong>
               <small>보완이 필요한 정책</small>
             </button>
-          </div>
-          <div className="compliance-admin-recent-header">
-            <strong>최근 정책 요청</strong>
-            <span>최신 3건</span>
-          </div>
-          <div className="compliance-request-status-list compliance-admin-recent-list">
-            {recentAdminPolicies.length > 0 ? (
-              recentAdminPolicies.map((policy) => {
-                const status = policy.approval_status || "pending";
-                return (
-                  <button
-                    key={policy.id}
-                    type="button"
-                    onClick={handleAdminPolicyViewAll}
-                  >
-                    <div>
-                      <strong>{policy.name}</strong>
-                      <small>
-                        {policy.requested_by || "요청자 미지정"}
-                        {" · "}
-                        {policy.createdAt
-                          ? new Date(policy.createdAt).toLocaleDateString(
-                              "ko-KR",
-                            )
-                          : "요청일 미지정"}
-                      </small>
-                    </div>
-                    <span className={`status-${status.toLowerCase()}`}>
-                      {REQUEST_STATUS_LABELS[status] || status}
-                    </span>
-                  </button>
-                );
-              })
-            ) : (
-              <p className="compliance-request-status-empty">
-                최근 정책 승인 요청이 없습니다.
-              </p>
-            )}
           </div>
         </section>
         )}
@@ -1101,7 +1025,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         </section>
 
         {!isAdminView && (
-        <section className="compliance-request-status-panel">
+        <section className="compliance-request-status-panel compliance-policy-request-panel">
           <header className="compliance-request-status-header">
             <div>
               <span><ClipboardList size={17} /></span>
@@ -1155,7 +1079,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         )}
 
         {!isAdminView && (
-        <section className="compliance-request-status-panel">
+        <section className="compliance-request-status-panel compliance-ai-tool-request-panel">
           <header className="compliance-request-status-header">
             <div>
               <span><Boxes size={17} /></span>
@@ -1355,19 +1279,30 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         </div>
       </section>
 
-      {/* ==================================================
-          30일 사용 추이
-      ================================================== */}
+      {/* 선택한 월의 일별 사용 추이 */}
       <section className="compliance-dashboard-panel compliance-usage-trend-panel">
         <div className="compliance-panel-header">
           <div>
-            <h3>30일 사용 추이</h3>
+            <h3>월별 사용 추이</h3>
 
             <p>
-              전사 AI 사용량과 위험 이벤트 발생 건수를
-              비교합니다.
+              선택한 월의 일별 AI 사용량과 위험 이벤트를 비교합니다.
             </p>
           </div>
+          <label className="compliance-usage-month-filter">
+            <span>조회 월</span>
+            <select
+              value={usageTrendMonth}
+              onChange={(event) => setUsageTrendMonth(event.target.value)}
+              aria-label="사용 추이 조회 월"
+            >
+              {USAGE_MONTH_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="compliance-usage-chart">

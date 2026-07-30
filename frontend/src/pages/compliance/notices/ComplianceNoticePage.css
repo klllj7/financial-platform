@@ -190,14 +190,57 @@
 
 /* 검색창 */
 
-.compliance-notice-search {
+.compliance-notice-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compliance-notice-category-filter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #78879d;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.compliance-notice-category-filter select {
+  min-width: 130px;
+  height: 36px;
+  padding: 0 9px;
+  color: var(--color-text);
+  background: #f8faff;
+  border: 1px solid #dce3ed;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.compliance-notice-search-controls {
   display: flex;
   align-items: center;
   gap: 8px;
+}
 
-  width: 250px;
+.compliance-notice-search-controls > select {
+  min-width: 115px;
+  height: 36px;
+  padding: 0 9px;
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid #dce3ed;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.compliance-notice-search {
+  display: flex;
+  align-items: center;
+  width: 280px;
   min-height: 36px;
-  padding: 0 11px;
+  padding: 0;
 
   color: #78879d;
   background: #f8faff;
@@ -209,7 +252,7 @@
 .compliance-notice-search input {
   width: 100%;
   min-width: 0;
-  padding: 0;
+  padding: 0 11px;
 
   color: var(--color-text);
   background: transparent;
@@ -221,6 +264,30 @@
   font-size: 11px;
 }
 
+.compliance-notice-search button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 42px;
+  padding: 0;
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.compliance-notice-search button:hover {
+  background: #245bd7;
+}
+
+.compliance-notice-search button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -4px;
+}
+
 
 /* 공지사항 목록 */
 
@@ -230,7 +297,7 @@
 }
 
 .compliance-notice-card {
-  padding: 18px 20px;
+  padding: 15px 20px;
 
   border-bottom: 1px solid #e9edf3;
 
@@ -245,6 +312,14 @@
   background: #f9fbff;
 }
 
+.compliance-notice-card.is-unread {
+  box-shadow: none;
+}
+
+.compliance-notice-card.is-pinned {
+  background: #f3f4f6;
+}
+
 .compliance-notice-card-top {
   display: flex;
   align-items: center;
@@ -252,10 +327,12 @@
   gap: 15px;
 }
 
-.compliance-notice-card-top > div {
+.compliance-notice-card-top > div:first-child {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .compliance-notice-category {
@@ -275,22 +352,46 @@
   font-weight: 800;
 }
 
+.compliance-notice-new {
+  flex-shrink: 0;
+  color: #ff4d5e;
+  font-size: 9px;
+  font-weight: 800;
+}
+
 .compliance-notice-pinned {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
 
+  width: 23px;
   min-height: 23px;
-  padding: 0 7px;
+  padding: 0;
 
-  color: #d74b54;
-  background: #ffecef;
+  color: #e28a00;
+  background: transparent;
 
-  border: 1px solid #facbd0;
+  border: none;
   border-radius: 5px;
 
   font-size: 9px;
   font-weight: 800;
+}
+
+.compliance-notice-card-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.compliance-notice-unread-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff4d5e;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(255, 77, 94, 0.12);
 }
 
 .compliance-notice-card time {
@@ -299,11 +400,20 @@
 }
 
 .compliance-notice-card h4 {
-  margin: 11px 0 0;
+  min-width: 0;
+  margin: 0 0 0 5px;
+  overflow: hidden;
 
   color: #253754;
   font-size: 14px;
   font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compliance-notice-card.is-pinned h4 {
+  color: #253754;
+  font-weight: 900;
 }
 
 .compliance-notice-card p {
@@ -623,6 +733,29 @@
   }
 
   .compliance-notice-search {
+    width: 100%;
+  }
+
+  .compliance-notice-search-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compliance-notice-search-controls > select {
+    width: 100%;
+  }
+
+  .compliance-notice-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compliance-notice-category-filter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compliance-notice-category-filter select {
     width: 100%;
   }
 }

@@ -354,13 +354,11 @@
 }
 
 .dashboard-notice-item.is-pinned {
-  background: #eef8ff;
-  border-left: 3px solid #63b3ed;
-  padding-left: 12px;
+  background: #f3f4f6;
 }
 
 .dashboard-notice-item.is-pinned:hover {
-  background: #e3f3ff;
+  background: #eceef1;
 }
 
 /* 카테고리, 중요 표시, 제목 */
