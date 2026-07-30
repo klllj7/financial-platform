@@ -1,103 +1,620 @@
 /* 개인정보처리방침 전체 페이지 */
 .privacy-page {
   min-height: 100vh;
-  padding: 48px 24px;
+  padding: 48px 24px 72px;
 
-  background: #f6f8fb;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34%),
+    linear-gradient(180deg, #f3f7fb 0%, #eef4fb 42%, #f8fafc 100%);
+
+  color: #1e293b;
 }
 
-/* 본문 최대 너비 */
+/* 실제 본문 컨테이너 */
 .privacy-container {
-  max-width: 900px;
+  width: min(1120px, 100%);
   margin: 0 auto;
 }
 
-/* 이전 화면 버튼 */
-.privacy-back-button {
-  margin-bottom: 18px;
-  padding: 10px 14px;
+/* 상단 제목 영역 */
+.privacy-header {
+  position: relative;
 
-  color: #475569;
-  background: #ffffff;
+  padding: 42px 44px;
 
-  border: 1px solid #d9e1ef;
-  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(30, 64, 175, 0.96), rgba(37, 99, 235, 0.92)),
+    linear-gradient(135deg, #1d4ed8, #2563eb);
 
-  font-size: 14px;
-  cursor: pointer;
+  border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(30, 64, 175, 0.24);
+
+  overflow: hidden;
 }
 
-.privacy-back-button:hover {
-  color: #2563eb;
-  background: #eff6ff;
+/* 상단 배경 장식 */
+.privacy-header::before {
+  content: "";
+  position: absolute;
+  top: -90px;
+  right: -70px;
+
+  width: 260px;
+  height: 260px;
+
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
 }
 
-/* 개인정보처리방침 카드 */
-.privacy-card {
-  padding: 40px;
+.privacy-header::after {
+  content: "";
+  position: absolute;
+  right: 80px;
+  bottom: -120px;
 
-  background: #ffffff;
+  width: 220px;
+  height: 220px;
 
-  border: 1px solid #e5eaf3;
-  border-radius: 24px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  background: rgba(191, 219, 254, 0.16);
+  border-radius: 999px;
 }
 
-.privacy-card h1 {
+/* 영문 작은 라벨 */
+.privacy-eyebrow {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+
+  margin: 0 0 14px;
+  padding: 7px 12px;
+
+  color: #dbeafe;
+  background: rgba(255, 255, 255, 0.14);
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+/* 메인 제목 */
+.privacy-header h1 {
+  position: relative;
+  z-index: 1;
+
   margin: 0 0 18px;
 
-  color: #111827;
-  font-size: 28px;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
+/* 상단 설명 */
 .privacy-description {
-  margin: 0 0 32px;
+  position: relative;
+  z-index: 1;
+
+  max-width: 780px;
+  margin: 0;
+
+  color: #dbeafe;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+/* 시행일자 */
+.privacy-effective-date {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+
+  margin: 24px 0 0;
+  padding: 10px 14px;
+
+  color: #eff6ff;
+  background: rgba(15, 23, 42, 0.18);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* 주요 개인정보 처리 표시 */
+.privacy-highlight {
+  margin-top: 24px;
+  padding: 28px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 26px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.privacy-highlight h2,
+.privacy-toc h2,
+.privacy-section h2 {
+  margin: 0;
+
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+/* 주요 표시 카드 grid */
+.privacy-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  margin-top: 20px;
+}
+
+/* 주요 표시 카드 */
+.privacy-highlight-card {
+  padding: 20px;
+
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.privacy-highlight-card:hover {
+  transform: translateY(-3px);
+
+  border-color: #bfdbfe;
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.12);
+}
+
+.privacy-highlight-card span {
+  display: inline-flex;
+
+  margin-bottom: 10px;
+  padding: 6px 10px;
+
+  color: #2563eb;
+  background: #eff6ff;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.privacy-highlight-card strong {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.privacy-highlight-card p {
+  margin: 0;
+
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* 목차 영역 */
+.privacy-toc {
+  margin-top: 24px;
+  padding: 28px;
+
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid #e2e8f0;
+  border-radius: 26px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.07);
+}
+
+/* 목차 링크 grid */
+.privacy-toc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  margin-top: 18px;
+}
+
+/* 목차 링크 */
+.privacy-toc-grid a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+
+  padding: 13px 16px;
+
+  color: #334155;
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.privacy-toc-grid a:hover {
+  transform: translateY(-2px);
+
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+/* 본문 조항 카드 */
+.privacy-section {
+  margin-top: 24px;
+  padding: 34px 36px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 26px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.07);
+
+  scroll-margin-top: 24px;
+}
+
+/* 본문 h2 왼쪽 강조선 */
+.privacy-section h2 {
+  position: relative;
+
+  padding-left: 16px;
+  margin-bottom: 20px;
+}
+
+.privacy-section h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+
+  width: 5px;
+  height: 26px;
+
+  background: linear-gradient(180deg, #2563eb, #60a5fa);
+  border-radius: 999px;
+}
+
+/* 소제목 */
+.privacy-section h3 {
+  margin: 28px 0 14px;
+
+  color: #1e3a8a;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+/* 본문 문단 */
+.privacy-section p {
+  margin: 0 0 14px;
 
   color: #475569;
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 1.85;
 }
 
-/* 각 정책 섹션 */
-.privacy-section {
-  margin-top: 28px;
-}
-
-.privacy-section h2 {
-  margin: 0 0 10px;
-
-  color: #1e293b;
-  font-size: 18px;
-}
-
-.privacy-section p {
-  margin: 0;
-
-  color: #475569;
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.privacy-section ul {
-  margin: 10px 0 0;
-  padding-left: 20px;
-
-  color: #475569;
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-/* 프로젝트 시연용 안내 문구 */
+/* 강조 안내 문구 */
 .privacy-notice {
-  margin-top: 32px;
-  padding: 16px;
+  margin-top: 16px !important;
+  padding: 14px 16px;
 
-  color: #92400e;
-  background: #fffbeb;
+  color: #475569 !important;
+  background: #f8fafc;
 
-  border: 1px solid #fde68a;
-  border-radius: 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+
+  font-size: 14px !important;
+}
+
+/* 테이블 가로 스크롤 wrapper */
+.privacy-table-wrapper {
+  width: 100%;
+  margin: 16px 0 24px;
+
+  overflow-x: auto;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+}
+
+/* 테이블 */
+.privacy-table {
+  width: 100%;
+  min-width: 760px;
+
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+/* 테이블 헤더 */
+.privacy-table thead th {
+  padding: 15px 16px;
+
+  color: #1e3a8a;
+  background: #eff6ff;
+
+  border-bottom: 1px solid #dbeafe;
+
+  font-size: 14px;
+  font-weight: 900;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* 테이블 셀 */
+.privacy-table tbody td {
+  padding: 15px 16px;
+
+  color: #475569;
+
+  border-bottom: 1px solid #f1f5f9;
+
+  font-size: 14px;
+  line-height: 1.7;
+  vertical-align: top;
+}
+
+/* 첫 번째 컬럼 강조 */
+.privacy-table tbody td:first-child {
+  color: #0f172a;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 마지막 행 border 제거 */
+.privacy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 행 hover */
+.privacy-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* 생성형 AI 처리 절차 리스트 */
+.privacy-process-list {
+  display: grid;
+  gap: 10px;
+
+  margin: 16px 0 24px;
+  padding: 0;
+
+  list-style: none;
+  counter-reset: process-step;
+}
+
+.privacy-process-list li {
+  position: relative;
+
+  min-height: 44px;
+  padding: 12px 16px 12px 54px;
+
+  color: #334155;
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.55;
+
+  counter-increment: process-step;
+}
+
+.privacy-process-list li::before {
+  content: counter(process-step);
+
+  position: absolute;
+  left: 14px;
+  top: 50%;
+
+  width: 28px;
+  height: 28px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+  background: #2563eb;
+
+  border-radius: 999px;
 
   font-size: 13px;
-  line-height: 1.7;
+  font-weight: 900;
+
+  transform: translateY(-50%);
+}
+
+/* 일반 리스트 */
+.privacy-list {
+  margin: 14px 0 22px;
+  padding: 16px 18px 16px 36px;
+
+  color: #475569;
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+}
+
+.privacy-list li {
+  margin: 8px 0;
+
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* 스크롤바 살짝 정리 */
+.privacy-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.privacy-table-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.privacy-table-wrapper::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+/* 이전 화면으로 돌아가기 버튼 */
+.privacy-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+  padding: 11px 16px;
+
+  color: #334155;
+  background: rgba(255, 255, 255, 0.9);
+
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+/* 뒤로가기 버튼 hover */
+.privacy-back-button:hover {
+  transform: translateY(-2px);
+
+  color: #1d4ed8;
+  background: #ffffff;
+  border-color: #bfdbfe;
+
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.14);
+}
+
+/* 뒤로가기 버튼 클릭 시 */
+.privacy-back-button:active {
+  transform: translateY(0);
+}
+
+/* 태블릿 */
+@media (max-width: 1024px) {
+  .privacy-highlight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .privacy-header {
+    padding: 36px 32px;
+  }
+
+  .privacy-header h1 {
+    font-size: 34px;
+  }
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+  .privacy-page {
+    padding: 28px 16px 56px;
+  }
+
+  .privacy-header {
+    padding: 30px 24px;
+    border-radius: 24px;
+  }
+
+  .privacy-header h1 {
+    font-size: 30px;
+  }
+
+  .privacy-description {
+    font-size: 14px;
+  }
+
+  .privacy-highlight,
+  .privacy-toc,
+  .privacy-section {
+    padding: 24px 20px;
+    border-radius: 22px;
+  }
+
+  .privacy-highlight-grid,
+  .privacy-toc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-highlight h2,
+  .privacy-toc h2,
+  .privacy-section h2 {
+    font-size: 21px;
+  }
+
+  .privacy-section h2 {
+    padding-left: 14px;
+  }
+
+  .privacy-section h2::before {
+    height: 24px;
+  }
+}
+
+/* 아주 작은 모바일 */
+@media (max-width: 480px) {
+  .privacy-header h1 {
+    font-size: 27px;
+  }
+
+  .privacy-effective-date {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .privacy-toc-grid a {
+    font-size: 13px;
+  }
+
+  .privacy-table {
+    min-width: 680px;
+  }
+
+  .privacy-back-button {
+    width: 100%;
+  }
 }
