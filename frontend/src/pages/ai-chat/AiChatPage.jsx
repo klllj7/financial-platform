@@ -392,9 +392,10 @@ function AiChatPage() {
               type="button"
               className={isDeleteMode ? "active" : ""}
               onClick={toggleDeleteMode}
+              aria-label={isDeleteMode ? "채팅 삭제 선택 취소" : "채팅 삭제"}
+              title={isDeleteMode ? "채팅 삭제 선택 취소" : "채팅 삭제"}
             >
               <Trash2 size={13} />
-              {isDeleteMode ? "취소" : "삭제"}
             </button>
           </div>
 

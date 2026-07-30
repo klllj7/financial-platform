@@ -763,7 +763,10 @@
 
 .compliance-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    minmax(250px, 0.78fr)
+    minmax(0, 1.11fr)
+    minmax(0, 1.11fr);
   grid-template-areas:
     "risk evidence notice"
     "cost evidence notice";
@@ -788,7 +791,10 @@
 }
 
 .compliance-summary-grid.admin-view {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns:
+    minmax(250px, 0.78fr)
+    minmax(0, 1.11fr)
+    minmax(0, 1.11fr);
   grid-template-areas:
     "risk model notice"
     "cost policy notice";
@@ -837,7 +843,7 @@
 
 .compliance-risk-summary-card .compliance-summary-label,
 .compliance-cost-summary-card .compliance-summary-label {
-  max-width: 92px;
+  max-width: 140px;
   line-height: 1.35;
   white-space: normal;
 }
@@ -1271,8 +1277,8 @@
 
 .compliance-admin-model-metrics > button {
   min-width: 0;
-  min-height: 92px;
-  padding: 11px 8px;
+  min-height: 108px;
+  padding: 13px 9px;
   background: #f8faff;
   border: 1px solid #e0e7f2;
   border-radius: 12px;
@@ -1291,24 +1297,33 @@
 .compliance-admin-model-metrics span {
   display: block;
   color: #617493;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .compliance-admin-model-metrics strong {
   display: block;
-  margin-top: 9px;
+  margin-top: 10px;
   color: #2f6fed;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 850;
 }
 
 .compliance-admin-model-metrics small {
   display: block;
-  margin-top: 7px;
+  margin-top: 8px;
   color: #8a97aa;
-  font-size: 8px;
-  line-height: 1.4;
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
+.compliance-dashboard-page.admin-view .compliance-request-status-header h3 {
+  font-size: 15px;
+}
+
+.compliance-dashboard-page.admin-view .compliance-request-status-header button {
+  font-size: 11px;
 }
 
 .compliance-admin-recent-header {
@@ -1436,9 +1451,37 @@
   align-items: stretch;
 }
 
+.compliance-risk-summary-card .compliance-summary-label {
+  font-size: 15px;
+  font-weight: 850;
+}
+
 /* 위험 이벤트 카드 내부 */
 .compliance-risk-card-content {
   width: 100%;
+}
+
+.compliance-risk-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.compliance-risk-urgent-count {
+  flex-shrink: 0;
+  padding: 4px 7px;
+
+  color: #e73843;
+  background: #ffe9e9;
+
+  border: 1px solid #ffc4c7;
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 /* 그래프와 범례 배치 */
@@ -1447,7 +1490,7 @@
   align-items: center;
   gap: 12px;
 
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 /* 위험 이벤트 도넛 그래프 */
@@ -1463,7 +1506,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 
   min-width: 0;
 }
@@ -1472,42 +1515,25 @@
 .compliance-risk-legend-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 
   color: #63738c;
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 /* 위험 등급 건수 */
 .compliance-risk-legend-row strong {
   color: #293c5a;
-  font-size: 11px;
-}
-
-/* 즉시 조치 버튼 */
-.compliance-risk-legend-row button {
-  margin-left: auto;
-  padding: 3px 6px;
-
-  color: #e73843;
-  background: #ffe9e9;
-
-  border: 1px solid #ffc4c7;
-  border-radius: 5px;
-
-  font-family: inherit;
-  font-size: 8px;
-  font-weight: 800;
-
-  cursor: pointer;
+  font-size: 14px;
 }
 
 /* 위험 등급 색상 점 */
 .compliance-risk-dot {
   flex-shrink: 0;
 
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 
   border-radius: 50%;
 }
@@ -1938,6 +1964,89 @@
   width: 100%;
   height: 265px;
   padding: 0 12px 12px;
+}
+
+/* 전사 대시보드 패널 공통 가독성 */
+.compliance-dashboard-page .compliance-summary-label {
+  font-size: 14px;
+}
+
+.compliance-dashboard-page .compliance-summary-value {
+  font-size: 24px;
+}
+
+.compliance-dashboard-page .compliance-summary-content small {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-action-required-title h3,
+.compliance-dashboard-page .compliance-request-status-header h3,
+.compliance-dashboard-page .compliance-evidence-progress-header h3,
+.compliance-dashboard-page .compliance-notice-header h3 {
+  font-size: 15px;
+}
+
+.compliance-dashboard-page .compliance-action-required-count {
+  min-height: 25px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-action-required-header-actions > p,
+.compliance-dashboard-page .compliance-action-required-header-actions > button {
+  font-size: 10px;
+}
+
+.compliance-dashboard-page .compliance-action-item-primary > strong {
+  font-size: 14px;
+}
+
+.compliance-dashboard-page .compliance-action-department,
+.compliance-dashboard-page .compliance-action-item-secondary,
+.compliance-dashboard-page .compliance-action-status {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-action-event-type {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-request-status-header button,
+.compliance-dashboard-page .compliance-evidence-progress-header button,
+.compliance-dashboard-page .compliance-notice-header button {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-evidence-progress-header p {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-evidence-overall span {
+  font-size: 12px;
+}
+
+.compliance-dashboard-page .compliance-evidence-overall small,
+.compliance-dashboard-page .compliance-evidence-category-item small {
+  font-size: 10px;
+}
+
+.compliance-dashboard-page .compliance-evidence-category-item span,
+.compliance-dashboard-page .compliance-evidence-category-item strong {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-panel-header h3 {
+  font-size: 16px;
+}
+
+.compliance-dashboard-page .compliance-panel-header p {
+  font-size: 11px;
+}
+
+.compliance-dashboard-page .compliance-chart-legend,
+.compliance-dashboard-page .compliance-department-period-filter,
+.compliance-dashboard-page .compliance-usage-month-filter {
+  font-size: 11px;
 }
 
 
