@@ -19,7 +19,7 @@ function AppFooter() {
           <span className="app-footer-divider">|</span>
 
           {/* 현재는 실제 이용약관 페이지가 없으므로 텍스트만 표시 */}
-          <span>서비스 이용약관</span>
+          <Link to="/terms-of-service">서비스 이용약관</Link>
         </div>
       </div>
     </footer>
