@@ -16,6 +16,7 @@ import {
 /* 공지사항과 AI Tool 신청 현황을 백엔드에서 조회한다. */
 import { getNotices } from "../../api/noticeApi";
 import { getAiToolApplications } from "../../api/aiToolApi";
+import { markNoticeAsRead } from "../../utils/noticeReadState";
 import {
   getMyDashboardModels,
   getMyDashboardRecent,
@@ -230,7 +231,8 @@ function MyDashboardPage() {
     아직 공지사항 상세 페이지가 없기 때문에
     공지사항 항목을 클릭해도 전체 목록으로 이동
   */
-  const handleNoticeClick = () => {
+  const handleNoticeClick = (noticeId) => {
+    markNoticeAsRead(noticeId);
     navigate("/notices");
   };
 
@@ -442,7 +444,7 @@ function MyDashboardPage() {
                 className={`dashboard-notice-item ${
                   notice.isPinned ? "is-pinned" : ""
                 }`}
-                onClick={handleNoticeClick}
+                onClick={() => handleNoticeClick(notice.id)}
               >
                 <div className="dashboard-notice-item-main">
                   <span className="notice-category">

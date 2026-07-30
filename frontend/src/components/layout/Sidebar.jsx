@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 /* 사이드바에서 사용할 아이콘 */
 import {
   Bell,
@@ -20,6 +22,11 @@ import {
   NavLink,
   useNavigate,
 } from "react-router-dom";
+import { getNotices } from "../../api/noticeApi";
+import {
+  hasUnreadNotices,
+  subscribeNoticeReadState,
+} from "../../utils/noticeReadState";
  
 /* 역할별 사이드바 메뉴 */
 const ROLE_MENUS = {
@@ -142,6 +149,7 @@ function Sidebar() {
  
   const roleCode = user?.role?.code || user?.role || "EMPLOYEE";  // 사용자 역할
   const userName = user?.name || "사용자";     // 사용자 이름
+  const [hasUnreadNotice, setHasUnreadNotice] = useState(false);
  
   // 사용자 이름 첫 글자
   const userInitial = userName.charAt(0);
@@ -159,7 +167,29 @@ function Sidebar() {
       ? "/compliance/notices"
       : roleCode === "EMPLOYEE"
         ? "/notices"
-        : null;
+        : roleCode === "ADMIN"
+          ? "/compliance/notices"
+          : null;
+
+  useEffect(() => {
+    let noticeItems = [];
+
+    const updateUnreadState = () => {
+      setHasUnreadNotice(hasUnreadNotices(noticeItems));
+    };
+
+    getNotices()
+      .then((response) => {
+        noticeItems = Array.isArray(response.data) ? response.data : [];
+        updateUnreadState();
+      })
+      .catch((error) => {
+        console.error("사이드바 공지사항 읽음 상태 조회 실패", error);
+        setHasUnreadNotice(false);
+      });
+
+    return subscribeNoticeReadState(updateUnreadState);
+  }, [roleCode]);
  
   // 로그아웃 버튼 클릭 시 실행되는 함수
   const handleLogout = () => {
@@ -224,7 +254,7 @@ function Sidebar() {
               공지사항
             </span>
  
-            <span className="notice-dot" />
+            {hasUnreadNotice && <span className="notice-dot" />}
           </NavLink>
         )}
         

@@ -788,10 +788,10 @@
 }
 
 .compliance-summary-grid.admin-view {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-areas:
-    "risk model policy notice"
-    "cost model policy notice";
+    "risk model notice"
+    "cost policy notice";
 }
 
 .compliance-summary-grid.admin-view > .compliance-admin-model-panel {
@@ -1208,6 +1208,48 @@
   border: 1px solid currentColor;
 }
 
+.compliance-policy-request-panel .compliance-dashboard-request-cards strong {
+  font-size: 14px;
+}
+
+.compliance-policy-request-panel .compliance-dashboard-request-cards small {
+  font-size: 11px;
+}
+
+.compliance-policy-request-panel .compliance-dashboard-request-cards p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.compliance-policy-request-panel .compliance-dashboard-request-cards time {
+  font-size: 10px;
+}
+
+.compliance-policy-request-panel .compliance-dashboard-request-cards > button > span {
+  font-size: 10px;
+}
+
+.compliance-ai-tool-request-panel .compliance-dashboard-request-cards strong {
+  font-size: 14px;
+}
+
+.compliance-ai-tool-request-panel .compliance-dashboard-request-cards small {
+  font-size: 11px;
+}
+
+.compliance-ai-tool-request-panel .compliance-dashboard-request-cards p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.compliance-ai-tool-request-panel .compliance-dashboard-request-cards time {
+  font-size: 10px;
+}
+
+.compliance-ai-tool-request-panel .compliance-dashboard-request-cards > button > span {
+  font-size: 10px;
+}
+
 .compliance-request-status-empty {
   display: flex;
   align-items: center;
@@ -1590,8 +1632,8 @@
   justify-content: space-between;
   gap: 9px;
 
-  min-height: 36px;
-  padding: 7px 15px;
+  min-height: 46px;
+  padding: 9px 15px;
 
   color: inherit;
   background: #ffffff;
@@ -1618,13 +1660,11 @@
 }
 
 .compliance-notice-item.is-pinned {
-  background: #eef8ff;
-  border-left: 3px solid #63b3ed;
-  padding-left: 12px;
+  background: #f3f4f6;
 }
 
 .compliance-notice-item.is-pinned:hover {
-  background: #e3f3ff;
+  background: #eceef1;
 }
 
 /* 공지사항 내용 */
@@ -1640,14 +1680,14 @@
 .compliance-notice-category {
   flex-shrink: 0;
 
-  padding: 3px 5px;
+  padding: 4px 6px;
 
   color: #315b99;
   background: #edf4ff;
 
   border-radius: 4px;
 
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -1656,7 +1696,7 @@
   overflow: hidden;
 
   color: #354663;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1667,7 +1707,7 @@
   flex-shrink: 0;
 
   color: #8c99ad;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 /* 공지사항이 없을 때도 위험 이벤트 카드와 균형을 유지한다. */
@@ -1925,8 +1965,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
       "risk model"
-      "cost model"
-      "policy notice";
+      "cost policy"
+      "notice notice";
   }
 
 }

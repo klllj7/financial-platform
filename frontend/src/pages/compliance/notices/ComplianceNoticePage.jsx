@@ -13,7 +13,6 @@ import {
 import {
   Bell,
   Megaphone,
-  Pin,
   Plus,
   Search,
   X,
@@ -22,6 +21,10 @@ import {
   createNotice,
   getNotices,
 } from "../../../api/noticeApi";
+import {
+  getReadNoticeIds,
+  markNoticeAsRead,
+} from "../../../utils/noticeReadState";
 
 /*
   컴플라이언스 공지사항 전용 CSS다.
@@ -41,6 +44,7 @@ const INITIAL_FORM = {
   content: "",
   isPinned: false,
 };
+const DEFAULT_NOTICE_CATEGORIES = ["정책", "보안", "시스템", "교육", "일반"];
 
 
 function ComplianceNoticePage() {
@@ -70,15 +74,36 @@ function ComplianceNoticePage() {
   */
   const [searchKeyword, setSearchKeyword] =
     useState("");
+  const [searchInput, setSearchInput] =
+    useState("");
+  const [searchScope, setSearchScope] =
+    useState("TITLE");
+  const [categoryFilter, setCategoryFilter] =
+    useState("ALL");
   const [selectedNotice, setSelectedNotice] =
     useState(null);
+  const readNoticeIds = getReadNoticeIds();
+
+  const openNotice = (notice) => {
+    markNoticeAsRead(notice.id);
+    setSelectedNotice(notice);
+  };
 
   /* 페이지 진입 시 백엔드에서 전체 공지사항을 조회한다. */
   useEffect(() => {
     const fetchNotices = async () => {
       try {
         const response = await getNotices();
-        setNotices(Array.isArray(response.data) ? response.data : []);
+        const loadedAt = Date.now();
+        const noticeItems = Array.isArray(response.data) ? response.data : [];
+        setNotices(
+          noticeItems.map((notice) => ({
+            ...notice,
+            isNew:
+              new Date(notice.createdAt).toDateString() ===
+              new Date(loadedAt).toDateString(),
+          })),
+        );
       } catch (error) {
         console.error("공지사항 조회 실패", error);
         alert("공지사항을 불러오지 못했습니다.");
@@ -179,7 +204,10 @@ function ComplianceNoticePage() {
         content: trimmedContent,
         isPinned: noticeForm.isPinned,
       });
-      setNotices((previousNotices) => [response.data, ...previousNotices]);
+      setNotices((previousNotices) => [
+        { ...response.data, isNew: true },
+        ...previousNotices,
+      ]);
       handleCloseWriteModal();
       alert("공지사항이 등록되었습니다.");
     } catch (error) {
@@ -198,28 +226,37 @@ function ComplianceNoticePage() {
     (notice) => {
       const normalizedKeyword =
         searchKeyword.trim().toLowerCase();
+      const matchesCategory =
+        categoryFilter === "ALL" ||
+        notice.category === categoryFilter;
 
       /*
         검색어가 비어 있으면
         전체 공지사항을 표시한다.
       */
       if (!normalizedKeyword) {
-        return true;
+        return matchesCategory;
       }
 
-      return (
-        notice.title
-          .toLowerCase()
-          .includes(normalizedKeyword) ||
-        notice.content
-          .toLowerCase()
-          .includes(normalizedKeyword) ||
-        notice.category
-          .toLowerCase()
-          .includes(normalizedKeyword)
-      );
+      const title = String(notice.title || "").toLowerCase();
+      const content = String(notice.content || "").toLowerCase();
+      const matchesKeyword =
+        searchScope === "TITLE"
+          ? title.includes(normalizedKeyword)
+          : searchScope === "CONTENT"
+            ? content.includes(normalizedKeyword)
+            : title.includes(normalizedKeyword) ||
+              content.includes(normalizedKeyword);
+
+      return matchesCategory && matchesKeyword;
     },
   );
+  const categoryOptions = [
+    ...new Set([
+      ...DEFAULT_NOTICE_CATEGORIES,
+      ...notices.map((notice) => notice.category).filter(Boolean),
+    ]),
+  ];
 
   /*
     고정 공지사항을 먼저 표시하고,
@@ -308,21 +345,52 @@ function ComplianceNoticePage() {
             </span>
           </div>
 
-          {/* 공지사항 검색창 */}
-          <label className="compliance-notice-search">
-            <Search size={16} />
+          <div className="compliance-notice-filters">
+            <label className="compliance-notice-category-filter">
+              <span>카테고리</span>
+              <select
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+              >
+                <option value="ALL">전체 카테고리</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-            <input
-              type="search"
-              value={searchKeyword}
-              placeholder="공지사항 검색"
-              onChange={(event) =>
-                setSearchKeyword(
-                  event.target.value,
-                )
-              }
-            />
-          </label>
+            <form
+              className="compliance-notice-search-controls"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setSearchKeyword(searchInput);
+              }}
+            >
+              <select
+                value={searchScope}
+                aria-label="공지사항 검색 범위"
+                onChange={(event) => setSearchScope(event.target.value)}
+              >
+                <option value="TITLE">제목만</option>
+                <option value="CONTENT">내용만</option>
+                <option value="ALL">제목+내용</option>
+              </select>
+
+              <label className="compliance-notice-search">
+                <input
+                  type="search"
+                  value={searchInput}
+                  placeholder="검색어를 입력해주세요"
+                  onChange={(event) => setSearchInput(event.target.value)}
+                />
+                <button type="submit" aria-label="공지사항 검색">
+                  <Search size={19} />
+                </button>
+              </label>
+            </form>
+          </div>
         </div>
 
         {/* 공지사항 목록 */}
@@ -331,42 +399,48 @@ function ComplianceNoticePage() {
             {sortedNotices.map((notice) => (
               <article
                 key={notice.id}
-                className="compliance-notice-card"
+                className={`compliance-notice-card ${
+                  notice.isPinned ? "is-pinned" : ""
+                } ${
+                  readNoticeIds.has(String(notice.id)) ? "" : "is-unread"
+                }`}
                 role="button"
                 tabIndex={0}
-                onClick={() => setSelectedNotice(notice)}
+                onClick={() => openNotice(notice)}
                 onKeyDown={(event) => {
                   if (["Enter", " "].includes(event.key)) {
                     event.preventDefault();
-                    setSelectedNotice(notice);
+                    openNotice(notice);
                   }
                 }}
               >
-                {/* 카테고리, 고정 상태, 날짜 */}
-                <div className="compliance-notice-card-top">
-                  <div>
+                  {/* 카테고리, 고정 상태, 날짜 */}
+                  <div className="compliance-notice-card-top">
+                    <div>
                     <span className="compliance-notice-category">
                       {notice.category}
                     </span>
 
-                    {notice.isPinned && (
-                      <span className="compliance-notice-pinned">
-                        <Pin size={11} />
-                        중요
-                      </span>
+                    <h4>{notice.title}</h4>
+
+                    {notice.isNew && (
+                      <span className="compliance-notice-new">NEW</span>
                     )}
                   </div>
 
-                  <time>
-                    {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
-                  </time>
+                  <div className="compliance-notice-card-status">
+                    <time>
+                      {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
+                    </time>
+                    {!readNoticeIds.has(String(notice.id)) && (
+                      <span
+                        className="compliance-notice-unread-dot"
+                        aria-label="읽지 않은 공지사항"
+                        title="읽지 않은 공지사항"
+                      />
+                    )}
+                  </div>
                 </div>
-
-                {/* 공지사항 제목 */}
-                <h4>{notice.title}</h4>
-
-                {/* 공지사항 내용 */}
-                <p>{notice.content}</p>
 
                 {/* 공지사항 작성자 */}
                 <footer>
@@ -416,12 +490,6 @@ function ComplianceNoticePage() {
                   <span className="compliance-notice-category">
                     {selectedNotice.category}
                   </span>
-                  {selectedNotice.isPinned && (
-                    <span className="compliance-notice-pinned">
-                      <Pin size={11} />
-                      중요
-                    </span>
-                  )}
                 </div>
                 <h3 id="compliance-notice-detail-title">
                   {selectedNotice.title}
