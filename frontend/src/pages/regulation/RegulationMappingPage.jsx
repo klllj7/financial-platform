@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getDocuments,
   getClauses,
@@ -26,6 +26,16 @@ function RegulationMappingPage() {
   const [newClauseDescription, setNewClauseDescription] = useState("");
   const [newClauseFile, setNewClauseFile] = useState(null);
   const [selectedClause, setSelectedClause] = useState(null);
+
+  // 카드에서 "더보기/접기"로 펼쳐놓은 조항 id 목록
+  // { 7: true, 10: false } 형태로, 조항마다 펼침 여부를 따로 기억한다.
+  const [expandedClauseIds, setExpandedClauseIds] = useState({});
+
+  // 조항 설명 <p> 태그의 실제 DOM을 조항 id별로 기억해뒀다가, 2줄보다 긴지 재는 데 쓴다.
+  const descriptionRefs = useRef({});
+  // 실제로 2줄을 넘어가서 "더보기" 버튼이 필요한 조항 id 목록
+  const [truncatableClauseIds, setTruncatableClauseIds] = useState({});
+
   // 문서 목록을 서버에서 다시 불러온다.
   // 처음 화면에 들어올 때뿐 아니라, 새 문서를 등록한 직후에도 다시 불러야 해서
   // useEffect 밖에 별도 함수로 뺐다.
@@ -63,6 +73,21 @@ function RegulationMappingPage() {
 
     loadClauses(selectedDocId, searchKeyword);
   }, [selectedDocId, searchKeyword]);
+
+  // 조항 목록이 새로 그려질 때마다, 각 설명 텍스트가 실제로 2줄을 넘는지 측정한다.
+  // scrollHeight(전체 내용 높이)가 clientHeight(2줄로 잘린 높이)보다 크면 "더 잘려있다"는 뜻이다.
+  useEffect(() => {
+    const next = {};
+
+    Object.keys(descriptionRefs.current).forEach((clauseId) => {
+      const el = descriptionRefs.current[clauseId];
+      if (el) {
+        next[clauseId] = el.scrollHeight > el.clientHeight + 1;
+      }
+    });
+
+    setTruncatableClauseIds(next);
+  }, [clauses]);
 
   // "법령 문서 추가" 모달의 등록 버튼 클릭
   const handleAddDocument = async (event) => {
@@ -116,6 +141,16 @@ function RegulationMappingPage() {
       console.error("조항 등록 실패:", error);
       alert("조항 등록에 실패했습니다.");
     }
+  };
+
+  // 카드 안의 "더보기/접기" 버튼 클릭
+  // 카드 전체에도 onClick(상세보기 열기)이 걸려있어서, stopPropagation으로 그걸 막는다.
+  const toggleClauseExpanded = (event, clauseId) => {
+    event.stopPropagation();
+    setExpandedClauseIds((prev) => ({
+      ...prev,
+      [clauseId]: !prev[clauseId],
+    }));
   };
 
   return (
@@ -187,9 +222,27 @@ function RegulationMappingPage() {
               <p className="regulation-clause-title">
                 {clause.clause_no} {clause.title}
               </p>
-              <p className="regulation-clause-description">
+              <p
+                className={`regulation-clause-description ${
+                  expandedClauseIds[clause.id] ? "" : "is-clamped"
+                }`}
+                ref={(el) => {
+                  descriptionRefs.current[clause.id] = el;
+                }}
+              >
                 {clause.description}
               </p>
+
+              {truncatableClauseIds[clause.id] && (
+                <button
+                  type="button"
+                  className="regulation-clause-toggle"
+                  onClick={(event) => toggleClauseExpanded(event, clause.id)}
+                >
+                  {expandedClauseIds[clause.id] ? "접기 " : "더보기 "}
+                </button>
+              )}
+
               {clause.file_name && (
                 <a
                   className="regulation-clause-file-link"
