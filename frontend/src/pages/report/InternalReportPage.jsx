@@ -3,6 +3,7 @@ import { Printer } from "lucide-react";
 
 import { getEvents } from "../../api/dlpApi";
 import { getDepartments } from "../../api/authApi";
+import { formatDetectionType } from "../../utils/detectionType";
 
 import "./InternalReportPage.css";
 
@@ -67,7 +68,7 @@ function InternalReportPage() {
           riskLevel: (event.grade || "LOW").toUpperCase(),
           userName: event.user_name ?? "-",
           department: event.department_name ?? "미지정 부서",
-          eventType: event.detection_type ?? "-",
+          eventType: formatDetectionType(event.detection_type) || "-",
           modelName: event.ai_tool_name ?? "-",
           description: event.description ?? "-",
           createdAt: event.created_at,
