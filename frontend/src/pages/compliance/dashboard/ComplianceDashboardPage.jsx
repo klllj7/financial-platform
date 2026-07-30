@@ -453,19 +453,32 @@ function ComplianceDashboardPage({ isAdminView = false }) {
   useEffect(() => {
     if (!isAdminView) return;
 
-    const fetchAdminModels = async () => {
-      try {
-        const response = await getAiToolApplications();
-        const applications = Array.isArray(response.data)
-          ? response.data
+    const fetchAdminStatuses = async () => {
+      const [aiToolResult, policyResult] = await Promise.allSettled([
+        getAiToolApplications(),
+        getPolicies(),
+      ]);
+
+      if (aiToolResult.status === "fulfilled") {
+        const applications = Array.isArray(aiToolResult.value.data)
+          ? aiToolResult.value.data
           : [];
         setAiToolApplications(applications);
-      } catch (error) {
-        console.error("관리자 AI 모델 현황 조회 실패", error);
+      } else {
+        console.error("관리자 AI 모델 현황 조회 실패", aiToolResult.reason);
+      }
+
+      if (policyResult.status === "fulfilled") {
+        const policies = Array.isArray(policyResult.value.data)
+          ? policyResult.value.data
+          : [];
+        setPolicyRequests(policies);
+      } else {
+        console.error("관리자 정책 승인 현황 조회 실패", policyResult.reason);
       }
     };
 
-    fetchAdminModels();
+    fetchAdminStatuses();
   }, [isAdminView]);
 
   /* DLP 위험 등급별 건수를 도넛 차트 데이터로 변환한다. */
@@ -489,6 +502,24 @@ function ComplianceDashboardPage({ isAdminView = false }) {
     ).length,
   };
   const recentAdminApplications = [...aiToolApplications]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime(),
+    )
+    .slice(0, 3);
+  const adminPolicyMetrics = {
+    pending: policyRequests.filter(
+      (policy) => policy.approval_status === "pending",
+    ).length,
+    approved: policyRequests.filter(
+      (policy) => policy.approval_status === "approved",
+    ).length,
+    rejected: policyRequests.filter(
+      (policy) => policy.approval_status === "rejected",
+    ).length,
+  };
+  const recentAdminPolicies = [...policyRequests]
     .sort(
       (a, b) =>
         new Date(b.createdAt || 0).getTime() -
@@ -537,6 +568,10 @@ function ComplianceDashboardPage({ isAdminView = false }) {
 
   const handleAdminModelViewAll = () => {
     navigate("/admin/models");
+  };
+
+  const handleAdminPolicyViewAll = () => {
+    navigate("/admin/policies");
   };
 
 
@@ -855,6 +890,76 @@ function ComplianceDashboardPage({ isAdminView = false }) {
             ) : (
               <p className="compliance-request-status-empty">
                 최근 AI 모델 신청이 없습니다.
+              </p>
+            )}
+          </div>
+        </section>
+        )}
+
+        {isAdminView && (
+        <section className="compliance-request-status-panel compliance-admin-policy-panel">
+          <header className="compliance-request-status-header">
+            <div>
+              <span><ClipboardList size={17} /></span>
+              <h3>정책 승인 현황</h3>
+            </div>
+            <button type="button" onClick={handleAdminPolicyViewAll}>
+              전체 보기
+              <ArrowRight size={14} />
+            </button>
+          </header>
+          <div className="compliance-admin-model-metrics">
+            <button type="button" onClick={handleAdminPolicyViewAll}>
+              <span>승인 대기</span>
+              <strong>{adminPolicyMetrics.pending}</strong>
+              <small>검토가 필요한 정책</small>
+            </button>
+            <button type="button" onClick={handleAdminPolicyViewAll}>
+              <span>승인 완료</span>
+              <strong>{adminPolicyMetrics.approved}</strong>
+              <small>승인 처리된 정책</small>
+            </button>
+            <button type="button" onClick={handleAdminPolicyViewAll}>
+              <span>반려</span>
+              <strong>{adminPolicyMetrics.rejected}</strong>
+              <small>보완이 필요한 정책</small>
+            </button>
+          </div>
+          <div className="compliance-admin-recent-header">
+            <strong>최근 정책 요청</strong>
+            <span>최신 3건</span>
+          </div>
+          <div className="compliance-request-status-list compliance-admin-recent-list">
+            {recentAdminPolicies.length > 0 ? (
+              recentAdminPolicies.map((policy) => {
+                const status = policy.approval_status || "pending";
+                return (
+                  <button
+                    key={policy.id}
+                    type="button"
+                    onClick={handleAdminPolicyViewAll}
+                  >
+                    <div>
+                      <strong>{policy.name}</strong>
+                      <small>
+                        {policy.requested_by || "요청자 미지정"}
+                        {" · "}
+                        {policy.createdAt
+                          ? new Date(policy.createdAt).toLocaleDateString(
+                              "ko-KR",
+                            )
+                          : "요청일 미지정"}
+                      </small>
+                    </div>
+                    <span className={`status-${status.toLowerCase()}`}>
+                      {REQUEST_STATUS_LABELS[status] || status}
+                    </span>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="compliance-request-status-empty">
+                최근 정책 승인 요청이 없습니다.
               </p>
             )}
           </div>
