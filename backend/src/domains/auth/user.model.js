@@ -10,7 +10,7 @@ const User = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-
+    
     // 사용자 이름
     name: {
       type: DataTypes.STRING(100),
@@ -36,6 +36,12 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: "ACTIVE",
     },
+    
+    //department_id
+    department_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },  
   },
   {
     tableName: "users",

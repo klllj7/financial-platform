@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -17,6 +17,7 @@ import {
   getEvidenceChecklist,
   updateEvidenceItemResult,
   generateEvidenceItem,
+  uploadEvidenceItem,
 } from "../../api/reportApi";
 
 import "./EvidenceChecklistPage.css";
@@ -38,9 +39,8 @@ export function resultBadgeClass(result) {
 }
 
 // 백엔드(evidence.service.js GENERATORS_BY_ITEM_NO)가 실제로 자동생성을 지원하는
-// 항목 번호. 여기 없는 번호는 백엔드 구현 전이라 기존 수동 선택 방식으로 남겨둔다.
-// 백엔드에 항목이 추가되면 이 배열에도 번호를 함께 추가해야 한다.
-const AUTO_GENERATE_SUPPORTED_ITEM_NOS = ["5", "6", "7"];
+// 항목 번호. 여기 없는 번호는 업로드(수동) 방식으로 처리한다.
+const AUTO_GENERATE_SUPPORTED_ITEM_NOS = ["5", "6", "7", "8", "12", "23", "24"];
 
 // 상시평가 대상연도. 현재는 화면 문구("2026년 자체평가")와 동일하게 고정값으로 둔다.
 const TARGET_YEAR = 2026;
@@ -53,10 +53,6 @@ const getStoredUser = () => {
     return null;
   }
 };
-
-// "생성" 버튼을 눌렀을 때 preparedMaterial 문구를 임시 파일명으로 바꾼다.
-const toTempFileName = (preparedMaterial) =>
-  `${preparedMaterial.replace(/\s+/g, "_")}.tmp`;
 
 function EvidenceChecklistPage() {
   const [items, setItems] = useState([]);
@@ -72,15 +68,17 @@ function EvidenceChecklistPage() {
   const [filterEvidence, setFilterEvidence] = useState("전체");
   const [activeTab, setActiveTab] = useState("detail");
 
-  // 팝업을 띄운 대상 항목 (없으면 팝업 닫힘). "생성" 버튼 또는 결과 배지 클릭으로 연다.
+  // 팝업을 띄운 대상 항목 (없으면 팝업 닫힘). "생성"/"업로드" 버튼 또는 결과 배지 클릭으로 연다.
   const [generateTarget, setGenerateTarget] = useState(null);
-  // "confirm-generate": 실제 생성 실행 단계 (⑤⑥⑦만) / "pick-result": 이행·부분이행·미이행 선택 단계
+  // "confirm-generate": 실제 생성 실행 단계(자동생성 항목만) / "pick-result": 이행·부분이행·미이행 선택 단계
   const [modalStep, setModalStep] = useState("pick-result");
-  // true면 결과값만 바꾸고 evidence/file은 건드리지 않는다 (결과 배지 클릭, 생성 직후 확정 단계).
-  // false면 기존 수동 항목 흐름(evidence를 "준비완료"로, 임시 파일명 부여)을 그대로 쓴다.
-  const [pickResultOnly, setPickResultOnly] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generateError, setGenerateError] = useState(null);
+
+  // 업로드(수동) 항목용. 숨겨둔 <input type="file">을 코드로 클릭시켜 파일 선택창을 띄운다.
+  const fileInputRef = useRef(null);
+  const [uploadTarget, setUploadTarget] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const departmentId = getStoredUser()?.department?.id ?? null;
 
@@ -125,67 +123,23 @@ function EvidenceChecklistPage() {
     setGenerateTarget(null);
   };
 
-  // "생성" 버튼 클릭. 실제 자동생성을 지원하는 항목(⑤⑥⑦)은 먼저 파일을 만들게 하고,
-  // 아직 지원하지 않는 항목은 기존처럼 결과값을 바로 고르게 한다.
+  // "생성" 버튼 클릭. 자동생성 지원 항목(AUTO_GENERATE_SUPPORTED_ITEM_NOS)만 이 버튼이
+  // 보이므로 항상 confirm-generate 단계부터 시작한다.
   const openGenerateModal = (item) => {
     setGenerateError(null);
-    const supported = AUTO_GENERATE_SUPPORTED_ITEM_NOS.includes(item.no);
-    setPickResultOnly(!supported);
-    setModalStep(supported ? "confirm-generate" : "pick-result");
+    setModalStep("confirm-generate");
     setGenerateTarget(item);
   };
 
   // 결과 배지를 클릭했을 때. 이미 준비된 항목이든 아니든, 결과값만 바로 수정할 수 있게 한다.
   const openEditResultModal = (item) => {
     setGenerateError(null);
-    setPickResultOnly(true);
     setModalStep("pick-result");
     setGenerateTarget(item);
   };
 
-  /*
-    아직 자동생성이 연결되지 않은 항목(①②③⑧⑨ 등)에서 결과값을 고르면:
-    1) result는 실제 백엔드(PATCH /report/evidence/:itemNo/result)에 저장한다.
-    2) evidence/file은 실제 자동생성 API가 없어서 화면에서만 "준비완료"로 바뀐 것처럼
-       보여준다 (새로고침하면 원래 상태로 돌아간다 — 백엔드에 이 항목의 자동생성 API가
-       추가되면 handleAutoGenerate 쪽으로 옮겨야 한다).
-  */
-  const handleGenerateConfirm = async (resultValue) => {
-    if (!generateTarget || !departmentId) return;
-
-    setSaving(true);
-    try {
-      await updateEvidenceItemResult({
-        departmentId,
-        targetYear: TARGET_YEAR,
-        itemNo: generateTarget.no,
-        result: resultValue,
-      });
-
-      setItems((prev) =>
-        prev.map((i) =>
-          i.no === generateTarget.no
-            ? {
-                ...i,
-                result: resultValue,
-                evidence: "준비완료",
-                file: toTempFileName(generateTarget.preparedMaterial),
-              }
-            : i
-        )
-      );
-      setGenerateTarget(null);
-    } catch (err) {
-      console.error("결과 저장 실패", err);
-      alert("결과 저장에 실패했습니다.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // 결과 배지 클릭으로 열었을 때, 또는 ⑤⑥⑦ 실제 생성 직후 결과를 확정할 때 쓴다.
-  // evidence/file은 이미 올바른 값이 들어있으므로(또는 애초에 건드릴 필요가 없으므로)
-  // result만 바꾼다.
+  // 결과 배지 클릭으로 열었을 때, 또는 자동생성/업로드 직후 결과를 확정할 때 쓴다.
+  // evidence/file은 이미 올바른 값이 들어있으므로 result만 바꾼다.
   const handleResultOnlyUpdate = async (resultValue) => {
     if (!generateTarget || !departmentId) return;
 
@@ -244,6 +198,47 @@ function EvidenceChecklistPage() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  // 업로드(수동) 항목의 "업로드"/"재업로드" 버튼 클릭. 실제 선택은 숨겨진 input이 담당한다.
+  const triggerUpload = (item) => {
+    setUploadTarget(item);
+    fileInputRef.current?.click();
+  };
+
+  // 파일 선택창에서 파일을 고른 직후 실행된다.
+  const handleFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 같은 파일을 다시 선택해도 change 이벤트가 발생하도록 초기화
+    if (!file || !uploadTarget || !departmentId) return;
+
+    setUploading(true);
+    try {
+      const res = await uploadEvidenceItem({
+        departmentId,
+        targetYear: TARGET_YEAR,
+        itemNo: uploadTarget.no,
+        file,
+      });
+      const { fileName, filePath, result } = res.data;
+
+      setItems((prev) =>
+        prev.map((i) =>
+          i.no === uploadTarget.no
+            ? { ...i, evidence: "준비완료", file: fileName, filePath, result }
+            : i
+        )
+      );
+      // 생성 플로우와 동일하게, 업로드 직후 결과값을 바로 확정하게 한다.
+      setModalStep("pick-result");
+      setGenerateTarget(uploadTarget);
+    } catch (err) {
+      console.error("증빙파일 업로드 실패", err);
+      alert(err.response?.data?.error?.message || "증빙파일 업로드에 실패했습니다.");
+    } finally {
+      setUploading(false);
+      setUploadTarget(null);
     }
   };
 
@@ -396,30 +391,30 @@ function EvidenceChecklistPage() {
                                 )}
                               </td>
                               <td>
-                                {item.filePath ? (
-                                  <a
-                                    className="ce-file-link"
-                                    href={item.filePath}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    <FileText size={12} />{item.file}
-                                  </a>
-                                ) : item.file ? (
-                                  <span className="ce-file-link"><FileText size={12} />{item.file}</span>
-                                ) : item.generationMode === "수동" ? (
-                                  <button type="button" className="ce-upload-button">
-                                    <Upload size={12} /> 업로드
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="ce-generate-button"
-                                    onClick={() => openGenerateModal(item)}
-                                  >
-                                    <Sparkles size={12} /> 생성
-                                  </button>
-                                )}
+                                <div className="ce-file-cell">
+                                  {item.filePath ? (
+                                    <a className="ce-file-link" href={item.filePath} target="_blank" rel="noreferrer">
+                                      <FileText size={12} />{item.file}
+                                    </a>
+                                  ) : item.file ? (
+                                    <span className="ce-file-link"><FileText size={12} />{item.file}</span>
+                                  ) : null}
+
+                                  {AUTO_GENERATE_SUPPORTED_ITEM_NOS.includes(item.no) ? (
+                                    <button type="button" className="ce-generate-button" onClick={() => openGenerateModal(item)}>
+                                      <Sparkles size={12} /> {item.filePath ? "재생성" : "생성"}
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="ce-upload-button"
+                                      disabled={uploading}
+                                      onClick={() => triggerUpload(item)}
+                                    >
+                                      <Upload size={12} /> {item.file ? "재업로드" : "업로드"}
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -446,6 +441,13 @@ function EvidenceChecklistPage() {
               )}
             </div>
           </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleFileSelected}
+          />
 
           {generateTarget && (
             <div
@@ -480,7 +482,9 @@ function EvidenceChecklistPage() {
                   {modalStep === "confirm-generate" ? (
                     <>
                       <p className="ce-modal-hint">
-                        실제 탐지·처리 로그를 기반으로 증빙자료를 생성합니다. 생성 후 결과값(이행/부분이행/미이행)을 선택하는 단계로 이어집니다.
+                        {generateTarget.filePath
+                          ? "기존 증빙파일을 최신 데이터로 다시 생성하시겠습니까? 기존 파일은 대체됩니다."
+                          : "실제 탐지·처리 로그를 기반으로 증빙자료를 생성합니다. 생성 후 결과값(이행/부분이행/미이행)을 선택하는 단계로 이어집니다."}
                       </p>
                       {generateError && <p className="ce-modal-error">{generateError}</p>}
                       <div className="ce-modal-options">
@@ -490,7 +494,7 @@ function EvidenceChecklistPage() {
                           disabled={saving}
                           onClick={handleAutoGenerate}
                         >
-                          {saving ? "생성 중..." : "지금 생성하기"}
+                          {saving ? "생성 중..." : generateTarget.filePath ? "다시 생성하기" : "지금 생성하기"}
                         </button>
                       </div>
                     </>
@@ -504,9 +508,7 @@ function EvidenceChecklistPage() {
                           type="button"
                           className="ce-modal-option ce-modal-option-done"
                           disabled={saving}
-                          onClick={() =>
-                            pickResultOnly ? handleResultOnlyUpdate("이행") : handleGenerateConfirm("이행")
-                          }
+                          onClick={() => handleResultOnlyUpdate("이행")}
                         >
                           이행으로 표시
                         </button>
@@ -514,9 +516,7 @@ function EvidenceChecklistPage() {
                           type="button"
                           className="ce-modal-option ce-modal-option-partial"
                           disabled={saving}
-                          onClick={() =>
-                            pickResultOnly ? handleResultOnlyUpdate("부분이행") : handleGenerateConfirm("부분이행")
-                          }
+                          onClick={() => handleResultOnlyUpdate("부분이행")}
                         >
                           부분이행으로 표시
                         </button>
@@ -524,9 +524,7 @@ function EvidenceChecklistPage() {
                           type="button"
                           className="ce-modal-option ce-modal-option-none"
                           disabled={saving}
-                          onClick={() =>
-                            pickResultOnly ? handleResultOnlyUpdate("미이행") : handleGenerateConfirm("미이행")
-                          }
+                          onClick={() => handleResultOnlyUpdate("미이행")}
                         >
                           미이행으로 유지
                         </button>

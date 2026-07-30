@@ -95,10 +95,35 @@ const generateEvidenceItem = async (req, res) => {
     );
   }
 };
+const uploadEvidenceItem = async (req, res) => {
+  try {
+    const { itemNo } = req.params;
+    const { departmentId, targetYear } = req.body;
+
+    if (!departmentId || !targetYear) {
+      return fail(res, "EVIDENCE_UPLOAD_PARAMS_REQUIRED", "departmentId와 targetYear는 필수입니다.", 400);
+    }
+    if (!req.file) {
+      return fail(res, "EVIDENCE_UPLOAD_FILE_REQUIRED", "업로드할 파일이 없습니다.", 400);
+    }
+
+    const data = await evidenceService.uploadEvidenceItem({
+      departmentId: Number(departmentId),
+      targetYear: Number(targetYear),
+      itemNo,
+      file: req.file,
+    });
+
+    return success(res, data, 200);
+  } catch (error) {
+    return fail(res, error.code || "EVIDENCE_UPLOAD_FAILED", error.message || "증빙파일 업로드에 실패했습니다", error.statusCode || 500);
+  }
+};
 
 module.exports = {
   getEvidenceChecklist,
   updateItemResult,
   getEvidenceSummary,
   generateEvidenceItem, 
+  uploadEvidenceItem,
 };

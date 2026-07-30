@@ -2,6 +2,7 @@ const express = require("express");
 const evidenceController = require("./evidence.controller");
 const { authenticate } = require("../../../common/middlewares/authMiddleware");
 const { authorize } = require("../../../common/middlewares/roleMiddleware");
+const upload = require("./evidenceUpload.middleware");
 
 const router = express.Router();
 
@@ -31,5 +32,11 @@ router.post(
   evidenceController.generateEvidenceItem,
 );
 
-
+router.post(
+  "/:itemNo/upload",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  upload.single("file"),
+  evidenceController.uploadEvidenceItem,
+);
 module.exports = router;

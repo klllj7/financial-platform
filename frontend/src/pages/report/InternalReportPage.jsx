@@ -251,18 +251,10 @@ function InternalReportPage() {
             {APPROVAL_ROLES.map((role) => (
               <div key={role} className="car-approval-box">
                 <div className="car-approval-role">{role}</div>
-                <table className="car-approval-table">
-                  <tbody>
-                    <tr><th>직급</th><td></td></tr>
-                    <tr><th>이름</th><td></td></tr>
-                    <tr><th>날짜</th><td></td></tr>
-                    <tr><th>서명</th><td className="car-approval-sign"></td></tr>
-                  </tbody>
-                </table>
+                <div className="car-approval-sign-cell"></div>
               </div>
             ))}
           </div>
-
           <div className="car-title-block">
             <h1>AI 활용 현황 및 위험관리 결과보고서</h1>
             <div className="car-title-meta">

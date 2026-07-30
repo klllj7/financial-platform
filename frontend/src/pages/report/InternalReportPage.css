@@ -157,32 +157,11 @@
   text-align: center;
 }
 
-.car-approval-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.car-approval-table th,
-.car-approval-table td {
-  height: 30px;
-
+.car-approval-sign-cell {
+  height: 50px; /* 기존 표 4행(30px×3) 높이와 비슷하게 */
   border: 1px solid var(--color-border);
-
-  font-size: 11px;
-  text-align: center;
 }
 
-.car-approval-table th {
-  width: 34px;
-
-  color: var(--color-text-sub);
-  background: #fafafa;
-  font-weight: 600;
-}
-
-.car-approval-sign {
-  color: #c3cbd8;
-}
 
 /* 제목 블록 */
 .car-title-block {
