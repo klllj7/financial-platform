@@ -529,6 +529,11 @@ function ComplianceDashboardPage({ isAdminView = false }) {
       (policy) => policy.approval_status === "rejected",
     ).length,
   };
+  const todayRiskEventCount = riskEvents.filter((event) => {
+    const occurredAt = new Date(event.created_at);
+    return !Number.isNaN(occurredAt.getTime()) &&
+      formatDateInputValue(occurredAt) === TODAY_DATE_INPUT;
+  }).length;
 
   /*
     공지사항 전체 보기 버튼을 누르면
@@ -614,7 +619,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           <div className="compliance-notice-header">
             <div>
               <Bell size={17} />
-              <h3>최근 공지사항</h3>
+              <h3>공지사항</h3>
             </div>
             <button type="button" onClick={handleNoticeViewAll}>
               전체 보기
@@ -653,9 +658,17 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         {/* 위험 이벤트 현황 카드 */}
         <article className="compliance-summary-card compliance-risk-summary-card">
           <div className="compliance-risk-card-content">
-            <span className="compliance-summary-label">
-              위험 이벤트 현황
-            </span>
+            <div className="compliance-risk-card-header">
+              <span className="compliance-summary-label">
+                위험 이벤트 현황
+              </span>
+              <span
+                className="compliance-risk-urgent-count"
+                aria-label="미조치 HIGH 위험 이벤트 건수"
+              >
+                HIGH 미조치 {riskSummary.urgentActionCount}건
+              </span>
+            </div>
 
             <div className="compliance-risk-card-body">
               {/* 위험 이벤트 비율 도넛 그래프 */}
@@ -701,17 +714,6 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                       riskSummary.high
                     }
                   </strong>
-
-                  <button
-                    type="button"
-                    aria-label="즉시 조치가 필요한 위험 이벤트 건수"
-                  >
-                    즉시 조치{" "}
-                    {
-                      riskSummary.urgentActionCount
-                    }
-                    건
-                  </button>
                 </div>
 
                 <div className="compliance-risk-legend-row">
@@ -841,9 +843,9 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           </header>
           <div className="compliance-admin-model-metrics">
             <button type="button" onClick={handleAdminModelViewAll}>
-              <span>미확인 신청</span>
+              <span>신규 신청</span>
               <strong>{adminModelMetrics.unchecked}</strong>
-              <small>검토 기록이 없는 신청</small>
+              <small>검토 전 신청</small>
             </button>
             <button type="button" onClick={handleAdminModelViewAll}>
               <span>승인 대기</span>
@@ -914,12 +916,11 @@ function ComplianceDashboardPage({ isAdminView = false }) {
 
             {/* 이벤트 항목 수 */}
             <span className="compliance-action-required-count">
-              {actionItems.length}건
+              오늘 {todayRiskEventCount}건
             </span>
           </div>
 
           <div className="compliance-action-required-header-actions">
-            <p><strong>HIGH 등급 우선 정렬</strong></p>
             <button
               type="button"
               onClick={handleRiskEventViewAll}

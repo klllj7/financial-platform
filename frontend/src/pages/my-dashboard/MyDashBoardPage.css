@@ -331,8 +331,8 @@
   gap: 9px;
 
   width: 100%;
-  min-height: 36px;
-  padding: 7px 15px;
+  min-height: 48px;
+  padding: 10px 15px;
 
   color: inherit;
   background: #ffffff;
@@ -375,13 +375,13 @@
   align-items: center;
 
   flex-shrink: 0;
-  padding: 3px 5px;
+  padding: 4px 7px;
 
   color: #315b99;
   background: #edf4ff;
   border-radius: 5px;
 
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -390,7 +390,7 @@
   display: block;
   min-width: 0;
   color: #2d3e5c;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -401,7 +401,7 @@
 .notice-item-date {
   flex-shrink: 0;
   color: #8a98af;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 
