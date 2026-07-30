@@ -15,6 +15,7 @@ import ResetPasswordConfirmPage from "./pages/auth/ResetPasswordConfirmPage";
 
 // 개인정보처리방침
 import PrivacyPolicyPage from "./pages/privacy/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/privacy/TermsOfServicePage";
 
 // 공통 레이아웃
 import AppLayout from "./components/layout/AppLayout";
@@ -92,6 +93,11 @@ function App() {
         <Route
           path="/privacy-policy" 
           element={<PrivacyPolicyPage />}
+        />
+
+        <Route
+          path="/terms-of-service"
+          element={<TermsOfServicePage />}
         />
         
         {/* ==================================================
