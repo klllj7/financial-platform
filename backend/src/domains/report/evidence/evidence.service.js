@@ -1,6 +1,13 @@
 const EvidenceFile = require("./evidenceFile.model");
+const { Op } = require("sequelize");
+const User = require("../../auth/user.model");
+const UsageLog = require("./usageLog.model");
+const ActionHistory = require("./actionHistory.model");
 const { CATEGORY_META, NA_CATEGORIES, CHECKLIST_ITEMS } = require("./checklistItems");
 const { saveEvidenceFile } = require("./fileStorage");
+const QUERY_COUNT_THRESHOLD = 100; // 설정 테이블 생기기 전까지 상수로 관리
+const QUERY_MONITOR_PERIOD_DAYS = 90;
+
 const {
   getExpandedRiskEvents,
   BLOCK_TYPES,
@@ -15,11 +22,10 @@ const getEvidenceChecklist = async ({ departmentId, targetYear }) => {
   const items = CHECKLIST_ITEMS.map((item) => {
     const match = uploaded.find((f) => f.item_no === item.no);
     return {
-      ...item,                 // ← 여기서 원본 필드를 전부 복사
+      ...item,
       result: match?.item_result ?? "미이행",
       evidence: match?.file_name ? "준비완료" : "미준비",
       file: match?.file_name ?? null,
-      // FE가 실제 다운로드 링크(/uploads/evidence/...)를 만들 때 쓴다.
       filePath: match?.file_path ?? null,
     };
   });
@@ -39,7 +45,7 @@ const updateItemResult = async ({ departmentId, targetYear, itemNo, result }) =>
   return { itemNo, result };
 };
 
-/* 전사 대시보드용으로 실제 업로드된 증빙의 전체·대항목별 준비율을 계산한다. */
+/* 전사 대시보드용으로 실제 업로드된 증빙의 전체·대항목별 준비율 계산 */
 const getEvidenceSummary = async ({ targetYear }) => {
   const uploaded = await EvidenceFile.findAll({
     attributes: ["item_no", "file_name"],
@@ -82,7 +88,7 @@ const getEvidenceSummary = async ({ targetYear }) => {
     categories,
   };
 };
-// --- csv/json 변환: 별도 파일 없이 로컬 헬퍼로만 둔다 (각 10줄 안팎이라 분리 불필요) ---
+// --- csv/json 변환 ---
 const escapeCsvValue = (value) => {
   const str = value === null || value === undefined ? "" : String(value);
   return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
@@ -93,25 +99,14 @@ const generateCsv = (rows, headers) => {
   return [headerLine, ...dataLines].join("\n");
 };
 const generateJson = (payload) => JSON.stringify(payload, null, 2);
-// TODO(다음 단계): ②③번(xlsx)은 exceljs, ①⑧⑨번(pdf)은 puppeteer가 필요하다.
-// 둘 다 backend/package.json에 아직 설치돼 있지 않아 이번 작업 범위에서 제외했다.
 
-// detector.py의 PII_PATTERNS/PROMPT_INJECTION_PATTERNS 구조를 그대로 옮긴 것이 아니라
-// "룰셋이 존재한다"는 사실과 차단 대상 유형만 문서화용으로 요약한 스냅샷이다.
-// ⚠️ detector.py의 패턴이 추가/변경되면 이 목록도 함께 갱신해야 한다.
 const RULESET_SNAPSHOT = {
   piiPatternTypes: ["resident_number", "phone_number", "account_number", "card_number", "email"],
   promptInjectionPatternCount: 12, // detector.py PROMPT_INJECTION_PATTERNS.prompt_injection 배열 길이
   blockTypes: Array.from(BLOCK_TYPES),
 };
 
-/**
- * evidence_file 테이블에 생성 결과를 upsert한다.
- * item_result는 여기서 자동으로 정하지 않는다 — 생성은 "파일을 만드는 것"까지만
- * 담당하고, 이행/부분이행/미이행 확정은 항상 사람이 팝업에서 골라
- * PATCH /:itemNo/result(updateItemResult)로 저장한다. 새 row라 아직 값이 없으면
- * getEvidenceChecklist가 기본값 "미이행"으로 보여준다.
- */
+
 const upsertGeneratedEvidence = async ({
   departmentId, targetYear, itemNo, fileName, fileType, filePath,
 }) => {
@@ -202,11 +197,144 @@ const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
   });
 };
 
+/** ⑧ 출력·에러메시지 내 기밀정보 노출 방지 — confidential_similarity 유형만, csv
+ *  스펙의 "output_leak_block" 신규 태깅은 event_log에 아직 없는 유형이라 제외했다.
+ */
+const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
+  const rows = await getExpandedRiskEvents({ from, to });
+  const filtered = rows
+    .filter((r) => r.type === "confidential_similarity")
+    .map((r) => ({
+      event_id: r.eventId,
+      created_at: r.createdAt,
+      grade: r.grade,
+      action_status: r.actionStatus,
+      masked_description: r.maskedDescription,
+    }));
+
+  const csv = generateCsv(filtered, ["event_id", "created_at", "grade", "action_status", "masked_description"]);
+  const fileName = `기밀정보노출차단로그_${targetYear}.csv`;
+  const filePath = await saveEvidenceFile(`8/${departmentId}/${targetYear}/${fileName}`, csv);
+
+  return upsertGeneratedEvidence({ departmentId, targetYear, itemNo: "8", fileName, fileType: "csv", filePath });
+};
+
+
+const generateEvidence12 = async ({ departmentId, targetYear, from, to }) => {
+  const rangeTo = to ?? new Date();
+  const rangeFrom = from ?? new Date(rangeTo.getTime() - QUERY_MONITOR_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+
+  const deptUsers = await User.findAll({ attributes: ["id"], where: { department_id: departmentId } });
+  const userIds = deptUsers.map((u) => u.id);
+
+  const logs = userIds.length
+    ? await UsageLog.findAll({
+        attributes: ["user_id", "created_at"],
+        where: { user_id: { [Op.in]: userIds }, created_at: { [Op.between]: [rangeFrom, rangeTo] } },
+      })
+    : [];
+
+  const countByUser = new Map();
+  logs.forEach((l) => countByUser.set(l.user_id, (countByUser.get(l.user_id) || 0) + 1));
+
+  const topUsers = Array.from(countByUser.entries())
+    .map(([userId, queryCount]) => ({ userId, queryCount, exceeded: queryCount > QUERY_COUNT_THRESHOLD }))
+    .sort((a, b) => b.queryCount - a.queryCount);
+
+  const payload = {
+    thresholdConfig: { queryThreshold: QUERY_COUNT_THRESHOLD, periodDays: QUERY_MONITOR_PERIOD_DAYS, from: rangeFrom, to: rangeTo },
+    topUsers,
+    summary: { totalUsers: topUsers.length, exceededCount: topUsers.filter((u) => u.exceeded).length, totalQueries: logs.length },
+  };
+
+  const fileName = `질의빈도모니터링_${targetYear}.json`;
+  const filePath = await saveEvidenceFile(`12/${departmentId}/${targetYear}/${fileName}`, generateJson(payload));
+
+  return upsertGeneratedEvidence({ departmentId, targetYear, itemNo: "12", fileName, fileType: "json", filePath });
+};
+// authMiddleware/roleMiddleware의 authorize() 호출 실태를 옮긴 스냅샷.
+// ⚠️ 라우트에 authorize()가 추가/변경되면 함께 갱신해야 한다.
+// 모델/데이터 "자산" 단위 세분화 권한 테이블은 없어서 제공하지 않는다 — 필드 자체를 만들지 않는다.
+const ROLE_ACCESS_SNAPSHOT = {
+  note: "라우트 단위 authorize() 미들웨어 기준. 자산 단위 접근통제 매트릭스는 별도 테이블 부재로 미제공.",
+  // TODO: 실제 라우트별 authorize("...") 값을 채워야 함 (grep -r "authorize(" backend/src/domains)
+};
+
+const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
+  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
+  const actions = await ActionHistory.findAll({ where, order: [["action_time", "DESC"]], limit: 500 });
+
+  const recentAccessLogs = actions.map((a) => ({
+    actorUserId: a.actor_user_id,
+    actionType: a.action_type,
+    actionReason: a.action_reason,
+    actionTime: a.action_time,
+  }));
+
+  const payload = { roleAccess: ROLE_ACCESS_SNAPSHOT, recentAccessLogs };
+  const fileName = `접근통제현황_${targetYear}.json`;
+  const filePath = await saveEvidenceFile(`23/${departmentId}/${targetYear}/${fileName}`, generateJson(payload));
+
+  return upsertGeneratedEvidence({ departmentId, targetYear, itemNo: "23", fileName, fileType: "json", filePath });
+};
+/** ㉔ 서비스 계정 구분 필드가 없어 "자동화 계정"만 골라낼 수 없다.
+ *  전체 actor_user_id 집계로 대체하고, resource/permission_level은 데이터가 없어 컬럼에서 제외했다.
+ */
+const generateEvidence24 = async ({ departmentId, targetYear, from, to }) => {
+  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
+  const actions = await ActionHistory.findAll({ where });
+
+  const byActor = new Map();
+  actions.forEach((a) => {
+    const key = a.actor_user_id ?? "unknown";
+    const entry = byActor.get(key) || { account_id: key, access_count: 0, last_access: null };
+    entry.access_count += 1;
+    if (!entry.last_access || a.action_time > entry.last_access) entry.last_access = a.action_time;
+    byActor.set(key, entry);
+  });
+
+  const csv = generateCsv(Array.from(byActor.values()), ["account_id", "access_count", "last_access"]);
+  const fileName = `자동화접근패턴_${targetYear}.csv`;
+  const filePath = await saveEvidenceFile(`24/${departmentId}/${targetYear}/${fileName}`, csv);
+
+  return upsertGeneratedEvidence({ departmentId, targetYear, itemNo: "24", fileName, fileType: "csv", filePath });
+};
+
+/**
+ * 사람이 직접 올린 증빙파일을 저장한다. 자동생성(upsertGeneratedEvidence)과 달리
+ * source_type을 "manual"로 남겨서 화면/감사 시 자동/수동을 구분할 수 있게 한다.
+ */
+const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, file }) => {
+  // multer가 UTF-8 파일명을 latin1로 잘못 읽어들이는 문제 보정
+  // (uploadMiddleware.js의 diskStorage filename 콜백과 동일한 이유)
+  const fileName = Buffer.from(file.originalname, "latin1").toString("utf8");
+  const relativePath = `${itemNo}/${departmentId}/${targetYear}/${fileName}`;
+  const filePath = await saveEvidenceFile(relativePath, file.buffer);
+
+  const [row] = await EvidenceFile.findOrCreate({
+    where: { department_id: departmentId, target_year: targetYear, item_no: itemNo },
+    defaults: { department_id: departmentId, target_year: targetYear, item_no: itemNo },
+  });
+
+  row.file_name = fileName;
+  row.file_type = file.mimetype;
+  row.file_path = filePath;
+  row.source_type = "manual";
+  await row.save();
+
+  return { itemNo, fileName, filePath, result: row.item_result ?? "미이행" };
+};
+
 const GENERATORS_BY_ITEM_NO = {
   5: generateEvidence5,
   6: generateEvidence6,
   7: generateEvidence7,
+  8: generateEvidence8,
+  12: generateEvidence12,
+  23: generateEvidence23,
+  24: generateEvidence24,
 };
+
 
 const generateEvidenceItem = async ({ departmentId, targetYear, itemNo, from, to }) => {
   const generator = GENERATORS_BY_ITEM_NO[itemNo];
@@ -225,4 +353,5 @@ module.exports = {
   updateItemResult,
   getEvidenceSummary,
   generateEvidenceItem,
+  uploadEvidenceItem,
 };

@@ -30,3 +30,14 @@ export const generateEvidenceItem = async ({ departmentId, targetYear, itemNo })
   });
   return response.data;
 };
+
+export const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, file }) => {
+  const formData = new FormData();
+  formData.append("departmentId", departmentId);
+  formData.append("targetYear", targetYear);
+  formData.append("file", file);
+  // Content-Type을 직접 지정하지 않는다 — FormData를 넘기면 axios가
+  // boundary 포함 multipart/form-data 헤더를 자동으로 붙여준다.
+  const response = await axiosInstance.post(`/report/evidence/${itemNo}/upload`, formData);
+  return response.data;
+};
