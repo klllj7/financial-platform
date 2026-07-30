@@ -287,74 +287,73 @@ function AdminAccountPage() {
         </div>
       </div>
 
-      {/* 필터 영역 */}
-      <div className="admin-filter-card">
-        {/* 사용자 검색 */}
-        <div className="admin-filter-group admin-search-group">
-          <label htmlFor="adminUserSearch">사용자 검색</label>
-
-          <div className="admin-account-search">
-            <input
-              id="adminUserSearch"
-              type="text"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              placeholder="이름, 이메일, 부서, 권한 검색"
-            />
-
-            {searchKeyword && (
-              <button
-                type="button"
-                onClick={() => setSearchKeyword("")}
-                aria-label="검색어 초기화"
-              >
-                초기화
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="admin-filter-group">
-          <label htmlFor="departmentFilter">부서별 필터</label>
-          <select
-            id="departmentFilter"
-            value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
-          >
-            <option value="ALL">전체 부서</option>
-            {departments.map((department) => (
-              <option key={department.id} value={department.code}>
-                {department.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="admin-filter-group">
-          <label htmlFor="roleFilter">역할별 필터</label>
-          <select
-            id="roleFilter"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="ALL">전체 역할</option>
-            {roles.map((role) => (
-              <option key={role.id} value={role.code}>
-                {role.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="admin-filter-result">
-          총 <strong>{filteredUsers.length}</strong>명
-        </div>
-      </div>
-
       {/* 계정 목록 테이블 */}
       <div className="admin-table-card">
         <div className="admin-table-header">
           <h3>사용자 목록</h3>
+        </div>
+
+        {/* 사용자 목록 검색 및 필터 */}
+        <div className="admin-filter-card">
+          <div className="admin-filter-group admin-search-group">
+            <label htmlFor="adminUserSearch">사용자 검색</label>
+
+            <div className="admin-account-search">
+              <input
+                id="adminUserSearch"
+                type="text"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                placeholder="이름, 이메일, 부서, 권한 검색"
+              />
+
+              {searchKeyword && (
+                <button
+                  type="button"
+                  onClick={() => setSearchKeyword("")}
+                  aria-label="검색어 초기화"
+                >
+                  초기화
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="admin-filter-group">
+            <label htmlFor="departmentFilter">부서별 필터</label>
+            <select
+              id="departmentFilter"
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+            >
+              <option value="ALL">전체 부서</option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.code}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-filter-group">
+            <label htmlFor="roleFilter">역할별 필터</label>
+            <select
+              id="roleFilter"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+            >
+              <option value="ALL">전체 역할</option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.code}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-filter-result">
+            총 <strong>{filteredUsers.length}</strong>명
+          </div>
         </div>
 
         <div className="admin-table-wrapper">

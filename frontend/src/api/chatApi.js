@@ -33,6 +33,22 @@ export const deleteChatSessions = async (sessionIds) => {
 
 /* 새 질문을 보내고 저장된 사용자 메시지와 AI 답변을 받는다. */
 export const sendChatMessage = async (payload) => {
-  const response = await axiosInstance.post("/chats/messages", payload);
+  if (!payload.attachment) {
+    const response = await axiosInstance.post("/chats/messages", payload);
+    return response.data;
+  }
+
+  const formData = new FormData();
+  formData.append("message", payload.message || "");
+  if (payload.sessionId) formData.append("sessionId", payload.sessionId);
+  if (payload.toolKey) formData.append("toolKey", payload.toolKey);
+  if (payload.aiToolApplicationId) {
+    formData.append("aiToolApplicationId", payload.aiToolApplicationId);
+  }
+  formData.append("attachment", payload.attachment);
+
+  const response = await axiosInstance.post("/chats/messages", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data;
 };

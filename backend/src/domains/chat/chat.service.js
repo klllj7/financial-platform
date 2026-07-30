@@ -138,6 +138,7 @@ const sendMessage = async ({
   aiToolApplicationId,
   toolKey,
   message,
+  attachment,
 }) => {
   const approvedTool = await findApprovedTool({
     aiToolApplicationId,
@@ -148,10 +149,22 @@ const sendMessage = async ({
     ? await findOwnedSession(userId, sessionId)
     : await ChatSession.create({
       userId,
-      title: message.length > 30 ? `${message.slice(0, 30)}…` : message,
+      title: message
+        ? message.length > 30 ? `${message.slice(0, 30)}…` : message
+        : attachment.fileName,
     });
 
-  const inspection = await inspectPrompt(message, userId);
+  const attachmentPrompt = attachment
+    ? [
+      `첨부파일명: ${attachment.fileName}`,
+      "첨부파일 내용:",
+      attachment.content,
+    ].join("\n")
+    : "";
+  const combinedPrompt = [message, attachmentPrompt].filter(Boolean).join(
+    "\n\n",
+  );
+  const inspection = await inspectPrompt(combinedPrompt, userId);
   const previousMessages = await ChatMessage.findAll({
     where: { sessionId: session.id },
     order: [["createdAt", "ASC"]],
@@ -159,10 +172,16 @@ const sendMessage = async ({
   const userMessage = await ChatMessage.create({
     sessionId: session.id,
     role: "USER",
-    // 차단된 경우 원문 대신 저장할 안전한 값이 없으니 원문을 남기고,
-    // 마스킹된 경우 DLP가 돌려준 마스킹 결과를 저장/전달한다.
-    content: inspection.blocked ? message : inspection.safePrompt,
+    // 대화 화면에는 질문과 첨부파일명만 남기고 파일 본문은 펼쳐 저장하지 않는다.
+    content: [
+      message,
+      attachment ? `[첨부파일: ${attachment.fileName}]` : "",
+    ].filter(Boolean).join("\n"),
   });
+  const providerUserMessage = {
+    ...userMessage.toJSON(),
+    content: inspection.blocked ? combinedPrompt : inspection.safePrompt,
+  };
 
   let reply;
   let modelName = null;
@@ -174,7 +193,7 @@ const sendMessage = async ({
   } else if (approvedTool.isDefaultSolar) {
     const solarResponse = await createSolarMessage([
       ...previousMessages,
-      userMessage,
+      providerUserMessage,
     ]);
     reply = solarResponse.content;
     modelName = solarResponse.modelName;
@@ -194,7 +213,7 @@ const sendMessage = async ({
       }),
       baseUrl: approvedTool.apiBaseUrl,
       modelId: approvedTool.apiModelId,
-      messages: [...previousMessages, userMessage],
+      messages: [...previousMessages, providerUserMessage],
     });
     reply = providerResponse.content;
     modelName = providerResponse.modelName;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, Clock3, Eye, Search, ShieldAlert } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, Search, ShieldAlert } from "lucide-react";
 
 import { getEvents, postEventAction } from "../../../api/dlpApi";
 import "./ComplianceRiskEventsPage.css";
@@ -121,6 +121,22 @@ function ComplianceRiskEventsPage() {
   const getMonthlyCount = (event) =>
     monthlyViolationCounts[`${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`] ?? 1;
 
+  // 월간 반복 횟수 배지는 같은 사용자·같은 달의 가장 최근 이벤트 한 건에만 표시한다.
+  const latestMonthlyEventIds = useMemo(() => {
+    const latestEvents = new Map();
+
+    events.forEach((event) => {
+      const key = `${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`;
+      const latest = latestEvents.get(key);
+
+      if (!latest || event.createdAt > latest.createdAt) {
+        latestEvents.set(key, event);
+      }
+    });
+
+    return new Set(Array.from(latestEvents.values(), (event) => event.id));
+  }, [events]);
+
   const filteredEvents = useMemo(() => {
     const query = keyword.trim().toLowerCase();
     const from = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
@@ -226,17 +242,25 @@ function ComplianceRiskEventsPage() {
                   <td><span className={`risk-level ${event.riskLevel.toLowerCase()}`}>{event.riskLevel}</span></td>
                   <td>
                     <strong>{event.userName}</strong>
-                    {monthlyCount > 1 && (
+                    <small>{event.department}</small>
+                    {monthlyCount > 1 && latestMonthlyEventIds.has(event.id) && (
                       <span className="risk-repeat-badge" title="이 사용자가 이번 달 발생한 위험 이벤트 건수">
                         이번 달 {monthlyCount}번째
                       </span>
                     )}
-                    <small>{event.department}</small>
                   </td>
                   <td><strong>{event.eventType}</strong><small>{event.maskedPromptSummary}</small></td>
                   <td>{event.modelName}</td>
                   <td><span className={`risk-status ${event.actionStatusType}`}>{event.actionStatus}</span></td>
-                  <td><button type="button" className="risk-view-button" onClick={() => openEventDetail(event.id)}><Eye size={15} />상세</button></td>
+                  <td>
+                    <button
+                      type="button"
+                      className="risk-view-button"
+                      onClick={() => openEventDetail(event.id)}
+                    >
+                      상세
+                    </button>
+                  </td>
                 </tr>
                 );
               })}</tbody>

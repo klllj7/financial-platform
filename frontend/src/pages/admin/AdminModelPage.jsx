@@ -302,43 +302,7 @@ function AdminModelPage() {
         </div>
       </div>
 
-      <div className="admin-model-filter-card">
-        <div className="admin-model-filter-group">
-          <label htmlFor="statusFilter">승인상태</label>
-          <select
-            id="statusFilter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value="ALL">전체 상태</option>
-            <option value="PENDING">승인대기</option>
-            <option value="APPROVED">승인완료</option>
-            <option value="REJECTED">반려</option>
-          </select>
-        </div>
-
-        <div className="admin-model-filter-group">
-          <label htmlFor="providerFilter">공급사</label>
-          <select
-            id="providerFilter"
-            value={providerFilter}
-            onChange={(event) => setProviderFilter(event.target.value)}
-          >
-            <option value="ALL">전체 공급사</option>
-            {providers.map((provider) => (
-              <option key={provider} value={provider}>
-                {provider}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="admin-model-filter-result">
-          총 <strong>{filteredApplications.length}</strong>건
-        </div>
-      </div>
-
-      {errorMessage && (
+      {errorMessage && !approveTarget && (
         <p className="admin-model-error" role="alert">
           {errorMessage}
         </p>
@@ -348,6 +312,42 @@ function AdminModelPage() {
         <div className="admin-model-table-header">
           <h3>AI Tool 신청 현황</h3>
           <span>승인된 Tool은 신청 임직원의 AI 사용하기에 표시됩니다.</span>
+        </div>
+
+        <div className="admin-model-filter-card">
+          <div className="admin-model-filter-group">
+            <label htmlFor="statusFilter">승인상태</label>
+            <select
+              id="statusFilter"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="ALL">전체 상태</option>
+              <option value="PENDING">승인대기</option>
+              <option value="APPROVED">승인완료</option>
+              <option value="REJECTED">반려</option>
+            </select>
+          </div>
+
+          <div className="admin-model-filter-group">
+            <label htmlFor="providerFilter">공급사</label>
+            <select
+              id="providerFilter"
+              value={providerFilter}
+              onChange={(event) => setProviderFilter(event.target.value)}
+            >
+              <option value="ALL">전체 공급사</option>
+              {providers.map((provider) => (
+                <option key={provider} value={provider}>
+                  {provider}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-model-filter-result">
+            총 <strong>{filteredApplications.length}</strong>건
+          </div>
         </div>
 
         <div className="admin-model-table-wrapper">
@@ -715,7 +715,10 @@ function AdminModelPage() {
               <button
                 type="button"
                 className="admin-model-modal-close"
-                onClick={() => setApproveTarget(null)}
+                onClick={() => {
+                  setApproveTarget(null);
+                  setErrorMessage("");
+                }}
                 aria-label="닫기"
               >
                 ×
@@ -724,6 +727,11 @@ function AdminModelPage() {
 
             <form onSubmit={handleApprove}>
               <div className="admin-model-modal-body">
+                {errorMessage && (
+                  <p className="admin-model-error admin-model-modal-error" role="alert">
+                    {errorMessage}
+                  </p>
+                )}
                 <p className="admin-model-credential-notice">
                   연결 테스트에 성공한 경우에만 승인됩니다. API Key는
                   서버에서 암호화되어 저장되며 다시 화면에 표시되지 않습니다.
@@ -779,7 +787,10 @@ function AdminModelPage() {
                 <button
                   type="button"
                   className="admin-model-cancel-button"
-                  onClick={() => setApproveTarget(null)}
+                  onClick={() => {
+                    setApproveTarget(null);
+                    setErrorMessage("");
+                  }}
                   disabled={reviewingId === approveTarget.id}
                 >
                   취소

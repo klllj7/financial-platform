@@ -49,8 +49,22 @@ const deleteSessions = async (req, res) => {
 const sendMessage = async (req, res) => {
   try {
     const message = typeof req.body.message === "string" ? req.body.message.trim() : "";
-    if (!message) return fail(res, "CHAT_MESSAGE_REQUIRED", "질문을 입력해 주세요.", 400);
+    const attachment = req.file
+      ? {
+        fileName: req.file.originalname,
+        content: req.file.buffer.toString("utf8").replace(/\0/g, "").trim(),
+      }
+      : null;
+    if (!message && !attachment) {
+      return fail(res, "CHAT_MESSAGE_REQUIRED", "질문을 입력하거나 파일을 첨부해 주세요.", 400);
+    }
     if (message.length > 5000) return fail(res, "CHAT_MESSAGE_TOO_LONG", "질문은 5,000자 이하로 입력해 주세요.", 400);
+    if (attachment && !attachment.content) {
+      return fail(res, "CHAT_ATTACHMENT_EMPTY", "첨부파일에 읽을 수 있는 내용이 없습니다.", 400);
+    }
+    if (attachment?.content.length > 50000) {
+      return fail(res, "CHAT_ATTACHMENT_TOO_LONG", "첨부파일 내용은 50,000자 이하만 처리할 수 있습니다.", 400);
+    }
     return success(res, await service.sendMessage({
       userId: req.user.userId,
       roleCode: req.user.roleCode,
@@ -58,8 +72,14 @@ const sendMessage = async (req, res) => {
       aiToolApplicationId: req.body.aiToolApplicationId,
       toolKey: req.body.toolKey,
       message,
+      attachment,
     }), 201);
-  } catch (error) { return fail(res, error.code || "CHAT_SEND_FAILED", error.message, error.statusCode || 500); }
+  } catch (error) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return fail(res, "CHAT_ATTACHMENT_TOO_LARGE", "첨부파일은 최대 2MB까지 가능합니다.", 400);
+    }
+    return fail(res, error.code || "CHAT_SEND_FAILED", error.message, error.statusCode || 500);
+  }
 };
 
 module.exports = {

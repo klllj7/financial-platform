@@ -228,42 +228,41 @@ function AdminPolicyPage() {
         </div>
       </div>
 
-      {/* 검색어 및 상태 필터 영역 */}
-      <div className="admin-policy-filter-card">
-        {/* 정책명, 요청자를 대상으로 검색 */}
-        <div className="admin-policy-search-box">
-          <Search size={16} />
-          <input
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="정책명, 요청자 검색"
-          />
-        </div>
-
-        <div className="admin-policy-filter-group">
-          <label htmlFor="policyStatusFilter">상태</label>
-          <select
-            id="policyStatusFilter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">전체 상태</option>
-            <option value="PENDING">승인대기</option>
-            <option value="APPROVED">승인완료</option>
-            <option value="REJECTED">반려</option>
-          </select>
-        </div>
-
-        <div className="admin-policy-filter-result">
-          총 <strong>{filteredPolicies.length}</strong>건
-        </div>
-      </div>
-
       {/* 정책 승인 요청 목록 테이블 */}
       <div className="admin-policy-table-card">
         <div className="admin-policy-table-header">
           <h3>정책 승인 요청 목록</h3>
           <span>"상세"를 클릭하면 상세 내용을 확인할 수 있습니다.</span>
+        </div>
+
+        {/* 목록에서 사용할 검색어 및 상태 필터 */}
+        <div className="admin-policy-filter-card">
+          <div className="admin-policy-search-box">
+            <Search size={16} />
+            <input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="정책명, 요청자 검색"
+            />
+          </div>
+
+          <div className="admin-policy-filter-group">
+            <label htmlFor="policyStatusFilter">상태</label>
+            <select
+              id="policyStatusFilter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">전체 상태</option>
+              <option value="PENDING">승인대기</option>
+              <option value="APPROVED">승인완료</option>
+              <option value="REJECTED">반려</option>
+            </select>
+          </div>
+
+          <div className="admin-policy-filter-result">
+            총 <strong>{filteredPolicies.length}</strong>건
+          </div>
         </div>
 
         <div className="admin-policy-table-wrapper">

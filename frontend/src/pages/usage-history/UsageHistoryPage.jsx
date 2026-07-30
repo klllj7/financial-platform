@@ -24,7 +24,7 @@ const RISK_LABELS = {
 };
 
 function UsageHistoryPage() {
-  const [selectedDate, setSelectedDate] = useState(TODAY);
+  const [selectedDate, setSelectedDate] = useState("");
   const [riskLevel, setRiskLevel] = useState("ALL");
   const [page, setPage] = useState(0);
   const [items, setItems] = useState([]);
@@ -42,8 +42,7 @@ function UsageHistoryPage() {
         const response = await getMyDashboardUsage({
           page,
           size: PAGE_SIZE,
-          month: selectedDate.slice(0, 7),
-          date: selectedDate,
+          date: selectedDate || undefined,
           riskLevel: riskLevel === "ALL" ? undefined : riskLevel,
         });
         const data = response.data || {};
@@ -65,7 +64,6 @@ function UsageHistoryPage() {
   }, [page, riskLevel, selectedDate]);
 
   const handleDateChange = (event) => {
-    if (!event.target.value) return;
     setSelectedDate(event.target.value);
     setPage(0);
   };
@@ -101,6 +99,18 @@ function UsageHistoryPage() {
                 onChange={handleDateChange}
               />
             </label>
+            <button
+              type="button"
+              className={`usage-history-all-period ${
+                selectedDate ? "" : "active"
+              }`}
+              onClick={() => {
+                setSelectedDate("");
+                setPage(0);
+              }}
+            >
+              전체 기간
+            </button>
             <label>
               <span>위험 등급</span>
               <select value={riskLevel} onChange={handleRiskChange}>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bot,
   CheckSquare,
@@ -7,12 +7,14 @@ import {
   Eraser,
   LockKeyhole,
   MessageSquareText,
+  Paperclip,
   Pin,
   Send,
   ShieldCheck,
   Square,
   Trash2,
   UserRound,
+  X,
 } from "lucide-react";
 import {
   deleteChatSessions,
@@ -53,6 +55,8 @@ function AiChatPage() {
 
   // 질문 입력창의 현재 내용이다.
   const [prompt, setPrompt] = useState("");
+  const [attachment, setAttachment] = useState(null);
+  const attachmentInputRef = useRef(null);
 
   // 사용자 질문과 AI 답변을 시간순으로 저장한다.
   const [messages, setMessages] = useState([]);
@@ -174,7 +178,7 @@ function AiChatPage() {
   const handleSend = async () => {
     const trimmedPrompt = prompt.trim();
 
-    if (!trimmedPrompt || isLoading || !selectedToolId) {
+    if ((!trimmedPrompt && !attachment) || isLoading || !selectedToolId) {
       return;
     }
 
@@ -194,6 +198,7 @@ function AiChatPage() {
           selectedToolId === DEFAULT_SOLAR_TOOL.id
             ? undefined
             : selectedToolId,
+        attachment,
       });
       const { session, userMessage, assistantMessage } = response.data;
 
@@ -207,6 +212,10 @@ function AiChatPage() {
         const withoutCurrent = currentHistory.filter((chat) => chat.id !== session.id);
         return [session, ...withoutCurrent];
       });
+      setAttachment(null);
+      if (attachmentInputRef.current) {
+        attachmentInputRef.current.value = "";
+      }
     } catch (requestError) {
       console.error("AI 답변 요청 실패", requestError);
       setError(
@@ -215,6 +224,33 @@ function AiChatPage() {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAttachmentChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!["txt", "md", "csv", "json", "log"].includes(extension)) {
+      setError("txt, md, csv, json, log 파일만 첨부할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("첨부파일은 최대 2MB까지 가능합니다.");
+      event.target.value = "";
+      return;
+    }
+
+    setAttachment(file);
+    setError("");
+  };
+
+  const removeAttachment = () => {
+    setAttachment(null);
+    if (attachmentInputRef.current) {
+      attachmentInputRef.current.value = "";
     }
   };
 
@@ -233,6 +269,7 @@ function AiChatPage() {
     setActiveChatId(null);
     setMessages([]);
     setPrompt("");
+    removeAttachment();
     setError("");
   };
 
@@ -577,6 +614,22 @@ function AiChatPage() {
           {error && <div className="ai-chat-error">{error}</div>}
 
           <div className="ai-chat-composer">
+            {attachment && (
+              <div className="ai-chat-attachment-chip">
+                <Paperclip size={13} />
+                <span>{attachment.name}</span>
+                <small>
+                  {(attachment.size / 1024).toFixed(1)}KB
+                </small>
+                <button
+                  type="button"
+                  aria-label={`${attachment.name} 첨부 취소`}
+                  onClick={removeAttachment}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
             <textarea
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
@@ -585,10 +638,31 @@ function AiChatPage() {
               rows={3}
             />
             <footer>
-              <span>Enter 전송 · Shift+Enter 줄바꿈</span>
+              <div className="ai-chat-composer-tools">
+                <input
+                  ref={attachmentInputRef}
+                  type="file"
+                  accept=".txt,.md,.csv,.json,.log"
+                  onChange={handleAttachmentChange}
+                />
+                <button
+                  type="button"
+                  className="ai-chat-attach-button"
+                  disabled={isLoading}
+                  onClick={() => attachmentInputRef.current?.click()}
+                >
+                  <Paperclip size={14} />
+                  파일 첨부
+                </button>
+                <span>최대 2MB · 텍스트 파일</span>
+              </div>
               <button
                 type="button"
-                disabled={!prompt.trim() || isLoading || !selectedToolId}
+                disabled={
+                  (!prompt.trim() && !attachment) ||
+                  isLoading ||
+                  !selectedToolId
+                }
                 onClick={handleSend}
               >
                 <Send size={16} />

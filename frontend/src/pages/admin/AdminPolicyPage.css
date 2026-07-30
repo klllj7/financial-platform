@@ -121,18 +121,14 @@
 ========================================================= */
 .admin-policy-filter-card {
   display: flex;
-  align-items: end;
+  align-items: center;
   gap: 14px;
 
-  margin-bottom: 18px;
-  padding: 18px;
+  padding: 16px 26px;
 
-  background: #ffffff;
+  background: #fbfcff;
 
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-
-  box-shadow: 0 10px 28px rgba(20, 35, 70, 0.045);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* 검색 아이콘과 입력창을 묶는 검색 박스 */
@@ -172,8 +168,8 @@
 /* 필터 라벨과 select를 세로로 배치 */
 .admin-policy-filter-group {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 9px;
 }
 
 /* 필터 항목명 */
