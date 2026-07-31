@@ -341,6 +341,32 @@
 .risk-event-modal footer button { min-width: 84px; min-height: 36px; color: #fff; background: #2b5fae; border: none; border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
 .risk-event-modal footer button:disabled { opacity: .6; cursor: not-allowed; }
 
+.risk-regulation-badge-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.risk-regulation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.risk-regulation-badge.severity-high { color: #e12632; background: #fff0f1; border: 1px solid #ffbec4; }
+.risk-regulation-badge.severity-medium { color: #a96109; background: #fff7d9; border: 1px solid #f5d261; }
+.risk-regulation-badge.severity-low { color: #2266d7; background: #eaf2ff; border: 1px solid #bed4ff; }
+.risk-regulation-badge:hover { filter: brightness(0.96); }
+
+.risk-violation-popup-backdrop { position: fixed; z-index: 1100; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15,28,48,.46); }
+.risk-violation-popup { width: min(420px, 100%); overflow: hidden; background: #fff; border-radius: 14px; box-shadow: 0 24px 70px rgba(10,22,42,.24); }
+.risk-violation-popup > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid #e4e9f1; }
+.risk-violation-popup > header > button { padding: 6px; color: #71809a; background: transparent; border: none; font-family: inherit; font-size: 11px; cursor: pointer; }
+.risk-violation-popup dl { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 18px; }
+.risk-violation-popup dt { margin-bottom: 6px; color: #7c8ba1; font-size: 10px; font-weight: 700; }
+.risk-violation-popup dd { margin: 0; color: #2e4262; font-size: 12px; font-weight: 700; line-height: 1.5; }
+
 .risk-event-action-form { display: flex; flex-direction: column; gap: 14px; padding: 0 22px 22px; }
 .risk-event-action-form label { display: flex; flex-direction: column; gap: 6px; color: #7c8ba1; font-size: 10px; font-weight: 700; }
 .risk-event-action-form select,

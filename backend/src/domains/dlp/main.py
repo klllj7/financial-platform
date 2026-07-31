@@ -5,6 +5,7 @@ from detector import detect_pii, mask_text, compute_grade, BLOCK_TYPES
 from embedding_detector import detect_similarity
 from db import SessionLocal
 from models import UsageLog, EventLog, ActionHistory, User, Department
+from regulation_mapping import get_mapped_violations, build_clause_law_names
 from enum import Enum
 
 app = FastAPI()
@@ -166,6 +167,8 @@ def list_events():
         for a in actions:
             actions_by_event_id.setdefault(a.event_id, []).append(a)
 
+        clause_law_names = build_clause_law_names(db)
+
         result = []
         for event in events:
             usage_log = usage_log_by_id.get(event.event_id)
@@ -183,6 +186,7 @@ def list_events():
                 "grade": event.grade,
                 "masked_yn": event.masked_yn,
                 "similarity_score": event.similarity_score,
+                "mapped_violations": get_mapped_violations(event.detection_type, clause_law_names),
                 "created_at": event.created_at,
                 "actions": [
                     {
