@@ -493,3 +493,48 @@
   border-color: #2f6df6;
   transform: translateY(-1px);
 }
+
+/* 비밀번호 입력창과 보기/숨기기 버튼을 감싸는 영역 */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* 눈 아이콘이 들어갈 공간 확보 */
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 46px;
+  box-sizing: border-box;
+}
+
+/* 비밀번호 보기/숨기기 버튼 */
+.password-toggle-button {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  background: transparent;
+
+  color: #7b8494;
+  cursor: pointer;
+
+  transform: translateY(-50%);
+}
+
+/* 마우스를 올렸을 때 */
+.password-toggle-button:hover {
+  color: #2563eb;
+}
+
+/* 키보드 사용자를 위한 포커스 표시 */
+.password-toggle-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
