@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { login } from "../../api/authApi";
 // import { getHealthCheck } from "../../api/healthApi"; // backend server test
 import "./LoginPage.css";
@@ -14,6 +15,8 @@ function LoginPage() {
     email: "",
     password: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // 로그인 상태 유지 체크박스 상태
   const [keepLogin, setKeepLogin] = useState(false);
@@ -245,14 +248,28 @@ function LoginPage() {
               {/* 비밀번호 입력 */}
               <div className="form-group">
                 <label htmlFor="password">비밀번호</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={loginForm.password}
-                  onChange={handleInputChange}
-                  placeholder="비밀번호를 입력하세요"
-                />
+
+                <div className="password-input-wrapper">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={loginForm.password}
+                    onChange={handleInputChange}
+                    placeholder="비밀번호를 입력하세요"
+                    autoComplete="current-password"
+                  />
+
+                  <button 
+                    type="button"
+                    className="password-toggle-button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                    title={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                  >
+                    {showPassword ? (<EyeOff size={19} />) : (<Eye size={19} />)}
+                  </button>
+                </div>
               </div>
 
               {/* 체크박스 영역 */}
