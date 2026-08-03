@@ -63,6 +63,8 @@ function ComplianceRiskEventsPage() {
     location.state?.selectedEventId ?? null,
   );
   const [showRawText, setShowRawText] = useState(false);
+  // 규제 뱃지를 클릭해서 열어본 위반 항목 (법적 문제점/대응 조치 팝업용)
+  const [selectedViolation, setSelectedViolation] = useState(null);
   const [actionType, setActionType] = useState(ACTION_FORM_TYPES[0].value);
   const [actionReason, setActionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -86,6 +88,9 @@ function ComplianceRiskEventsPage() {
             maskedPromptSummary: event.masked_description ?? event.description,
             rawPromptSummary: event.description,
             similarityScore: event.similarity_score,
+            // RAG 규제매핑 결과. 아직 백엔드가 안 내려줄 수도 있어서 빈 배열로 안전하게 처리한다.
+            // (modelName처럼, 다른 담당자의 백엔드 작업이 끝나면 실제 값이 채워짐)
+            mappedViolations: event.mapped_violations ?? [],
             actionStatus: status.label,
             actionStatusType: status.type,
             occurredAt: formatOccurredAt(event.created_at),
@@ -164,6 +169,7 @@ function ComplianceRiskEventsPage() {
     setActionType(ACTION_FORM_TYPES[0].value);
     setActionReason("");
     setShowRawText(false);
+    setSelectedViolation(null);
   };
 
   const handleSubmitAction = async () => {
@@ -299,6 +305,23 @@ function ComplianceRiskEventsPage() {
                 </dt>
                 <dd>{showRawText ? selectedEvent.rawPromptSummary : selectedEvent.maskedPromptSummary}</dd>
               </div>
+              {selectedEvent.mappedViolations.length > 0 && (
+                <div className="wide">
+                  <dt>관련 규제 조항</dt>
+                  <dd className="risk-regulation-badge-list">
+                    {selectedEvent.mappedViolations.map((violation) => (
+                      <button
+                        key={violation.regulation_code}
+                        type="button"
+                        className={`risk-regulation-badge severity-${violation.severity.toLowerCase()}`}
+                        onClick={() => setSelectedViolation(violation)}
+                      >
+                        📖 {violation.law_name}
+                      </button>
+                    ))}
+                  </dd>
+                </div>
+              )}
             </dl>
 
             <div className="risk-event-action-form">
@@ -323,6 +346,38 @@ function ComplianceRiskEventsPage() {
             <footer>
               <button type="button" disabled={submitting} onClick={handleSubmitAction}>조치 저장</button>
             </footer>
+          </section>
+        </div>
+      )}
+
+      {selectedViolation && (
+        <div
+          className="risk-violation-popup-backdrop"
+          role="presentation"
+          onMouseDown={() => setSelectedViolation(null)}
+        >
+          <section
+            className="risk-violation-popup"
+            role="dialog"
+            aria-modal="true"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header>
+              <span className={`risk-regulation-badge severity-${selectedViolation.severity.toLowerCase()}`}>
+                📖 {selectedViolation.law_name}
+              </span>
+              <button type="button" onClick={() => setSelectedViolation(null)}>닫기</button>
+            </header>
+            <dl>
+              <div>
+                <dt>법적 문제점</dt>
+                <dd>{selectedViolation.legal_issue}</dd>
+              </div>
+              <div>
+                <dt>대응 조치</dt>
+                <dd>{selectedViolation.recommended_action}</dd>
+              </div>
+            </dl>
           </section>
         </div>
       )}

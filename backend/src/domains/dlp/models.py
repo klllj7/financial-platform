@@ -48,6 +48,25 @@ class EventLog(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class RegulationDocument(Base):
+    """D 담당자가 Node/Sequelize로 만든 regulation_document 테이블을 읽기 전용으로 매핑."""
+    __tablename__ = "regulation_document"
+
+    id = Column(Integer, primary_key=True)
+    doc_name = Column(String)
+
+
+class RegulationClause(Base):
+    """D 담당자가 Node/Sequelize로 만든 regulation_clause 테이블을 읽기 전용으로 매핑.
+    regulation_mapping.py가 detection_type별 근거 조항의 실제 제목을 조회하는 데 쓴다."""
+    __tablename__ = "regulation_clause"
+
+    id = Column(Integer, primary_key=True)
+    doc_id = Column(Integer, ForeignKey("regulation_document.id"))
+    clause_no = Column(String)
+    title = Column(String)
+
+
 class ActionHistory(Base):
     __tablename__ = "action_history"
 
