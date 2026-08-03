@@ -222,6 +222,9 @@ function InternalReportPage() {
           department: event.department,
           userName: event.userName,
           eventType: event.eventType,
+
+          actionType: action.action_type ?? "",
+
           actionLabel: ACTION_TYPE_LABEL[action.action_type] ?? action.action_type ?? "-",
           // DLP /events 응답의 actions[]는 이름이 아니라 actor_user_id(숫자)만 내려준다.
           // 이름으로 보여주려면 별도 사용자 조회가 필요해 우선 ID를 그대로 표시한다.
@@ -311,7 +314,34 @@ function InternalReportPage() {
     }).slice(0, MAIN_EVENT_LIMIT);
   }, [filteredEvents]);
 
-  
+  // 주요 조치 이력 만들기
+  const MAIN_ACTION_LIMIT = 10;
+
+  const mainActionHistory = useMemo(() => {
+    return actionHistory.slice(0, MAIN_ACTION_LIMIT);
+  }, [actionHistory]);
+
+  // 조치 유형별 건수 계산하기
+  const actionTypeCount = useMemo(() => {
+    return actionHistory.reduce((acc, action) => {
+      const actionType = action.actionType;
+
+      if (actionType === "reviewed") {
+        acc.reviewed += 1;
+      } else if (actionType === "escalated") {
+        acc.escalated += 1;
+      } else if (actionType === "dismissed") {
+        acc.dismissed += 1;
+      }
+
+      return acc;
+    }, 
+    {
+      reviewed: 0,
+      escalated: 0,
+      dismissed: 0,
+    });
+  }, [actionHistory]);
 
   const reportCreatedAt = useMemo(() => new Date(), []);
 
@@ -392,6 +422,26 @@ function InternalReportPage() {
     현재 모든 대상 이벤트의 조치가 완료되었습니다.
     ${departmentSummary}`;
   }, [totalCount, reportTarget, highestRiskDepartment, riskCount.high, unresolvedEventCount, actionCompletionRate, ]);
+
+  const followUpPlanText = useMemo(() => {
+    if (totalCount === 0) {
+      return "보고 기간 중 위험 이벤트가 탐지되지 않아 별도의 후속 조치계획이 없습니다.";
+    }
+
+    if (unresolvedEventCount === 0) {
+      return `보고 대상 위험 이벤트 ${totalCount}건에 대한 조치가 모두 완료되었습니다.
+      현재 추가 대응이 필요한 미완료 이벤트는 없습니다.`;
+    }
+
+    if (riskCount.high > 0) {
+      return `현재 미완료 이벤트 ${unresolvedEventCount}건에 대한 후속 대응이 필요합니다.
+      특히 HIGH 등급 이벤트 ${riskCount.high}건을 우선 검토하고, 
+      담당 부서의 조치 결과와 재발 방지대책을 확인해야 합니다.`;
+    }
+
+    return `현재 미완료 이벤트 ${unresolvedEventCount}건에 대한 후속 확인이 필요합니다.
+    담당 부서별 조치 진행상황을 점검하고 완료 여부를 지속적으로 관리해야 합니다.`;
+  }, [totalCount, unresolvedEventCount, riskCount.high]);
 
   return (
     <div className="internal-report-page">
@@ -768,6 +818,38 @@ function InternalReportPage() {
           <section className="car-section car-detail-section">
             <h2>5. 조치 현황 및 후속 계획</h2>
 
+            <p className="car-section-description">
+              최근 수행된 주요 조치 최대 {MAIN_ACTION_LIMIT}건을 표시합니다.
+              전체 조치 이력은 별첨 3에서 확인할 수 있습니다.
+            </p>
+
+            <div className="car-action-summary">
+              <div className="car-action-summary-item">
+                <span>모니터링</span>
+                <strong>{actionTypeCount.reviewed}건</strong>
+              </div>
+
+              <div className="car-action-summary-item">
+                <span>조치 중</span>
+                <strong>{actionTypeCount.escalated}건</strong>
+              </div>
+
+              <div className="car-action-summary-item">
+                <span>조치 완료</span>
+                <strong>{actionTypeCount.dismissed}건</strong>
+              </div>
+
+              <div className="car-action-summary-item">
+                <span>미완료 이벤트</span>
+                <strong>{unresolvedEventCount}건</strong>
+              </div>
+            </div>
+
+            <div className="car-follow-up-plan">
+              <h3>후속 계획</h3>
+              <p>{followUpPlanText}</p>
+            </div>
+
             <table className="car-detail-table">
               <thead>
                 <tr>
@@ -781,7 +863,7 @@ function InternalReportPage() {
               </thead>
 
               <tbody>
-                {actionHistory.length === 0 && (
+                {mainActionHistory.length === 0 && (
                   <tr>
                     <td colSpan={6} className="car-empty-row">
                       조건에 해당하는 조치 이력이 없습니다.
@@ -789,14 +871,20 @@ function InternalReportPage() {
                   </tr>
                 )}
 
-                {actionHistory.map((action) => (
+                {mainActionHistory.map((action) => (
                   <tr key={action.id}>
                     <td>{action.actedAt}</td>
                     <td>
                       {action.eventType} ({action.userName})
                     </td>
                     <td>{action.department}</td>
-                    <td>{action.actionLabel}</td>
+                    <td>
+                      <span 
+                        className={`car-action-badge car-action-${action.actionType || "unknown"}`}
+                      >
+                        {action.actionLabel}
+                      </span>
+                    </td>
                     <td>{action.actorName}</td>
                     <td>{action.reason}</td>
                   </tr>
@@ -939,9 +1027,57 @@ function InternalReportPage() {
 
           <section className="car-section car-appendix-section">
             <h2>별첨 3. 전체 조치 이력</h2>
-            <p className="car-appendix-placeholder">
-              위험 이벤트에 대한 전체 조치 이력을 제공하는 영역입니다.
+            <p className="car-section-description">
+              현재 보고 조건에 해당하는 위험 이벤트의 전체 조치 이력입니다.
             </p>
+
+            <table className="car-detail-table">
+              <thead>
+                <tr>
+                  <th>번호</th>
+                  <th>조치 일시</th>
+                  <th>대상 이벤트</th>
+                  <th>부서</th>
+                  <th>조치 유형</th>
+                  <th>조치자</th>
+                  <th>조치 사유</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {actionHistory.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="car-empty-row">
+                      조건에 해당하는 조치 이력이 없습니다.
+                    </td>
+                  </tr>
+                )}
+
+                {actionHistory.map((action, index) => (
+                  <tr key={action.id}>
+                    <td>{index + 1}</td>
+                    <td>{action.actedAt}</td>
+
+                    <td>
+                      {action.eventType} ({action.userName})
+                    </td>
+
+                    <td>{action.department}</td>
+
+                    <td>
+                      <span
+                        className={`car-action-badge car-action-${action.actionType || "unknown"}`}
+                      >
+                        {action.actionLabel}
+                      </span>
+                    </td>
+
+                    <td>{action.actorName}</td>
+                    <td>{action.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         </div>
       )}
