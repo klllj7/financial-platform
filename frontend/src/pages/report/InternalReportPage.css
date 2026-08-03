@@ -361,16 +361,6 @@
   font-weight: 600;
 }
 
-/* 정책준수 참고사항 */
-.car-policy-notes {
-  margin: 0;
-  padding-left: 18px;
-
-  color: var(--color-text-sub);
-  font-size: 12px;
-  line-height: 1.7;
-}
-
 .car-overview-table {
   width: 100%;
   border-collapse: collapse;
@@ -646,6 +636,127 @@
   font-size: 11px;
   line-height: 1.7;
   white-space: pre-line;
+}
+
+/* 정책·규제 준수 종합 상태 */
+.car-compliance-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 12px;
+  padding: 12px 14px;
+
+  background: #f8f9fb;
+  border: 1px solid #d7dce5;
+}
+
+.car-compliance-status > span {
+  color: #475467;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.car-compliance-status-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 92px;
+  padding: 4px 10px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 위험 이벤트가 없는 정상 상태 */
+.car-compliance-normal {
+  color: #344054;
+  background: #f2f4f7;
+}
+
+/* 모든 대상 이벤트의 조치가 완료된 상태 */
+.car-compliance-managed {
+  color: #027a48;
+  background: #ecfdf3;
+}
+
+/* 미완료 이벤트에 대한 후속 조치가 필요한 상태 */
+.car-compliance-follow_up_required {
+  color: #b54708;
+  background: #fff4e5;
+}
+
+/* 미완료 HIGH 이벤트가 존재하는 중점 검토 상태 */
+.car-compliance-review_required {
+  color: #b42318;
+  background: #fef3f2;
+}
+
+/* 정책·규제 검토 표 */
+.car-compliance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+}
+
+.car-compliance-table th,
+.car-compliance-table td {
+  padding: 9px 10px;
+  border: 1px solid #d7dce5;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: left;
+  vertical-align: top;
+}
+
+.car-compliance-table th {
+  background: #f2f4f7;
+  color: #344054;
+  font-weight: 700;
+}
+
+.car-compliance-table th:nth-child(1) {
+  width: 120px;
+}
+
+.car-compliance-table th:nth-child(2) {
+  width: 105px;
+}
+
+/* 최종 종합 의견 */
+.car-compliance-conclusion {
+  padding: 14px 16px;
+  border: 1px solid #d7dce5;
+  border-left: 4px solid #344054;
+  background: #ffffff;
+}
+
+.car-compliance-conclusion h3 {
+  margin: 0 0 8px;
+  color: #273142;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.car-compliance-conclusion p {
+  margin: 0;
+  color: #475467;
+  font-size: 11px;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+/* 법률적 확정 판단이 아니라는 안내 문구 */
+.car-compliance-notice {
+  margin: 10px 0 0;
+  color: #7a8392;
+  font-size: 9px;
+  line-height: 1.6;
 }
 
 /* ==================================================

@@ -281,7 +281,7 @@ function InternalReportPage() {
 
   const majorRiskEvents = useMemo(() => {
     /*
-     * 본문에는 결재자가 먼저 확인해아 할 이벤트만 표시
+     * 본문에는 결재자가 먼저 확인해야 할 이벤트만 표시
      *
      * 정렬 우선순위:
      * 1. HIGH 등급
@@ -343,6 +343,13 @@ function InternalReportPage() {
     });
   }, [actionHistory]);
 
+  // 조치가 완료되지 않은 HIGH 등급 이벤트 수
+  const unresolvedHighCount = useMemo(() => {
+    return filteredEvents.filter((event) =>
+      event.riskLevel === "HIGH" && !isEventResolved(event)
+    ).length;
+  }, [filteredEvents]);
+
   const reportCreatedAt = useMemo(() => new Date(), []);
 
   const reportDocumentNumber = useMemo(() => {
@@ -352,6 +359,92 @@ function InternalReportPage() {
 
     return `AI-RISK-${year}${month}${day}`;
   }, [reportCreatedAt]);
+
+  // 위험 이벤트와 조치 상태를 기준으로 내부 준수 검토 결과를 계산함
+  const complianceStatus = useMemo(() => {
+    if (totalCount === 0) {
+      return {
+        code: "NORMAL",
+        label: "특이사항 없음",
+      };
+    }
+
+    // HIGH 등급이면서 아직 조치가 끝나지 않은 이벤트가 있으면 가장 높은 주의 단계로 판단
+    if (unresolvedHighCount > 0) {
+      return {
+        code: "REVIEW_REQUIRED",
+        label: "중점 검토 필요",
+      };
+    }
+
+    if (unresolvedEventCount > 0) {
+      return {
+        code: "FOLLOW_UP_REQUIRED",
+        label: "후속 조치 필요",
+      };
+    }
+
+    return {
+      code: "MANAGED",
+      label: "조치 완료",
+    };
+  }, [totalCount, unresolvedHighCount, unresolvedEventCount]);
+
+  // 보고서에 표시할 정책·규제 준수 검토 항목
+  const complianceReviewItems = useMemo(() => {
+    return [
+      {
+        id: "policy",
+        category: "내부 정책 준수",
+        status:
+          totalCount === 0
+            ? "특이사항 없음"
+            : `${totalCount}건 탐지`,
+        opinion:
+          totalCount === 0
+            ? "보고 기간 중 내부 정책 위반 의심 이벤트가 탐지되지 않았습니다."
+            : "탐지된 이벤트는 사내 생성형 AI 사용 정책과 DLP 운영 기준에 따라 검토가 필요합니다.",
+      },
+      {
+        id: "high-risk",
+        category: "중대 위험 검토",
+        status:
+          unresolvedHighCount > 0
+            ? `${unresolvedHighCount}건 미완료`
+            : "미완료 없음",
+        opinion:
+          unresolvedHighCount > 0
+            ? "미완료 HIGH 등급 이벤트를 우선 검토하고 담당 부서의 조치 결과를 확인해야 합니다."
+            : "현재 미완료 상태의 HIGH 등급 이벤트는 확인되지 않았습니다.",
+      },
+      {
+        id: "action",
+        category: "조치 이행 상태",
+        status:
+          unresolvedEventCount > 0
+            ? `${unresolvedEventCount}건 미완료`
+            : "조치 완료",
+        opinion:
+          unresolvedEventCount > 0
+            ? "미완료 이벤트의 담당자, 예정일 및 최종 조치 결과를 지속적으로 관리해야 합니다."
+            : "현재 보고 대상 이벤트의 조치가 완료된 상태입니다.",
+      },
+      {
+        id: "record",
+        category: "감사 기록 관리",
+        status: "기록 유지",
+        opinion:
+          actionHistory.length > 0
+            ? `총 ${actionHistory.length}건의 조치 이력이 확인되며 감사 추적을 위해 보관해야 합니다.`
+            : "등록된 조치 이력이 없으므로 위험 이벤트 발생 여부와 조치 기록을 함께 확인해야 합니다.",
+      },
+    ];
+  }, [
+    totalCount,
+    unresolvedHighCount,
+    unresolvedEventCount,
+    actionHistory.length,
+  ]);
 
   // 보고 목적 문구
   const reportPurposeText = useMemo(() => {
@@ -372,7 +465,7 @@ function InternalReportPage() {
     }
 
     if (riskCount.high > 0 && unresolvedEventCount > 0) {
-      return `High 등급 위험 이벤트 ${riskCount.high}건과 미완료 조치 ${unresolvedEventCount}건에 대한 후속 대응계획 검토 및 승인을 요청합니다.`;
+      return `HIGH 등급 위험 이벤트 ${riskCount.high}건과 미완료 조치 ${unresolvedEventCount}건에 대한 후속 대응계획 검토 및 승인을 요청합니다.`;
     }
 
     if (riskCount.high > 0) {
@@ -442,6 +535,39 @@ function InternalReportPage() {
     return `현재 미완료 이벤트 ${unresolvedEventCount}건에 대한 후속 확인이 필요합니다.
     담당 부서별 조치 진행상황을 점검하고 완료 여부를 지속적으로 관리해야 합니다.`;
   }, [totalCount, unresolvedEventCount, riskCount.high]);
+
+  // 현재 위험 수준과 조치 상태에 따라 보고서 종합 의견을 생성한다.
+  const complianceConclusionText = useMemo(() => {
+    if (totalCount === 0) {
+      return `보고 기간 중 ${reportTarget}에서 별도의 위험 이벤트가 탐지되지 않았습니다.
+  현재 생성형 AI 이용 통제 상태에서 특이사항은 확인되지 않았으며,
+  기존 모니터링과 정기 점검을 지속할 필요가 있습니다.`;
+    }
+
+    if (unresolvedHighCount > 0) {
+      return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었으며,
+  이 중 조치가 완료되지 않은 HIGH 등급 이벤트가 ${unresolvedHighCount}건 확인되었습니다.
+  해당 이벤트를 중점 관리 대상으로 지정하고 담당 부서의 원인 분석,
+  조치 결과 및 재발 방지대책을 추가로 확인해야 합니다.`;
+    }
+
+    if (unresolvedEventCount > 0) {
+      return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었으며,
+  현재 ${unresolvedEventCount}건의 이벤트가 미완료 상태입니다.
+  중대한 미완료 HIGH 등급 이벤트는 없으나,
+  조치 진행상황과 최종 완료 여부를 지속적으로 관리해야 합니다.`;
+    }
+
+    return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었으며,
+  현재 보고 대상 이벤트에 대한 조치는 모두 완료되었습니다.
+  향후 동일 유형의 위험이 반복되는지 모니터링하고,
+  필요 시 관련 정책과 탐지 규칙을 보완해야 합니다.`;
+  }, [
+    totalCount,
+    reportTarget,
+    unresolvedHighCount,
+    unresolvedEventCount,
+  ]);
 
   return (
     <div className="internal-report-page">
@@ -897,19 +1023,48 @@ function InternalReportPage() {
           <section className="car-section">
             <h2>6. 정책·규제 준수 검토 및 종합 의견</h2>
 
-            <ul className="car-policy-notes">
-              <li>
-                위험등급별 대응 절차는 사내 생성형 AI 사용 정책과 DLP 운영 기준을
-                따릅니다.
-              </li>
-              <li>
-                탐지된 위험 이벤트는 관련 정책과 규제 기준에 따라 검토되어야 합니다.
-              </li>
-              <li>
-                본 문서는 내부결재를 위한 위험관리 현황 보고서이며, 공식 규제 제출
-                문서와는 구분됩니다.
-              </li>
-            </ul>
+            <p className="car-section-description">
+              본 검토 결과는 보고 기간 중 수집된 AI Gateway 로그와 조치 이력을 기준으로 작성한 내부 위험관리 관점의 판단입니다.
+            </p>
+
+            <div className="car-compliance-status">
+              <span>종합 검토 상태</span>
+              <strong
+                className={`car-compliance-status-value car-compliance-${complianceStatus.code.toLowerCase()}`}
+              >
+                {complianceStatus.label}
+              </strong>
+            </div>
+
+            <table className="car-compliance-table">
+              <thead>
+                <tr>
+                  <th>검토 항목</th>
+                  <th>검토 결과</th>
+                  <th>검토 의견</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {complianceReviewItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.category}</td>
+                    <td>{item.status}</td>
+                    <td>{item.opinion}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="car-compliance-conclusion">
+              <h3>종합 의견</h3>
+              <p>{complianceConclusionText}</p>
+            </div>
+
+            <p className="car-compliance-notice">
+              ※ 본 결과는 내부 위험관리 및 결재를 위한 검토 의견이며,
+              법률적 판단 또는 감독기관의 공식 유권해석을 의미하지 않습니다.
+            </p>
           </section>
 
           {/* 별첨 */}
