@@ -246,6 +246,13 @@ function InternalReportPage() {
     return departmentsWithEvents[0] ?? null;
   }, [departmentSummaries]);
 
+  // 본문용 상위 부서 데이터 만들기
+  const MAIN_DEPARTMENT_LIMIT = 5;
+
+  const mainDepartmentSummaries = useMemo(() => {
+    return departmentSummaries.filter((row) => row.total > 0).slice(0, MAIN_DEPARTMENT_LIMIT);
+  }, [departmentSummaries]);
+
   const reportCreatedAt = useMemo(() => new Date(), []);
 
   const reportDocumentNumber = useMemo(() => {
@@ -560,7 +567,11 @@ function InternalReportPage() {
           {/* 3. 부서별 위험 탐지 현황 */}
           <section className="car-section">
             <h2>3. 부서별 위험 탐지 현황</h2>
-
+            
+            <p className="car-section-description">
+              위험 이벤트 발생 건수를 기준으로 상위 최대 {MAIN_DEPARTMENT_LIMIT}개 부서를 표시합니다.
+              전체 부서 현황은 별침 1에서 확인할 수 있습니다.
+            </p>
             <table className="car-summary-table">
               <thead>
                 <tr>
@@ -573,15 +584,15 @@ function InternalReportPage() {
               </thead>
 
               <tbody>
-                {departmentSummaries.length === 0 && (
+                {mainDepartmentSummaries.length === 0 && (
                   <tr>
                     <td colSpan={5} className="car-empty-row">
-                      조건에 해당하는 데이터가 없습니다.
+                      조건에 해당하는 위험 이벤트가 없습니다.
                     </td>
                   </tr>
                 )}
 
-                {departmentSummaries.map((row) => (
+                {mainDepartmentSummaries.map((row) => (
                   <tr key={row.department}>
                     <td>{row.department}</td>
                     <td>{row.high}</td>
@@ -725,9 +736,43 @@ function InternalReportPage() {
           {/* 별첨 */}
           <section className="car-section car-appendix-section">
             <h2>별첨 1. 전체 부서 현황</h2>
-            <p className="car-appendix-placeholder">
-              전체 부서별 위험 탐지 내역을 제공하는 영역입니다.
+            <p className="car-section-description">
+              보고 대상과 조회 조건에 해당하는 전체 부서별 위험 탐지 현황입니다.
             </p>
+
+            <table className="car-summary-table">
+              <thead>
+                <tr>
+                  <th>순위</th>
+                  <th>부서</th>
+                  <th>HIGH</th>
+                  <th>MEDIUM</th>
+                  <th>LOW</th>
+                  <th>합계</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {departmentSummaries.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="car-empty-row">
+                      조건에 해당하는 부서 데이터가 없습니다.
+                    </td>
+                  </tr>
+                )}
+
+                {departmentSummaries.map((row, index) => (
+                  <tr key={row.department}>
+                    <td>{index + 1}</td>
+                    <td>{row.department}</td>
+                    <td>{row.high}</td>
+                    <td>{row.medium}</td>
+                    <td>{row.low}</td>
+                    <td>{row.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
 
           <section className="car-section car-appendix-section">

@@ -175,6 +175,13 @@
   padding-left: 8px;
 }
 
+.car-section-description {
+  margin: 0 0 12px;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
 .car-source-note {
   margin: 0 0 16px;
 
@@ -509,6 +516,11 @@
     border: none;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .car-appendix-section {
+    break-before: page;
+    page-break-before: always;
   }
 }
 
