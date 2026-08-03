@@ -492,6 +492,50 @@
   font-size: 10px;
 }
 
+/* 주요 이벤트의 탐지 내용과 사용 모델을 한 셀에서 구분해 표시한다. */
+.car-event-impact {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.car-event-impact strong {
+  color: #344054;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.car-event-impact small {
+  color: #7a8392;
+  font-size: 9px;
+}
+
+/* 이벤트 조치 상태 공통 배지 */
+.car-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 완료된 이벤트 */
+.car-status-completed {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+/* 미조치 또는 진행 중인 이벤트 */
+.car-status-pending {
+  background: #fff4e5;
+  color: #b54708;
+}
+
 /* ==================================================
    인쇄 전용 스타일
 ================================================== */

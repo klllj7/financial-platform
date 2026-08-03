@@ -55,6 +55,36 @@ function getStoredUser() {
   }
 }
 
+/* 이벤트의 조치 이력 중 가장 최근 조치를 반환 */
+function getLatestAction(actions = []) {
+  if (actions.length === 0) {
+    return null;
+  }
+
+  return [...actions].sort((a, b) =>
+    new Date(b.action_time || 0).getTime() - new Date(a.action_time || 0).getTime())[0];
+}
+
+/* 최근 조치가 완료(dismissed) 상태인지 확인 */
+function isEventResolved(event) {
+  const latestAction = getLatestAction(event.actions);
+
+  return latestAction?.action_type === "dismissed";
+}
+
+/* 보고서에 표시할 이벤트 조치 상태를 반환 */
+function getEventStatus(event) {
+  const latestAction = getLatestAction(event.actions);
+
+  if (!latestAction) {
+    return "미조치";
+  }
+
+  return (
+    ACTION_TYPE_LABEL[latestAction.action_type] ?? latestAction.action_type ?? "미확인"
+  );
+}
+
 function InternalReportPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -209,18 +239,8 @@ function InternalReportPage() {
   ).length;
 
   const unresolvedEventCount = useMemo(() => {
-    return filteredEvents.filter((event) => {
-      const actions = event.actions || [];
-
-      if (actions.length === 0) {
-        return true;
-      }
-
-      const latestAction = [...actions].sort((a, b) =>
-        new Date(b.action_time || 0).getTime() - new Date(a.action_time || 0).getTime())[0];
-      
-      return latestAction?.action_type !== "dismissed";
-    }).length;
+    // 최근 조치가 완료 상태가 아닌 이벤트만 미완료로 집계
+    return filteredEvents.filter((event) => !isEventResolved(event)).length;
   }, [filteredEvents]);
 
   const totalCount = filteredEvents.length;
@@ -252,6 +272,46 @@ function InternalReportPage() {
   const mainDepartmentSummaries = useMemo(() => {
     return departmentSummaries.filter((row) => row.total > 0).slice(0, MAIN_DEPARTMENT_LIMIT);
   }, [departmentSummaries]);
+
+  // 주요 위험 이벤트 데이터 만들기
+  const MAIN_EVENT_LIMIT = 10;
+
+  const majorRiskEvents = useMemo(() => {
+    /*
+     * 본문에는 결재자가 먼저 확인해아 할 이벤트만 표시
+     *
+     * 정렬 우선순위:
+     * 1. HIGH 등급
+     * 2. 미완료 상태
+     * 3. 위험등급이 높은 이벤트
+     * 4. 최근 발생 이벤트
+     */
+    return [...filteredEvents].sort((a, b) => {
+      const aIsHigh = a.riskLevel === "HIGH" ? 1 : 0;
+      const bIsHigh = b.riskLevel === "HIGH" ? 1 : 0;
+
+      if (aIsHigh !== bIsHigh) {
+        return bIsHigh - aIsHigh;
+      }
+
+      const aIsUnresolved = isEventResolved(a) ? 0 : 1;
+      const bIsUnresolved = isEventResolved(b) ? 0 : 1;
+
+      if (aIsUnresolved !== bIsUnresolved) {
+        return bIsUnresolved - aIsUnresolved;
+      }
+
+      const riskDifference = (RISK_ORDER[b.riskLevel] ?? 0) - (RISK_ORDER[a.riskLevel] ?? 0);
+
+      if (riskDifference !== 0) {
+        return riskDifference;
+      }
+
+      return (new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    }).slice(0, MAIN_EVENT_LIMIT);
+  }, [filteredEvents]);
+
+  
 
   const reportCreatedAt = useMemo(() => new Date(), []);
 
@@ -570,7 +630,7 @@ function InternalReportPage() {
             
             <p className="car-section-description">
               위험 이벤트 발생 건수를 기준으로 상위 최대 {MAIN_DEPARTMENT_LIMIT}개 부서를 표시합니다.
-              전체 부서 현황은 별침 1에서 확인할 수 있습니다.
+              전체 부서 현황은 별첨 1에서 확인할 수 있습니다.
             </p>
             <table className="car-summary-table">
               <thead>
@@ -609,6 +669,11 @@ function InternalReportPage() {
           <section className="car-section car-detail-section">
             <h2>4. 주요 위험 이벤트 및 영향 분석</h2>
 
+            <p className="car-section-description">
+              HIGH 등급과 미완료 이벤트를 우선으로 최대 {MAIN_EVENT_LIMIT}건을 표시합니다.
+              전체 위험 이벤트는 별첨 2에서 확인할 수 있습니다.
+            </p>
+
             <div className="car-risk-criteria">
               <strong>위험 등급 산출 기준</strong>
 
@@ -637,13 +702,13 @@ function InternalReportPage() {
                   <th>위험등급</th>
                   <th>사용자 / 부서</th>
                   <th>탐지 유형</th>
-                  <th>사용 모델</th>
-                  <th>탐지 내용</th>
+                  <th>탐지 내용 및 영향</th>
+                  <th>조치 상태</th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredEvents.length === 0 && (
+                {majorRiskEvents.length === 0 && (
                   <tr>
                     <td colSpan={6} className="car-empty-row">
                       조건에 해당하는 위험 이벤트가 없습니다.
@@ -651,24 +716,50 @@ function InternalReportPage() {
                   </tr>
                 )}
 
-                {filteredEvents.map((event) => (
-                  <tr key={event.id}>
-                    <td>{formatDateTime(event.createdAt)}</td>
-                    <td>
-                      <span
-                        className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}
-                      >
-                        {event.riskLevel}
-                      </span>
-                    </td>
-                    <td>
-                      {event.userName} / {event.department}
-                    </td>
-                    <td>{event.eventType}</td>
-                    <td>{event.modelName}</td>
-                    <td>{event.description}</td>
-                  </tr>
-                ))}
+                {majorRiskEvents.map((event) => {
+                  const eventResolved = isEventResolved(event);
+
+                  return (
+                    <tr key={event.id}>
+                      <td>{formatDateTime(event.createdAt)}</td>
+
+                      <td>
+                        <span
+                          className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}
+                        >
+                          {event.riskLevel}
+                        </span>
+                      </td>
+
+                      <td>
+                        {event.userName} / {event.department}
+                      </td>
+
+                      <td>{event.eventType}</td>
+
+                      <td>
+                        <div className="car-event-impact">
+                          <strong>{event.description}</strong>
+                          <small>
+                            사용 모델: {event.modelName}
+                          </small>
+                        </div>
+                      </td>
+
+                      <td>
+                        <span 
+                          className={
+                            eventResolved 
+                              ? "car-status-badge car-status-completed" 
+                              : "car-status-badge car-status-pending"
+                          }
+                        >
+                          {getEventStatus(event)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </section>
@@ -777,9 +868,73 @@ function InternalReportPage() {
 
           <section className="car-section car-appendix-section">
             <h2>별첨 2. 전체 위험 이벤트 목록</h2>
-            <p className="car-appendix-placeholder">
-              보고 기간에 해당하는 전체 위험 이벤트를 제공하는 영역입니다.
+            <p className="car-section-description">
+              현재 보고 조건에 해당하는 전체 위험 이벤트 목록입니다.
             </p>
+
+            <table className="car-detail-table">
+              <thead>
+                <tr>
+                  <th>번호</th>
+                  <th>발생 시각</th>
+                  <th>위험등급</th>
+                  <th>사용자 / 부서</th>
+                  <th>탐지 유형</th>
+                  <th>사용 모델</th>
+                  <th>탐지 내용</th>
+                  <th>조치 상태</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredEvents.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="car-empty-row">
+                      조건에 해당하는 위험 이벤트가 없습니다.
+                    </td>
+                  </tr>
+                )}
+
+                {filteredEvents.map((event, index) => {
+                  const eventResolved = isEventResolved(event);
+
+                  return (
+                    <tr key={event.id}>
+                      <td>{index + 1}</td>
+                      <td>{formatDateTime(event.createdAt)}</td>
+
+                      <td>
+                        <span 
+                          className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}
+                        >
+                          {event.riskLevel}
+                        </span>
+                      </td>
+
+                      <td>
+                        {event.userName} / {event.department}
+                      </td>
+
+                      <td>{event.eventType}</td>
+                      <td>{event.modelName}</td>
+                      <td>{event.description}</td>
+
+                      <td>
+                        <span
+                          className={
+                            eventResolved
+                              ? "car-status-badge car-status-completed"
+                              : "car-status-badge car-status-pending"
+                          }
+                        >
+                          {getEventStatus(event)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </section>
 
           <section className="car-section car-appendix-section">
