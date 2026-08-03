@@ -23,6 +23,11 @@ const ACTION_TYPE_LABEL = {
   dismissed: "조치 완료",
 };
 
+const REPORT_TYPE_OPTIONS = [
+  { value: "REGULAR", label: "정기보고" },
+  { value: "AD_HOC", label: "수시보고" },
+];
+
 function toDateInputValue(date) {
   return date.toISOString().slice(0, 10);
 }
@@ -59,6 +64,9 @@ function InternalReportPage() {
   const [periodStart, setPeriodStart] = useState(defaultPeriodStart);
   const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd);
   const [riskThreshold, setRiskThreshold] = useState("ALL");
+  const [reportType, setReportType] = useState("REGULAR");
+
+  const reportTypeLabel = REPORT_TYPE_OPTIONS.find((option) => option.value === reportType)?.label ?? "정기보고";
 
   useEffect(() => {
     getEvents()
@@ -184,8 +192,16 @@ function InternalReportPage() {
   ).length;
 
   const totalCount = filteredEvents.length;
-  const riskThresholdLabel =
-    RISK_THRESHOLD_OPTIONS.find((opt) => opt.value === riskThreshold)?.label ?? "전체";
+
+  const reportCreatedAt = useMemo(() => new Date(), []);
+
+  const reportDocumentNumber = useMemo(() => {
+    const year = reportCreatedAt.getFullYear();
+    const month = String(reportCreatedAt.getMonth() + 1).padStart(2, "0");
+    const day = String(reportCreatedAt.getDate()).padStart(2, "0");
+
+    return `AI-RISK-${year}${month}${day}`;
+  }, [reportCreatedAt]);
 
   return (
     <div className="internal-report-page">
@@ -239,6 +255,21 @@ function InternalReportPage() {
             ))}
           </select>
         </label>
+
+        <label className="car-filter-field">
+          <span>보고 구분</span>
+
+          <select
+            value={reportType}
+            onChange={(event) => setReportType(event.target.value)}
+          >
+            {REPORT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {loading && <div className="car-loading">AI Gateway 로그를 불러오는 중입니다...</div>}
@@ -246,23 +277,65 @@ function InternalReportPage() {
 
       {!loading && !error && (
         <div className="car-document">
-          {/* 결재선 */}
-          <div className="car-approval-line">
-            {APPROVAL_ROLES.map((role) => (
-              <div key={role} className="car-approval-box">
-                <div className="car-approval-role">{role}</div>
-                <div className="car-approval-sign-cell"></div>
-              </div>
-            ))}
-          </div>
-          <div className="car-title-block">
-            <h1>생성형 AI 이용 위험관리 현황 및 조치 결과 보고</h1>
-            <div className="car-title-meta">
-              <span>대상 부서: {department}</span>
-              <span>대상 기간: {periodStart} ~ {periodEnd}</span>
-              <span>위험등급 기준: {riskThresholdLabel}</span>
+          <header className="car-document-header">
+            <div className="car-document-heading">
+              <p className="car-document-category">내부결재 보고서</p>
+              <h1>생성형 AI 이용 위험관리 현황 및 조치 결과 보고</h1>
             </div>
-          </div>
+
+            <div className="car-document-info-layout">
+              <table className="car-document-info-table">
+                <tbody>
+                  <tr>
+                    <th>문서번호</th>
+                    <td>{reportDocumentNumber}</td>
+
+                    <th>보고 구분</th>
+                    <td>{reportTypeLabel}</td>
+                  </tr>
+
+                  <tr>
+                    <th>작성 부서</th>
+                    <td>보안·컴플라이언스팀</td>
+
+                    <th>보안등급</th>
+                    <td>
+                      <strong className="car-security-level">사내한</strong>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <th>작성일</th>
+                    <td>{formatDate(reportCreatedAt)}</td>
+
+                    <th>보고 대상</th>
+                    <td>{department === "전체" ? "전사" : department}</td>
+                  </tr>
+
+                  <tr>
+                    <th>보고 기간</th>
+                    <td colSpan={3}>{periodStart} ~ {periodEnd}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="car-approval-line">
+                {APPROVAL_ROLES.map((role) => (
+                  <div key={role} className="car-approval-box">
+                    <div className="car-approval-role">{role}</div>
+
+                    <div className="car-approval-space">
+                      <span>서명</span>
+                    </div>
+
+                    <div className="car-approval-date">
+                      날짜
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </header>
 
           {/* 1. 보고 개요 및 결재 요청사항 */}
           <section className="car-section">
