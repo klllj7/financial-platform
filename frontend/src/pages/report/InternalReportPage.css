@@ -349,6 +349,11 @@
   font-weight: 700;
 }
 
+.car-overview-description {
+  white-space: pre-line;
+  line-height: 1.7;
+}
+
 .car-appendix-section {
   margin-top: 32px;
 }

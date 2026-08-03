@@ -208,6 +208,21 @@ function InternalReportPage() {
     (event.actions || []).some((a) => a.action_type === "dismissed")
   ).length;
 
+  const unresolvedEventCount = useMemo(() => {
+    return filteredEvents.filter((event) => {
+      const actions = event.actions || [];
+
+      if (actions.length === 0) {
+        return true;
+      }
+
+      const latestAction = [...actions].sort((a, b) =>
+        new Date(b.action_time || 0).getTime() - new Date(a.action_time || 0).getTime())[0];
+      
+      return latestAction?.action_type !== "dismissed";
+    }).length;
+  }, [filteredEvents]);
+
   const totalCount = filteredEvents.length;
 
   const reportCreatedAt = useMemo(() => new Date(), []);
@@ -219,6 +234,40 @@ function InternalReportPage() {
 
     return `AI-RISK-${year}${month}${day}`;
   }, [reportCreatedAt]);
+
+  // 보고 목적 문구
+  const reportPurposeText = useMemo(() => {
+    if (totalCount === 0) {
+      return `보고 기간 중 ${reportTarget}의 생성형 AI 이용 위험 이벤트가 탐지되지 않았으며,
+      현재 운영 현황을 정기적으로 보고하기 위함입니다.`;
+    }
+
+    return `보고 기간 중 ${reportTarget}의 생성형 AI 이용 과정에서 총 ${totalCount}건의 위험 이벤트가 탐지되었으며, 
+    이 중 HIGH 등급은 ${riskCount.high}건입니다.
+    위험 이벤트 현황과 조치 결과를 검토하고 필요한 후속 대응사항을 보고하기 위함입니다.`;
+  }, [reportTarget, totalCount, riskCount.high]);
+
+  // 결재 요청사항 문구
+  const approvalRequestText = useMemo(() => {
+    if (totalCount === 0) {
+      return "보고 기간 중 별도의 위험 이벤트가 확인되지 않아 승인 요청사항이 없습니다.";
+    }
+
+    if (riskCount.high > 0 && unresolvedEventCount > 0) {
+      return `High 등급 위험 이벤트 ${riskCount.high}건과 미완료 조치 ${unresolvedEventCount}건에 대한 후속 대응계획 검토 및 승인을 요청합니다.`;
+    }
+
+    if (riskCount.high > 0) {
+      return `HIGH 등급 위험 이벤트 ${riskCount.high}건의 조치 결과를 검토하고,
+      필요 시 추가 통제 강화 여부에 대한 승인을 요청합니다.`;
+    }
+
+    if (unresolvedEventCount > 0) {
+      return `미완료 위험 이벤트 ${unresolvedEventCount}건에 대한 후속 조치계획 검토 및 승인을 요청합니다.`;
+    }
+
+    return "보고 기간 중 발생한 위험 이벤트의 조치가 완료되어 결과를 보고합니다.";
+  }, [totalCount, riskCount.high, unresolvedEventCount]);
 
   return (
     <div className="internal-report-page">
@@ -365,9 +414,8 @@ function InternalReportPage() {
               <tbody>
                 <tr>
                   <th>보고 목적</th>
-                  <td>
-                    보고 기간 중 사내 생성형 AI 이용 과정에서 탐지된 위험 이벤트와
-                    조치 현황을 보고하고, 필요한 후속조치 사항을 검토하기 위함입니다.
+                  <td className="car-overview-description">
+                    {reportPurposeText}
                   </td>
                 </tr>
                 <tr>
@@ -382,8 +430,8 @@ function InternalReportPage() {
                 </tr>
                 <tr>
                   <th>결재 요청사항</th>
-                  <td>
-                    주요 위험 이벤트 및 미완료 조치에 대한 검토와 후속 대응계획 승인을 요청합니다.
+                  <td className="car-overview-description">
+                    {approvalRequestText}
                   </td>
                 </tr>
               </tbody>
