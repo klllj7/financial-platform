@@ -1,7 +1,12 @@
 # detection_type(detector.py/embedding_detector.py가 내려주는 탐지 유형 코드)을
 # 관련 법 조항에 연결하기 위한 매핑표.
-# law_name은 하드코딩하지 않고 clause_id로 regulation_clause 테이블을 가리켜서,
-# D 담당자가 규제 관리 화면에서 조항 제목을 고쳐도 여기서 자동으로 반영되게 한다.
+# law_name의 "문서명 + 조항번호" 부분은 하드코딩하지 않고 clause_id로 regulation_clause
+# 테이블을 가리켜서, D 담당자가 규제 관리 화면에서 조항 제목을 고쳐도 여기서 자동으로
+# 반영되게 한다. 다만 같은 조 안에서 항/호 단위로 더 세분화해서 표시하고 싶은 경우,
+# 그 세분화 때문에 조항이 사실상 같은 원문 조문(예: 제34조)에 대해 여러 건으로
+# DB에 중복 등록되는 걸 막기 위해 sub_locator(옵션)로 "제1항제1호" 같은 항/호 텍스트만
+# 코드에서 뒤에 붙인다. 조문 본문이 바뀌지 않는 한 항/호 번호는 거의 안 바뀌는 값이라
+# 하드코딩 리스크가 낮다고 판단함.
 # severity는 이벤트의 grade(같은 이벤트에 여러 유형이 섞이면 그 중 최댓값)를 그대로
 # 쓰지 않고, 조항별 법적 위반 소지의 경중을 detector.py의 PII_GRADES 기준에 맞춰
 # 고정값으로 매긴다. 예: 계좌번호 하나만 잡힌 이벤트와 기밀정보 유사까지 겹쳐서
@@ -44,14 +49,16 @@ REGULATION_MAPPING = {
     },
     "confidential_similarity": {
         "regulation_code": "REG-06",
-        "clause_id": 38,  # 인공지능기본법 제34조제1항제1호 (위험관리방안의 수립·운영)
+        "clause_id": 37,  # 인공지능기본법 제34조 (고영향 인공지능과 관련한 사업자의 책무)
+        "sub_locator": "제1항제1호",  # 제34조 중 위험관리방안의 수립·운영 부분
         "severity": "HIGH",
         "legal_issue": "사내 기밀·민감정보 유사 내용 처리에 대한 위험관리방안 미비 소지",
         "recommended_action": "위험관리방안 재점검 및 유사 사례 재발 방지 대책 수립",
     },
     "prompt_injection": {
         "regulation_code": "REG-07",
-        "clause_id": 39,  # 인공지능기본법 제34조제1항 (위험관리방안 + 관리·감독)
+        "clause_id": 37,  # 인공지능기본법 제34조 (고영향 인공지능과 관련한 사업자의 책무)
+        "sub_locator": "제1항",  # 제34조 중 위험관리방안 + 관리·감독을 포괄하는 부분
         "severity": "HIGH",
         "legal_issue": "프롬프트 인젝션 등 침해 시도에 대한 위험관리·관리감독 체계 미비 소지",
         "recommended_action": "위험관리방안 및 사람의 관리·감독 체계 점검",
@@ -91,7 +98,12 @@ def get_mapped_violations(
         entry = REGULATION_MAPPING.get(t)
         if entry is None:
             continue
-        law_name = clause_law_names.get(entry["clause_id"], "(조항 정보 없음 - 규제 관리에서 확인 필요)")
+        base_law_name = clause_law_names.get(entry["clause_id"])
+        law_name = (
+            base_law_name + entry.get("sub_locator", "")
+            if base_law_name
+            else "(조항 정보 없음 - 규제 관리에서 확인 필요)"
+        )
         violations.append({
             "regulation_code": entry["regulation_code"],
             "law_name": law_name,
