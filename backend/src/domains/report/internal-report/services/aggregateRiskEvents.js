@@ -51,7 +51,7 @@ const getExpandedRiskEvents = async ({ from, to } = {}) => {
         type,
         grade: PII_GRADES[type] || "LOW", // 유형별 고정 등급 (요청 단위 grade가 아님)
         similarityScore: event.similarity_score,
-        createdAt: event.created_at,
+        createdAt: event.createdAt,
         // 원문(description) 금지 — 결과/리포트에는 마스킹본만 쓴다.
         maskedDescription: usage?.masked_description ?? null,
         actionStatus: eventActions[0]?.action_type ?? null,
