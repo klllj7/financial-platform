@@ -225,6 +225,27 @@ function InternalReportPage() {
 
   const totalCount = filteredEvents.length;
 
+  // 조치 완료율 계산하기
+  const actionCompletionRate = useMemo(() => {
+    if (totalCount === 0) {
+      return 0;
+    }
+
+    return Math.round((completedActionEventCount / totalCount) * 100);
+  }, [completedActionEventCount, totalCount]);
+
+  // 위험 발생 부서 수 계산하기
+  const affectedDepartmentCount = useMemo(() => {
+    return new Set(filteredEvents.map((event) => event.department)).size;
+  }, [filteredEvents]);
+
+  // 가장 위험 이벤트가 많은 부서 계산하기
+  const highestRiskDepartment = useMemo(() => {
+    const departmentsWithEvents = departmentSummaries.filter((row) => row.total > 0);
+
+    return departmentsWithEvents[0] ?? null;
+  }, [departmentSummaries]);
+
   const reportCreatedAt = useMemo(() => new Date(), []);
 
   const reportDocumentNumber = useMemo(() => {
@@ -268,6 +289,42 @@ function InternalReportPage() {
 
     return "보고 기간 중 발생한 위험 이벤트의 조치가 완료되어 결과를 보고합니다.";
   }, [totalCount, riskCount.high, unresolvedEventCount]);
+
+  // 경영 요약 문장 만들기
+  const executiveSummaryText = useMemo(() => {
+    if (totalCount === 0) {
+      return `보고 기간 중 ${reportTarget}에서 탐지된 위험 이벤트는 없습니다.
+      현재 기준으로 추가 조치가 필요한 사항은 확인되지 않았습니다.`;
+    }
+
+    const departmentSummary = highestRiskDepartment 
+      ? `${highestRiskDepartment.department}에서 가장 많은 ${highestRiskDepartment.total}건의 위험 이벤트가 탐지되었습니다.`
+      : "";
+
+    if (riskCount.high > 0 && unresolvedEventCount > 0) {
+      return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었으며,
+      이 중 HIGH 등급은 ${riskCount.high}건입니다.
+      현재 미완료 이벤트 ${unresolvedEventCount}건에 대한 후속조치가 필요합니다.
+      ${departmentSummary}`;
+    }
+
+    if (riskCount.high > 0) {
+      return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었으며,
+      이 중 HIGH 등급은 ${riskCount.high}건입니다.
+      현재 확인된 조치 완료율은 ${actionCompletionRate}%입니다.
+      ${departmentSummary}`;
+    }
+
+    if (unresolvedEventCount > 0) {
+      return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었습니다.
+      HIGH 등급 이벤트는 없으나, 미완료 이벤트 ${unresolvedEventCount}건에 대한 확인이 필요합니다.
+      ${departmentSummary}`;
+    }
+
+    return `보고 기간 중 총 ${totalCount}건의 위험 이벤트가 탐지되었으며,
+    현재 모든 대상 이벤트의 조치가 완료되었습니다.
+    ${departmentSummary}`;
+  }, [totalCount, reportTarget, highestRiskDepartment, riskCount.high, unresolvedEventCount, actionCompletionRate, ]);
 
   return (
     <div className="internal-report-page">
@@ -447,25 +504,56 @@ function InternalReportPage() {
               집계한 결과입니다. (작성 시각: {formatDateTime(new Date().toISOString())})
             </p>
 
-            <div className="car-summary-cards">
+            <div className="car-summary-cards car-summary-cards-five">
               <div className="car-summary-card">
                 <span className="car-summary-card-label">전체 위험 이벤트</span>
                 <strong>{totalCount}건</strong>
+                <small>
+                  HIGH {riskCount.high} · MEDIUM {riskCount.medium} · LOW{" "}
+                  {riskCount.low}
+                </small>
+              </div>
+
+              <div className="car-summary-card car-summary-card-high">
+                <span className="car-summary-card-label">
+                  HIGH 위험 이벤트
+                </span>
+                <strong>{riskCount.high}건</strong>
+                <small>우선 검토 대상</small>
+              </div>
+
+              <div className="car-summary-card car-summary-card-unresolved">
+                <span className="car-summary-card-label">
+                  미완료 이벤트
+                </span>
+                <strong>{unresolvedEventCount}건</strong>
+                <small>후속조치 필요</small>
+              </div>
+
+              <div className="car-summary-card">
+                <span className="car-summary-card-label">조치 완료율</span>
+                <strong>{actionCompletionRate}%</strong>
+                <small>
+                  완료 {completedActionEventCount}건
+                </small>
               </div>
 
               <div className="car-summary-card">
                 <span className="car-summary-card-label">
-                  HIGH / MEDIUM / LOW
+                  위험 발생 부서
                 </span>
-                <strong>
-                  {riskCount.high} / {riskCount.medium} / {riskCount.low}
-                </strong>
+                <strong>{affectedDepartmentCount}개</strong>
+                <small>
+                  {highestRiskDepartment
+                    ? `최다 ${highestRiskDepartment.department}`
+                    : "발생 부서 없음"}
+                </small>
               </div>
+            </div>
 
-              <div className="car-summary-card">
-                <span className="car-summary-card-label">조치 완료 이벤트</span>
-                <strong>{completedActionEventCount}건</strong>
-              </div>
+            <div className="car-executive-summary">
+              <h3>종합 요약</h3>
+              <p>{executiveSummaryText}</p>
             </div>
           </section>
 
