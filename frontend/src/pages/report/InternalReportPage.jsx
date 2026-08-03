@@ -44,10 +44,26 @@ function formatDateTime(value) {
   return `${formatDate(value)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function getStoredUser() {
+  try {
+    const storedUser = localStorage.getItem("user");
+
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.error("로그인 사용자 정보 파싱 실패", error);
+    return null;
+  }
+}
+
 function InternalReportPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const currentUser = useMemo(() => getStoredUser(), []);
+  const reportAuthorName = currentUser?.name || "-";
+
+  const reportAuthorDepartment = currentUser?.department?.name || currentUser?.department || "미지정 부서";
 
   // 이벤트가 0건인 부서도 표에 표시하기 위한 전체 부서 목록 (department 테이블 기준)
   const [departments, setDepartments] = useState([]);
@@ -67,6 +83,7 @@ function InternalReportPage() {
   const [reportType, setReportType] = useState("REGULAR");
 
   const reportTypeLabel = REPORT_TYPE_OPTIONS.find((option) => option.value === reportType)?.label ?? "정기보고";
+  const reportTarget = department === "전체" ? "전사" : department;
 
   useEffect(() => {
     getEvents()
@@ -295,8 +312,16 @@ function InternalReportPage() {
                   </tr>
 
                   <tr>
+                    <th>작성자</th>
+                    <td>{reportAuthorName}</td>
+
                     <th>작성 부서</th>
-                    <td>보안·컴플라이언스팀</td>
+                    <td>{reportAuthorDepartment}</td>
+                  </tr>
+
+                  <tr>
+                    <th>작성일</th>
+                    <td>{formatDate(reportCreatedAt)}</td>
 
                     <th>보안등급</th>
                     <td>
@@ -305,16 +330,11 @@ function InternalReportPage() {
                   </tr>
 
                   <tr>
-                    <th>작성일</th>
-                    <td>{formatDate(reportCreatedAt)}</td>
-
                     <th>보고 대상</th>
-                    <td>{department === "전체" ? "전사" : department}</td>
-                  </tr>
+                    <td>{reportTarget}</td>
 
-                  <tr>
                     <th>보고 기간</th>
-                    <td colSpan={3}>{periodStart} ~ {periodEnd}</td>
+                    <td>{periodStart} ~ {periodEnd}</td>
                   </tr>
                 </tbody>
               </table>
@@ -352,7 +372,7 @@ function InternalReportPage() {
                 </tr>
                 <tr>
                   <th>보고 대상</th>
-                  <td>{department === "전체" ? "전사" : department}</td>
+                  <td>{reportTarget}</td>
                 </tr>
                 <tr>
                   <th>보고 기간</th>
