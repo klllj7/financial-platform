@@ -39,4 +39,33 @@ router.post(
   upload.single("file"),
   evidenceController.uploadEvidenceItem,
 );
+
+router.post(
+  "/:itemNo/log-entries",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  evidenceController.addLogEntry,
+);
+
+router.patch(
+  "/:itemNo/draft",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  evidenceController.confirmDraft,
+);
+
+router.get(
+  "/export/checklist.xlsx",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  evidenceController.exportChecklistXlsx,
+);
+
+router.get(
+  "/export/zip",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  evidenceController.exportEvidenceZip,
+);
+
 module.exports = router;

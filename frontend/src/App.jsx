@@ -147,12 +147,6 @@ function App() {
             element={<ComplianceRiskEventsPage />}
           />
 
-          {/* 상시평가 증빙자료
-          <Route
-            path="/report/evidence"
-            element={<EvidenceChecklistPage />}
-          /> */}
-
           {/* 상시평가 증빙자료 (컴플라이언스) */}
           <Route
             path="/compliance/evidence"
@@ -218,11 +212,6 @@ function App() {
             element={<RegulationMappingPage />}
           />
 
-          {/* 상시평가 증빙자료 (컴플라이언스) */}
-          <Route
-            path="/compliance/evidence"
-            element={<EvidenceChecklistPage />}
-          />
         </Route>
  
         {/* ==================================================
