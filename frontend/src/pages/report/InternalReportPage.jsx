@@ -808,7 +808,7 @@ function InternalReportPage() {
               위험 이벤트 발생 건수를 기준으로 상위 최대 {MAIN_DEPARTMENT_LIMIT}개 부서를 표시합니다.
               전체 부서 현황은 별첨 1에서 확인할 수 있습니다.
             </p>
-            <table className="car-summary-table">
+            <table className="car-summary-table car-department-table">
               <thead>
                 <tr>
                   <th>부서</th>
@@ -871,7 +871,16 @@ function InternalReportPage() {
               </small>
             </div>
 
-            <table className="car-detail-table">
+            <table className="car-detail-table car-major-event-table">
+              <colgroup>
+                <col className="car-col-date" />
+                <col className="car-col-risk" />
+                <col className="car-col-user" />
+                <col className="car-col-type" />
+                <col className="car-col-description" />
+                <col className="car-col-status" />
+              </colgroup>
+
               <thead>
                 <tr>
                   <th>발생 시각</th>
@@ -908,7 +917,10 @@ function InternalReportPage() {
                       </td>
 
                       <td>
-                        {event.userName} / {event.department}
+                        <div className="car-user-department">
+                          <strong>{event.userName}</strong>
+                          <span>{event.department}</span>
+                        </div>
                       </td>
 
                       <td>{event.eventType}</td>
@@ -1115,69 +1127,75 @@ function InternalReportPage() {
               현재 보고 조건에 해당하는 전체 위험 이벤트 목록입니다.
             </p>
 
-            <table className="car-detail-table">
-              <thead>
-                <tr>
-                  <th>번호</th>
-                  <th>발생 시각</th>
-                  <th>위험등급</th>
-                  <th>사용자 / 부서</th>
-                  <th>탐지 유형</th>
-                  <th>사용 모델</th>
-                  <th>탐지 내용</th>
-                  <th>조치 상태</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredEvents.length === 0 && (
+            <div className="car-table-scroll">
+              <table className="car-detail-table car-all-event-table">
+                <thead>
                   <tr>
-                    <td colSpan={8} className="car-empty-row">
-                      조건에 해당하는 위험 이벤트가 없습니다.
-                    </td>
+                    <th>번호</th>
+                    <th>발생 시각</th>
+                    <th>위험등급</th>
+                    <th>사용자 / 부서</th>
+                    <th>탐지 유형</th>
+                    <th>사용 모델</th>
+                    <th>탐지 내용</th>
+                    <th>조치 상태</th>
                   </tr>
-                )}
+                </thead>
 
-                {filteredEvents.map((event, index) => {
-                  const eventResolved = isEventResolved(event);
-
-                  return (
-                    <tr key={event.id}>
-                      <td>{index + 1}</td>
-                      <td>{formatDateTime(event.createdAt)}</td>
-
-                      <td>
-                        <span 
-                          className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}
-                        >
-                          {event.riskLevel}
-                        </span>
-                      </td>
-
-                      <td>
-                        {event.userName} / {event.department}
-                      </td>
-
-                      <td>{event.eventType}</td>
-                      <td>{event.modelName}</td>
-                      <td>{event.description}</td>
-
-                      <td>
-                        <span
-                          className={
-                            eventResolved
-                              ? "car-status-badge car-status-completed"
-                              : "car-status-badge car-status-pending"
-                          }
-                        >
-                          {getEventStatus(event)}
-                        </span>
+                <tbody>
+                  {filteredEvents.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="car-empty-row">
+                        조건에 해당하는 위험 이벤트가 없습니다.
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  )}
+
+                  {filteredEvents.map((event, index) => {
+                    const eventResolved = isEventResolved(event);
+
+                    return (
+                      <tr key={event.id}>
+                        <td>{index + 1}</td>
+                        <td>{formatDateTime(event.createdAt)}</td>
+
+                        <td>
+                          <span 
+                            className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}
+                          >
+                            {event.riskLevel}
+                          </span>
+                        </td>
+
+                        <td>
+                          <div className="car-user-department">
+                            <strong>{event.userName}</strong>
+                            <span>{event.department}</span>
+                          </div>
+                        </td>
+
+                        <td>{event.eventType}</td>
+                        <td>{event.modelName}</td>
+                        <td>{event.description}</td>
+
+                        <td>
+                          <span
+                            className={
+                              eventResolved
+                                ? "car-status-badge car-status-completed"
+                                : "car-status-badge car-status-pending"
+                            }
+                          >
+                            {getEventStatus(event)}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
           </section>
 
           <section className="car-section car-appendix-section">
