@@ -193,7 +193,7 @@ function InternalReportPage() {
       <div className="car-toolbar">
         <div>
           <h2>내부결재 보고서</h2>
-          <p>AI Gateway 로그 기준으로 부서별 사용현황과 위험 이벤트를 결재 문서 형태로 확인합니다.</p>
+          <p>생성형 AI 이용 과정에서 탐지된 위험과 조치 현황을 내부결재 문서 형태로 확인합니다.</p>
         </div>
         <button type="button" className="car-print-button" onClick={() => window.print()}>
           <Printer size={16} /> 인쇄
@@ -256,7 +256,7 @@ function InternalReportPage() {
             ))}
           </div>
           <div className="car-title-block">
-            <h1>AI 활용 현황 및 위험관리 결과보고서</h1>
+            <h1>생성형 AI 이용 위험관리 현황 및 조치 결과 보고</h1>
             <div className="car-title-meta">
               <span>대상 부서: {department}</span>
               <span>대상 기간: {periodStart} ~ {periodEnd}</span>
@@ -264,23 +264,63 @@ function InternalReportPage() {
             </div>
           </div>
 
-          {/* 1. 표지/요약 */}
+          {/* 1. 보고 개요 및 결재 요청사항 */}
           <section className="car-section">
-            <h2>1. 표지 및 요약</h2>
+            <h2>1. 보고 개요 및 결재 요청사항</h2>
+
+            <table className="car-overview-table">
+              <tbody>
+                <tr>
+                  <th>보고 목적</th>
+                  <td>
+                    보고 기간 중 사내 생성형 AI 이용 과정에서 탐지된 위험 이벤트와
+                    조치 현황을 보고하고, 필요한 후속조치 사항을 검토하기 위함입니다.
+                  </td>
+                </tr>
+                <tr>
+                  <th>보고 대상</th>
+                  <td>{department === "전체" ? "전사" : department}</td>
+                </tr>
+                <tr>
+                  <th>보고 기간</th>
+                  <td>
+                    {periodStart} ~ {periodEnd}
+                  </td>
+                </tr>
+                <tr>
+                  <th>결재 요청사항</th>
+                  <td>
+                    주요 위험 이벤트 및 미완료 조치에 대한 검토와 후속 대응계획 승인을 요청합니다.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          {/* 2. 경영 요약 */}
+          <section className="car-section">
+            <h2>2. 경영 요약</h2>
+
             <p className="car-source-note">
-              본 통계는 AI Gateway 로그 기준[{periodStart}~{periodEnd}] 실제 관측 데이터를 집계한
-              결과입니다. (작성 시각: {formatDateTime(new Date().toISOString())})
+              본 통계는 AI Gateway 로그 기준[{periodStart}~{periodEnd}] 실제 관측 데이터를
+              집계한 결과입니다. (작성 시각: {formatDateTime(new Date().toISOString())})
             </p>
 
             <div className="car-summary-cards">
               <div className="car-summary-card">
-                <span className="car-summary-card-label">전체 이벤트</span>
+                <span className="car-summary-card-label">전체 위험 이벤트</span>
                 <strong>{totalCount}건</strong>
               </div>
+
               <div className="car-summary-card">
-                <span className="car-summary-card-label">HIGH / MEDIUM / LOW</span>
-                <strong>{riskCount.high} / {riskCount.medium} / {riskCount.low}</strong>
+                <span className="car-summary-card-label">
+                  HIGH / MEDIUM / LOW
+                </span>
+                <strong>
+                  {riskCount.high} / {riskCount.medium} / {riskCount.low}
+                </strong>
               </div>
+
               <div className="car-summary-card">
                 <span className="car-summary-card-label">조치 완료 이벤트</span>
                 <strong>{completedActionEventCount}건</strong>
@@ -288,9 +328,10 @@ function InternalReportPage() {
             </div>
           </section>
 
-          {/* 2. 부서별 사용현황 */}
+          {/* 3. 부서별 위험 탐지 현황 */}
           <section className="car-section">
-            <h2>2. 부서별 사용현황</h2>
+            <h2>3. 부서별 위험 탐지 현황</h2>
+
             <table className="car-summary-table">
               <thead>
                 <tr>
@@ -301,12 +342,16 @@ function InternalReportPage() {
                   <th>합계</th>
                 </tr>
               </thead>
+
               <tbody>
                 {departmentSummaries.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="car-empty-row">조건에 해당하는 데이터가 없습니다.</td>
+                    <td colSpan={5} className="car-empty-row">
+                      조건에 해당하는 데이터가 없습니다.
+                    </td>
                   </tr>
                 )}
+
                 {departmentSummaries.map((row) => (
                   <tr key={row.department}>
                     <td>{row.department}</td>
@@ -320,18 +365,29 @@ function InternalReportPage() {
             </table>
           </section>
 
-          {/* 3. 위험이벤트 상세 */}
+          {/* 4. 주요 위험 이벤트 및 영향 분석 */}
           <section className="car-section car-detail-section">
-            <h2>3. 위험이벤트 상세</h2>
+            <h2>4. 주요 위험 이벤트 및 영향 분석</h2>
 
             <div className="car-risk-criteria">
-              <strong>위험 등급 산출 기준 (참고)</strong>
+              <strong>위험 등급 산출 기준</strong>
+
               <ul>
-                <li>HIGH: 고유식별정보·금융거래정보 등 민감정보 직접 노출 또는 정책 위반이 명확한 경우</li>
-                <li>MEDIUM: 정책 우회 시도, 비정상 접근 패턴 등 추가 확인이 필요한 경우</li>
-                <li>LOW: 경미한 규칙 위반 또는 모니터링 목적의 참고성 탐지</li>
+                <li>
+                  HIGH: 고유식별정보·금융거래정보 등 민감정보 직접 노출 또는
+                  정책 위반이 명확한 경우
+                </li>
+                <li>
+                  MEDIUM: 정책 우회 시도, 비정상 접근 패턴 등 추가 확인이 필요한 경우
+                </li>
+                <li>
+                  LOW: 경미한 규칙 위반 또는 모니터링 목적의 참고성 탐지
+                </li>
               </ul>
-              <small>※ 실제 등급은 DLP 탐지 규칙 설정값에 따라 결정되며, 위 기준은 이해를 돕기 위한 요약입니다.</small>
+
+              <small>
+                ※ 실제 등급은 DLP 탐지 규칙 설정값에 따라 결정됩니다.
+              </small>
             </div>
 
             <table className="car-detail-table">
@@ -345,21 +401,29 @@ function InternalReportPage() {
                   <th>탐지 내용</th>
                 </tr>
               </thead>
+
               <tbody>
                 {filteredEvents.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="car-empty-row">조건에 해당하는 위험 이벤트가 없습니다.</td>
+                    <td colSpan={6} className="car-empty-row">
+                      조건에 해당하는 위험 이벤트가 없습니다.
+                    </td>
                   </tr>
                 )}
+
                 {filteredEvents.map((event) => (
                   <tr key={event.id}>
                     <td>{formatDateTime(event.createdAt)}</td>
                     <td>
-                      <span className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}>
+                      <span
+                        className={`car-risk-badge car-risk-${event.riskLevel.toLowerCase()}`}
+                      >
                         {event.riskLevel}
                       </span>
                     </td>
-                    <td>{event.userName} / {event.department}</td>
+                    <td>
+                      {event.userName} / {event.department}
+                    </td>
                     <td>{event.eventType}</td>
                     <td>{event.modelName}</td>
                     <td>{event.description}</td>
@@ -369,9 +433,10 @@ function InternalReportPage() {
             </table>
           </section>
 
-          {/* 4. 조치이력 */}
+          {/* 5. 조치 현황 및 후속 계획 */}
           <section className="car-section car-detail-section">
-            <h2>4. 조치이력</h2>
+            <h2>5. 조치 현황 및 후속 계획</h2>
+
             <table className="car-detail-table">
               <thead>
                 <tr>
@@ -383,16 +448,22 @@ function InternalReportPage() {
                   <th>조치 사유</th>
                 </tr>
               </thead>
+
               <tbody>
                 {actionHistory.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="car-empty-row">조건에 해당하는 조치 이력이 없습니다.</td>
+                    <td colSpan={6} className="car-empty-row">
+                      조건에 해당하는 조치 이력이 없습니다.
+                    </td>
                   </tr>
                 )}
+
                 {actionHistory.map((action) => (
                   <tr key={action.id}>
                     <td>{action.actedAt}</td>
-                    <td>{action.eventType} ({action.userName})</td>
+                    <td>
+                      {action.eventType} ({action.userName})
+                    </td>
                     <td>{action.department}</td>
                     <td>{action.actionLabel}</td>
                     <td>{action.actorName}</td>
@@ -403,17 +474,45 @@ function InternalReportPage() {
             </table>
           </section>
 
-          {/* 5. 정책준수 참고사항 */}
+          {/* 6. 정책·규제 준수 검토 및 종합 의견 */}
           <section className="car-section">
-            <h2>5. 정책준수 참고사항</h2>
+            <h2>6. 정책·규제 준수 검토 및 종합 의견</h2>
+
             <ul className="car-policy-notes">
               <li>
-                본 보고서는 「금융분야 인공지능 보안 안내서」 제3장(AI 특화 공격 탐지 및 대응) 및
-                제7장(보안성 검증 및 운영 관리) 점검항목을 참고하여 작성되었습니다.
+                위험등급별 대응 절차는 사내 생성형 AI 사용 정책과 DLP 운영 기준을
+                따릅니다.
               </li>
-              <li>위험등급별 대응 절차는 사내 AI 사용 정책 및 DLP 운영 기준을 따릅니다.</li>
-              <li>본 문서는 상시평가 143개 소항목과의 공식 매핑 문서가 아니며, 내부 결재 참고용 초안입니다.</li>
+              <li>
+                탐지된 위험 이벤트는 관련 정책과 규제 기준에 따라 검토되어야 합니다.
+              </li>
+              <li>
+                본 문서는 내부결재를 위한 위험관리 현황 보고서이며, 공식 규제 제출
+                문서와는 구분됩니다.
+              </li>
             </ul>
+          </section>
+
+          {/* 별첨 */}
+          <section className="car-section car-appendix-section">
+            <h2>별첨 1. 전체 부서 현황</h2>
+            <p className="car-appendix-placeholder">
+              전체 부서별 위험 탐지 내역을 제공하는 영역입니다.
+            </p>
+          </section>
+
+          <section className="car-section car-appendix-section">
+            <h2>별첨 2. 전체 위험 이벤트 목록</h2>
+            <p className="car-appendix-placeholder">
+              보고 기간에 해당하는 전체 위험 이벤트를 제공하는 영역입니다.
+            </p>
+          </section>
+
+          <section className="car-section car-appendix-section">
+            <h2>별첨 3. 전체 조치 이력</h2>
+            <p className="car-appendix-placeholder">
+              위험 이벤트에 대한 전체 조치 이력을 제공하는 영역입니다.
+            </p>
           </section>
         </div>
       )}
