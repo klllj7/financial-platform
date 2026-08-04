@@ -348,9 +348,10 @@
   font-size: 10px;
 }
 
-.ce-insight-metric strong.ce-tone-good { color: #079a70; }
-.ce-insight-metric strong.ce-tone-mid { color: var(--color-primary); }
-.ce-insight-metric strong.ce-tone-low { color: #f28b00; }
+/* 핵심 지표 카드는 더 이상 진행률 구간(good/mid/low)을 따르지 않고, 지표 성격별로 색을 고정한다. */
+.ce-insight-metric strong.ce-tone-info { color: var(--color-primary); }
+.ce-insight-metric strong.ce-tone-danger { color: #e42438; }
+.ce-insight-metric strong.ce-tone-neutral { color: #64738b; }
 
 /* 진행률 바차트 + 결과분포 도넛을 나란히 */
 .ce-summary-grid {
@@ -827,9 +828,9 @@
   white-space: nowrap;
 }
 
-.ce-badge-done { color: #07835f; background: #def7ed; border: 1px solid #a2e6cf; }
-.ce-badge-partial { color: #f28b00; background: #fff7df; border: 1px solid #f6cf67; }
-.ce-badge-none { color: #d13c3c; background: #ffe4e4; border: 1px solid #f2aaaa; }
+.ce-badge-done { color: #07815f; background: #e1f7ef; border: 1px solid #a9e5d2; }
+.ce-badge-partial { color: #a85f08; background: #fff5dc; border: 1px solid #f5d261; }
+.ce-badge-none { color: #e42438; background: #fff0f1; border: 1px solid #ffbdc4; }
 .ce-badge-na { color: #64738b; background: #eef1f6; border: 1px solid #d7dde7; }
 
 .ce-result-badge-button {

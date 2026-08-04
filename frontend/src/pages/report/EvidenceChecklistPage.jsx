@@ -47,10 +47,6 @@ export function progressTone(pct) {
   return "ce-tone-low";
 }
 
-// 차트(recharts Cell fill 등)는 CSS 클래스가 아닌 실제 색상값이 필요해 progressTone과 별도로 둔다.
-// 전사 대시보드(ComplianceDashboardPage) 팔레트를 그대로 따른다.
-const TONE_COLOR = { "ce-tone-good": "#079a70", "ce-tone-mid": "#2f6fed", "ce-tone-low": "#f28b00" };
-
 export function resultBadgeClass(result) {
   const map = {
     이행: "ce-badge ce-badge-done",
@@ -501,9 +497,9 @@ function EvidenceChecklistPage() {
 
   const resultDistribution = useMemo(
     () => [
-      { name: "이행", value: resultBuckets.이행, color: "#07835f" },
-      { name: "부분이행", value: resultBuckets.부분이행, color: "#f28b00" },
-      { name: "미이행", value: resultBuckets.미이행, color: "#d13c3c" },
+      { name: "이행", value: resultBuckets.이행, color: "#07815f" },
+      { name: "부분이행", value: resultBuckets.부분이행, color: "#a85f08" },
+      { name: "미이행", value: resultBuckets.미이행, color: "#e42438" },
       { name: "미제출", value: resultBuckets.미제출, color: "#64738b" },
     ],
     [resultBuckets]
@@ -671,22 +667,22 @@ function EvidenceChecklistPage() {
                 <div className="ce-insight-metrics">
                   <div className="ce-insight-metric">
                     <span>전체 진행률</span>
-                    <strong className={progressTone(overallPct)}>{overallPct}%</strong>
+                    <strong className="ce-tone-info">{overallPct}%</strong>
                     <small>{totalPrepared}/{totalItems}개 항목 준비완료</small>
                   </div>
                   <div className="ce-insight-metric">
-                    <span>준비완료</span>
-                    <strong className="ce-tone-good">{totalPrepared}건</strong>
-                    <small>전체 {totalItems}건 중</small>
-                  </div>
-                  <div className="ce-insight-metric">
                     <span>미제출</span>
-                    <strong className={unpreparedItems.length > 0 ? "ce-tone-low" : "ce-tone-good"}>{unpreparedItems.length}건</strong>
+                    <strong className="ce-tone-danger">{unpreparedItems.length}건</strong>
                     <small>아래 목록에서 바로 이동</small>
                   </div>
                   <div className="ce-insight-metric">
+                    <span>준비완료</span>
+                    <strong className="ce-tone-neutral">{totalPrepared}건</strong>
+                    <small>전체 {totalItems}건 중</small>
+                  </div>
+                  <div className="ce-insight-metric">
                     <span>이행 완료</span>
-                    <strong className="ce-tone-good">{resultBuckets.이행}건</strong>
+                    <strong className="ce-tone-neutral">{resultBuckets.이행}건</strong>
                     <small>결과값 "이행" 기준</small>
                   </div>
                 </div>
@@ -709,7 +705,7 @@ function EvidenceChecklistPage() {
                         <Tooltip formatter={(value) => [`${value}%`, "진행률"]} cursor={{ fill: "#f6f8fc" }} />
                         <Bar dataKey="percentage" radius={[0, 6, 6, 0]} background={{ fill: "#e5eaf2", radius: 6 }}>
                           {categoryStats.map((c) => (
-                            <Cell key={c.key} fill={TONE_COLOR[progressTone(c.percentage)]} />
+                            <Cell key={c.key} fill="#64738b" />
                           ))}
                           <LabelList
                             dataKey="percentage"
