@@ -59,30 +59,92 @@ exports.getPolicies = async (req, res) => {
     }
 };
 
-//put /api/policies/:id
+// PUT /api/policies/:id
 exports.updatePolicy = async (req, res) => {
+    const transaction = await PolicyInfo.sequelize.transaction();
+
     try {
         const { id } = req.params;
         const { rule_content, active_yn } = req.body;
 
-        const policy = await PolicyInfo.findByPk(id);
+        // 같은 정책이 동시에 수정되는 상황을 줄이기 위해 트랜잭션 안에서 대상 정책 조회
+        const policy = await PolicyInfo.findByPk(id, {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+        });
+
         if (!policy) {
+            await transaction.rollback();
+
             return res.status(404).json({ success: false, data: null, error: "정책을 찾을 수 없습니다." });
         }
 
-        await PolicyHistory.create({ policy_id: id, version: policy.version, rule_snapshot: policy.rule_content });
-        await policy.update({ version: policy.version + 1, rule_content, active_yn });
+        // 정책 내용이 없거나 공백 문자열이면 수정 요청을 거절한다.
+        const isEmptyRuleContent = 
+            rule_content === undefined ||
+            rule_content === null ||
+            (typeof rule_content === "string" && !rule_content.trim());
 
-        res.json({
+        if (isEmptyRuleContent) {
+            await transaction.rollback();
+
+            return res.status(400).json({
+                success: false,
+                data: null,
+                error: "정책 내용을 입력해주세요.",
+            });
+        }
+
+        const currentVersion = Number(policy.version) || 1;
+        const isPending = policy.approval_status === "pending";
+
+        // 이미 승인 대기 중인 정책을 다시 수정할 경우에는 같은 검토 요청을 보완하는 것으로 보고 버전을 유지
+        const nextVersion = isPending ? currentVersion : currentVersion + 1;
+
+        // 새 버전이 생성될 때만 이전 정책 내용을 이력으로 저장
+        if (!isPending) {
+            await PolicyHistory.create(
+                { 
+                    policy_id: policy.id, 
+                    version: currentVersion, 
+                    rule_snapshot: policy.rule_content, 
+                }, 
+                { transaction }
+            );
+        }
+        
+        // 정책 내용이 수정되면 관리자의 재검토가 필요하므로 승인 상태를 다시 승인대기(pending)로 변경
+        await policy.update(
+            { 
+                rule_content,
+                version: nextVersion, 
+                active_yn: typeof active_yn === "boolean" ? active_yn : policy.active_yn,
+                approval_status: "pending",
+                reject_reason: null,
+                reject_detail: null,
+                revision_request: null,
+                rejected_by: null,
+                rejected_at: null,
+            },
+            { transaction }
+        );
+
+        await transaction.commit();
+
+        return res.json({
             success: true,
             data: policy,
             error: null
         });
     } catch (error) {
-        res.status(500).json({
+        await transaction.rollback();
+
+        console.error("정책 수정 실패: ", error);
+
+        return res.status(500).json({
             success: false,
             data: null,
-            error: error.message
+            error: "정책 수정 중 오류가 발생했습니다.",
         });
     }
 };
