@@ -44,16 +44,28 @@ const getExpandedRiskEvents = async ({ from, to } = {}) => {
   for (const event of events) {
     const types = event.detection_type ? event.detection_type.split(",") : [];
     const usage = usageById.get(event.event_id);
-    const eventActions = actionsByEventId.get(event.event_id) || [];
+    // 자동 조치는 자기 방향 것만 본다. 담당자의 수동 조치(direction=NULL)는
+    // 요청 전체에 대한 판단이라 입력·출력 양쪽에 모두 해당한다.
+    const eventActions = (actionsByEventId.get(event.event_id) || []).filter(
+      (a) => a.direction == null || a.direction === event.direction,
+    );
     for (const type of types) {
       expanded.push({
         eventId: event.event_id,
+        // 하나의 usage_log에 입력·출력 이벤트가 함께 달릴 수 있어 event_id만으로는
+        // 행을 특정할 수 없다.
+        eventLogId: event.id,
+        direction: event.direction ?? "input",
         type,
         grade: PII_GRADES[type] || "LOW", // 유형별 고정 등급 (요청 단위 grade가 아님)
         similarityScore: event.similarity_score,
         createdAt: event.created_at,
         // 원문(description) 금지 — 결과/리포트에는 마스킹본만 쓴다.
-        maskedDescription: usage?.masked_description ?? null,
+        // 출력 이벤트가 탐지한 건 AI 응답이라 usage_log가 아니라 event_log에 들어있다.
+        maskedDescription:
+          event.direction === "output"
+            ? event.masked_description ?? null
+            : usage?.masked_description ?? null,
         actionStatus: eventActions[0]?.action_type ?? null,
       });
     }

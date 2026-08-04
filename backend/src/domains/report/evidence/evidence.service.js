@@ -197,22 +197,26 @@ const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
   });
 };
 
-/** ⑧ 출력·에러메시지 내 기밀정보 노출 방지 — confidential_similarity 유형만, csv
- *  스펙의 "output_leak_block" 신규 태깅은 event_log에 아직 없는 유형이라 제외했다.
+/** ⑧ 출력·에러메시지 내 기밀정보 노출 방지 — csv
+ *  AI 응답에서 탐지된 건(direction="output") 전부와, 입력 단계의 confidential_similarity를 싣는다.
+ *  event_log.direction 컬럼이 생기기 전에는 출력 탐지를 구분할 방법이 없어서
+ *  유사도 유형만 넣고 스펙의 "output_leak_block" 태깅을 제외했었다. 이제 구분이 가능하다.
  */
 const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
   const rows = await getExpandedRiskEvents({ from, to });
   const filtered = rows
-    .filter((r) => r.type === "confidential_similarity")
+    .filter((r) => r.direction === "output" || r.type === "confidential_similarity")
     .map((r) => ({
       event_id: r.eventId,
       created_at: r.createdAt,
+      direction: r.direction,
+      type: r.type,
       grade: r.grade,
       action_status: r.actionStatus,
       masked_description: r.maskedDescription,
     }));
 
-  const csv = generateCsv(filtered, ["event_id", "created_at", "grade", "action_status", "masked_description"]);
+  const csv = generateCsv(filtered, ["event_id", "created_at", "direction", "type", "grade", "action_status", "masked_description"]);
   const fileName = `기밀정보노출차단로그_${targetYear}.csv`;
   const filePath = await saveEvidenceFile(`8/${departmentId}/${targetYear}/${fileName}`, csv);
 
