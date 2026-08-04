@@ -452,6 +452,7 @@
 .admin-policy-priority-badge {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
 
   padding: 3px 7px;
 
