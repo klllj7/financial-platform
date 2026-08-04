@@ -591,7 +591,10 @@ function InternalReportPage() {
                       </td>
 
                       <td>
-                        {event.userName} / {event.department}
+                        <div className="car-user-department">
+                          <strong>{event.userName}</strong>
+                          <span>{event.department}</span>
+                        </div>
                       </td>
 
                       <td>{event.eventType}</td>
@@ -829,9 +832,12 @@ function InternalReportPage() {
                         </span>
                       </td>
 
-                      <td>
-                        {event.userName} / {event.department}
-                      </td>
+                        <td>
+                          <div className="car-user-department">
+                            <strong>{event.userName}</strong>
+                            <span>{event.department}</span>
+                          </div>
+                        </td>
 
                       <td>{event.eventType}</td>
                       <td>{event.description}</td>

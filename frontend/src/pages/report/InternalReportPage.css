@@ -425,9 +425,159 @@
 
 .car-summary-table th,
 .car-detail-table th {
+  word-break: keep-all;
+  overflow-wrap: normal;
+  line-height: 1.4;
+  vertical-align: middle;
   color: var(--color-text);
   background: #f0f0f0;
   font-weight: 700;
+}
+
+.car-user-department {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.car-user-department strong {
+  color: #344054;
+  font-size: 11px;
+  font-weight: 600;
+  word-break: keep-all;
+}
+
+.car-user-department span {
+  color: #667085;
+  font-size: 9px;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+/* 컬럼이 많은 별첨 표는 화면에서 가로 스크롤을 허용한다. */
+.car-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.car-all-event-table {
+  min-width: 1050px;
+  table-layout: fixed;
+}
+
+.car-all-event-table th,
+.car-all-event-table td {
+  font-size: 10px;
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+/* 번호 */
+.car-all-event-table th:nth-child(1),
+.car-all-event-table td:nth-child(1) {
+  width: 5%;
+  text-align: center;
+}
+
+/* 발생 시각 */
+.car-all-event-table th:nth-child(2),
+.car-all-event-table td:nth-child(2) {
+  width: 13%;
+  white-space: nowrap;
+}
+
+/* 위험등급 */
+.car-all-event-table th:nth-child(3),
+.car-all-event-table td:nth-child(3) {
+  width: 10%;
+  text-align: center;
+}
+
+/* 사용자 / 부서 */
+.car-all-event-table th:nth-child(4),
+.car-all-event-table td:nth-child(4) {
+  width: 12%;
+}
+
+/* 탐지 유형 */
+.car-all-event-table th:nth-child(5),
+.car-all-event-table td:nth-child(5) {
+  width: 12%;
+}
+
+/* 사용 모델 */
+.car-all-event-table th:nth-child(6),
+.car-all-event-table td:nth-child(6) {
+  width: 10%;
+}
+
+/* 탐지 내용 */
+.car-all-event-table th:nth-child(7),
+.car-all-event-table td:nth-child(7) {
+  width: 28%;
+}
+
+/* 조치 상태 */
+.car-all-event-table th:nth-child(8),
+.car-all-event-table td:nth-child(8) {
+  width: 10%;
+  text-align: center;
+}
+
+/* 별첨 2에서는 사용자·부서 글씨를 표 크기에 맞게 조금 줄인다. */
+.car-all-event-table .car-user-department strong {
+  font-size: 10px;
+}
+
+.car-all-event-table .car-user-department span {
+  font-size: 8px;
+}
+
+/* 본문 주요 위험 이벤트 표 */
+.car-major-event-table {
+  table-layout: fixed;
+}
+
+.car-major-event-table .car-col-date {
+  width: 15%;
+}
+
+.car-major-event-table .car-col-risk {
+  width: 10%;
+}
+
+.car-major-event-table .car-col-user {
+  width: 14%;
+}
+
+.car-major-event-table .car-col-type {
+  width: 14%;
+}
+
+.car-major-event-table .car-col-description {
+  width: 35%;
+}
+
+.car-major-event-table .car-col-status {
+  width: 12%;
+}
+
+/* 부서별 위험 탐지 표의 컬럼 간격을 동일하게 정리한다. */
+.car-department-table {
+  table-layout: fixed;
+}
+
+.car-department-table th:first-child,
+.car-department-table td:first-child {
+  width: 28%;
+}
+
+/* HIGH, MEDIUM, LOW, 합계 컬럼은 같은 너비로 표시한다. */
+.car-department-table th:not(:first-child),
+.car-department-table td:not(:first-child) {
+  width: 18%;
+  text-align: center;
 }
 
 .car-empty-row {
@@ -922,5 +1072,28 @@
 
   .car-action-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==================================================
+   인쇄할 때 대응 추가
+================================================== */
+
+@media print {
+  .car-table-scroll {
+    overflow: visible;
+  }
+
+  .car-all-event-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .car-all-event-table th,
+  .car-all-event-table td {
+    padding: 5px 4px;
+    font-size: 7px;
+    line-height: 1.35;
   }
 }
