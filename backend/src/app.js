@@ -16,6 +16,7 @@ const { seedBasicData, seedRegulationData } = require("./db/init");
 const authRoutes = require("./domains/auth/auth.routes");
 const adminRoutes = require("./domains/admin/admin.routes");
 const evidenceRoutes = require("./domains/report/evidence/evidence.routes");
+const internalReportRoutes = require("./domains/report/internal-report/internalReport.routes");
 
 /* 새 기능은 기존 도메인 코드를 수정하지 않고 독립 라우터로 연결한다. */
 const chatRoutes = require("./domains/chat/chat.routes");
@@ -59,6 +60,8 @@ app.use("/api/ai-tool", aiToolApplicationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 // report/evidence API 연결
 app.use("/api/report/evidence", evidenceRoutes);
+// 내부결재용보고서 API 연결
+app.use("/api/report/internal-report", internalReportRoutes);
 
 const PORT = process.env.PORT || 8080;
 
