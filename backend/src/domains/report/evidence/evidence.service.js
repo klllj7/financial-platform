@@ -96,7 +96,7 @@ const getEvidenceSummary = async ({ targetYear }) => {
 };
 const RULESET_SNAPSHOT = {
   piiPatternTypes: ["resident_number", "phone_number", "account_number", "card_number", "email"],
-  promptInjectionPatternCount: 12, // detector.py PROMPT_INJECTION_PATTERNS.prompt_injection 배열 길이
+  promptInjectionPatternCount: 13, // detector.py PROMPT_INJECTION_PATTERNS.prompt_injection 배열 길이
   blockTypes: Array.from(BLOCK_TYPES),
 };
 
@@ -287,16 +287,20 @@ const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
   });
 };
 
-/** ⑧ 출력·에러메시지 내 기밀정보 노출 방지 — confidential_similarity 유형만, xlsx
- *  스펙의 "output_leak_block" 신규 태깅은 event_log에 아직 없는 유형이라 제외했다.
+/** ⑧ 출력·에러메시지 내 기밀정보 노출 방지 — xlsx
+ *  AI 응답에서 탐지된 건(direction="output") 전부와, 입력 단계의 confidential_similarity를 싣는다.
+ *  event_log.direction 컬럼이 생기기 전에는 출력 탐지를 구분할 방법이 없어서
+ *  유사도 유형만 넣고 스펙의 "output_leak_block" 태깅을 제외했었다. 이제 구분이 가능하다.
  */
 const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
   const rows = await getExpandedRiskEvents({ from, to });
   const filtered = rows
-    .filter((r) => r.type === "confidential_similarity")
+    .filter((r) => r.direction === "output" || r.type === "confidential_similarity")
     .map((r) => ({
       event_id: r.eventId,
       created_at: r.createdAt,
+      direction: r.direction,
+      type: r.type,
       grade: r.grade,
       action_status: r.actionStatus,
       masked_description: r.maskedDescription,
@@ -308,6 +312,10 @@ const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
       columns: [
         { header: "이벤트ID", key: "event_id", width: 14 },
         { header: "발생일시", key: "created_at", width: 22 },
+        // 입력(사용자 프롬프트)에서 탐지된 건인지 출력(AI 응답)에서 탐지된 건인지.
+        // ⑧번 항목이 요구하는 "출력 노출 방지" 증빙의 핵심 구분자다.
+        { header: "탐지위치", key: "direction", width: 12 },
+        { header: "유형", key: "type", width: 22 },
         { header: "등급", key: "grade", width: 10 },
         { header: "처리상태", key: "action_status", width: 12 },
         { header: "마스킹 내용", key: "masked_description", width: 50 },

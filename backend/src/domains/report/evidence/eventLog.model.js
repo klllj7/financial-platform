@@ -11,6 +11,14 @@ const EventLog = sequelize.define("EventLog", {
   masked_yn: { type: DataTypes.BOOLEAN, defaultValue: false },
   grade: { type: DataTypes.STRING }, // "HIGH" / "MEDIUM" / "LOW"
   similarity_score: { type: DataTypes.FLOAT, allowNull: true },
+  // "input" = 사용자 입력에서 탐지, "output" = AI 응답에서 탐지.
+  // 하나의 usage_log에 두 방향의 이벤트가 각각 달릴 수 있다.
+  direction: { type: DataTypes.STRING, defaultValue: "input" },
+  // output 이벤트에서 탐지된 AI 응답 본문. AI 응답은 usage_log에 남기지 않기 때문에
+  // 여기 있다. input 이벤트는 NULL이고 usage_log 쪽 컬럼을 봐야 한다.
+  // 리포트·증빙에는 masked_description만 쓴다(원문 금지).
+  description: { type: DataTypes.STRING, allowNull: true },
+  masked_description: { type: DataTypes.STRING, allowNull: true },
 }, {
   tableName: "event_log",
   underscored: true,

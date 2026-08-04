@@ -9,6 +9,8 @@ const ActionHistory = sequelize.define("ActionHistory", {
   // 자동 처리: blocked/masked/allowed, 수동 검토: reviewed/escalated/dismissed
   action_type: { type: DataTypes.STRING },
   action_reason: { type: DataTypes.STRING },
+  // 시스템 자동 조치는 "input"/"output", 담당자의 수동 조치는 NULL(요청 전체 대상).
+  direction: { type: DataTypes.STRING, allowNull: true },
   // 컬럼명이 created_at이 아니라 action_time이라 명시적 필드로 정의한다
   // (updated_at 컬럼 자체가 없어 기본 timestamps 매커니즘을 쓰지 않음).
   action_time: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },

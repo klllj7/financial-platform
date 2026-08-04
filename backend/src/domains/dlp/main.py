@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Literal, Optional
 from detector import detect_pii, mask_text, compute_grade, BLOCK_TYPES
 from embedding_detector import detect_similarity
 from db import SessionLocal
@@ -18,6 +18,12 @@ class ChatRequest(BaseModel):
     prompt: str
     # TODO: A 담당자의 로그인/JWT 붙으면 요청 바디 대신 토큰에서 추출하도록 교체
     user_id: Optional[int] = None
+    # "input"  = 사용자가 보낸 프롬프트 검사. usage_log를 새로 만든다.
+    # "output" = AI가 생성한 응답 검사. AI 응답은 사용자의 "사용 이력"이 아니므로
+    #            usage_log를 만들지 않고, 같은 요청의 usage_log에 이벤트만 덧붙인다.
+    direction: Literal["input", "output"] = "input"
+    # direction="output"일 때 입력 검사에서 받은 usage_log_id를 그대로 넘겨준다.
+    usage_log_id: Optional[int] = None
 
 class ActionType(str, Enum):
     reviewed = "reviewed"
@@ -28,6 +34,34 @@ class ActionRequest(BaseModel):
     actor_user_id: int
     action_type: ActionType
     action_reason: str
+
+def _record_detection(db, usage_log_id: int, direction: str, detected: list[dict],
+                      action_status: str, text: str, masked_text: str) -> None:
+    """탐지 결과를 event_log/action_history에 남긴다. usage_log는 건드리지 않는다."""
+    detection_type = ",".join(sorted(set(d["type"] for d in detected)))
+    similarity_scores = [d["score"] for d in detected if "score" in d]
+    # 입력 이벤트의 본문은 usage_log에 이미 있으므로 중복 저장하지 않는다.
+    is_output = direction == "output"
+
+    db.add(EventLog(
+        event_id=usage_log_id,
+        detection_type=detection_type,
+        masked_yn=(action_status == "masked"),
+        grade=compute_grade(detected),
+        similarity_score=max(similarity_scores) if similarity_scores else None,
+        direction=direction,
+        description=text[:200] if is_output else None,
+        masked_description=masked_text[:200] if is_output else None,
+    ))
+    db.add(ActionHistory(
+        event_id=usage_log_id,
+        actor_user_id=None,
+        action_type=action_status,
+        action_reason="시스템 자동 감지",
+        direction=direction,
+    ))
+    db.commit()
+
 
 @app.post("/gateway/chat")
 def gateway_chat(request: ChatRequest):
@@ -44,41 +78,40 @@ def gateway_chat(request: ChatRequest):
         action_status = "allowed"
         response_prompt = request.prompt
 
+    masked_description = mask_text(request.prompt, detected) if detected else request.prompt
+    usage_log_id = request.usage_log_id
+
     db = SessionLocal()
     try:
-        masked_description = mask_text(request.prompt, detected) if detected else request.prompt
-        usage_log = UsageLog(
-            user_id=request.user_id,
-            description=request.prompt[:200],
-            masked_description=masked_description[:200],
-        )
-        db.add(usage_log)
-        db.commit()
-        db.refresh(usage_log)
-
-        if detected:
-            detection_type = ",".join(sorted(set(d["type"] for d in detected)))
-            similarity_scores = [d["score"] for d in detected if "score" in d]
-            event_log = EventLog(
-                event_id=usage_log.id,
-                detection_type=detection_type,
-                masked_yn=(action_status == "masked"),
-                grade=compute_grade(detected),
-                similarity_score=max(similarity_scores) if similarity_scores else None,
+        if request.direction == "input":
+            # 사용자가 실제로 보낸 요청만 사용 이력으로 남긴다.
+            usage_log = UsageLog(
+                user_id=request.user_id,
+                description=request.prompt[:200],
+                masked_description=masked_description[:200],
             )
-            db.add(event_log)
-
-            action_history = ActionHistory(
-                event_id = usage_log.id,
-                actor_user_id = None,
-                action_type = action_status,
-                action_reason = "시스템 자동 감지"
-            )
-            db.add(action_history)
-
+            db.add(usage_log)
             db.commit()
+            db.refresh(usage_log)
+            usage_log_id = usage_log.id
+
+        # direction="output"인데 usage_log_id가 없으면(입력 검사 단계에서 DLP가
+        # 죽어 있었던 경우 등) 붙일 곳이 없다. 이때는 기록만 건너뛰고 차단·마스킹
+        # 판정은 그대로 돌려준다 — 로그를 못 남긴다고 보호까지 풀 이유는 없다.
+        if detected and usage_log_id is not None:
+            _record_detection(
+                db, usage_log_id, request.direction, detected,
+                action_status, request.prompt, masked_description,
+            )
     finally:
         db.close()
+
+    response = {
+        "action_status": action_status,
+        "detected": detected,
+        "usage_log_id": usage_log_id,
+        "logged": not detected or usage_log_id is not None,
+    }
 
     if action_status == "blocked":
         if "prompt_injection" in blocked_types:
@@ -87,16 +120,11 @@ def gateway_chat(request: ChatRequest):
             reason = "기밀·민감 내부정보와 유사한 내용이 감지되어"
         else:
             reason = "민감정보(주민등록번호)가 포함되어"
-        return {
-            "action_status": action_status,
-            "message": f"{reason} 요청이 차단되었습니다.",
-            "detected": detected,
-        }
-    return {
-        "action_status": action_status,
-        "prompt": response_prompt,
-        "detected": detected,
-    }
+        response["message"] = f"{reason} 요청이 차단되었습니다."
+        return response
+
+    response["prompt"] = response_prompt
+    return response
 
 @app.post("/events/{event_id}/action")
 def create_action(event_id: int, request: ActionRequest):
@@ -176,10 +204,23 @@ def list_events():
             department = department_by_id.get(user.department_id) if user and user.department_id is not None else None
             event_actions = actions_by_event_id.get(event.event_id, [])
 
+            # 출력 이벤트가 탐지한 건 AI 응답이지 사용자가 입력한 프롬프트가 아니다.
+            # 응답 본문은 event_log에 따로 들고 있으므로 그걸 우선 보여준다.
+            if event.direction == "output":
+                description = event.description
+                masked_description = event.masked_description
+            else:
+                description = usage_log.description if usage_log else None
+                masked_description = usage_log.masked_description if usage_log else None
+
             result.append({
+                # 하나의 usage_log에 입력·출력 이벤트가 함께 달릴 수 있어서
+                # event_id만으로는 행을 특정할 수 없다. event_log.id를 함께 내려준다.
+                "id": event.id,
                 "event_id": event.event_id,
-                "description": usage_log.description if usage_log else None,
-                "masked_description": usage_log.masked_description if usage_log else None,
+                "direction": event.direction,
+                "description": description,
+                "masked_description": masked_description,
                 "user_name": user.name if user else None,
                 "department_name": department.name if department else None,
                 "detection_type": event.detection_type,
@@ -195,7 +236,10 @@ def list_events():
                         "actor_user_id": a.actor_user_id,
                         "action_time": a.action_time
                     }
+                    # 자동 조치는 자기 방향 것만, 담당자의 수동 조치(direction=NULL)는
+                    # 요청 전체에 대한 판단이라 입력·출력 양쪽에 모두 표시한다.
                     for a in event_actions
+                    if a.direction is None or a.direction == event.direction
                 ]
             })
         return result
