@@ -815,3 +815,25 @@
     padding: 0 14px;
   }
 }
+
+/*
+  인쇄 시 공통 레이아웃(사이드바/상단 헤더/하단 Footer)은 출력할 필요가 없다.
+  이걸 숨기지 않으면 각 페이지가 자체 인쇄 스타일을 갖춰도 웹 화면 전체가 그대로 인쇄된다.
+  현재 인쇄 기능은 내부결재 보고서 화면에서만 쓰이므로 다른 화면에는 영향이 없다.
+*/
+@media print {
+  .sidebar,
+  .top-header,
+  .app-footer {
+    display: none;
+  }
+
+  .app-layout {
+    min-height: 0;
+  }
+
+  .app-main {
+    width: 100%;
+    margin-left: 0;
+  }
+}

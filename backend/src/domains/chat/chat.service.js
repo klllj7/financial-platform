@@ -63,18 +63,30 @@ const softDeleteSessions = async ({ userId, sessionIds }) => {
 };
 
 /*
-  C 담당 DLP 서비스(/gateway/chat)에 프롬프트를 보내 PII 탐지·마스킹·차단 여부를 받아온다.
+  C 담당 DLP 서비스(/gateway/chat)에 텍스트를 보내 PII 탐지·마스킹·차단 여부를 받아온다.
   탐지된 이벤트는 DLP 쪽 usage_log/event_log/action_history에 자동으로 기록되어
   "위험 이벤트 관리" 화면에 바로 반영된다.
+
+  direction으로 사용자 입력 검사와 AI 응답 검사를 구분한다.
+  - "input"  : usage_log를 새로 만들고 usage_log_id를 돌려준다.
+  - "output" : AI 응답은 사용자의 사용 이력이 아니라서 usage_log를 만들지 않고,
+               입력 검사에서 받은 usageLogId에 이벤트만 덧붙인다.
+               이 값을 안 넘기면 한 번의 대화가 사용 이력 2건으로 집계된다.
+
   DLP 서비스가 응답하지 않으면(로컬에서 안 켜져 있는 등) 채팅 자체가 막히지 않도록
   탐지 없이 통과시키고 에러만 로그로 남긴다.
 */
-const inspectPrompt = async (message, userId) => {
+const inspectPrompt = async (message, userId, { direction = "input", usageLogId = null } = {}) => {
   try {
     const response = await fetch(`${DLP_SERVICE_URL}/gateway/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: message, user_id: userId }),
+      body: JSON.stringify({
+        prompt: message,
+        user_id: userId,
+        direction,
+        usage_log_id: usageLogId,
+      }),
     });
 
     if (!response.ok) {
@@ -86,10 +98,11 @@ const inspectPrompt = async (message, userId) => {
       blocked: data.action_status === "blocked",
       maskApplied: data.action_status === "masked",
       safePrompt: data.prompt ?? message,
+      usageLogId: data.usage_log_id ?? null,
     };
   } catch (error) {
     console.error("DLP 서비스 호출 실패, 탐지 없이 통과시킵니다:", error.message);
-    return { blocked: false, maskApplied: false, safePrompt: message };
+    return { blocked: false, maskApplied: false, safePrompt: message, usageLogId: null };
   }
 };
 
@@ -235,7 +248,10 @@ const sendMessage = async ({
   */
   let outputInspection = { blocked: false, maskApplied: false };
   if (!inspection.blocked) {
-    outputInspection = await inspectPrompt(reply, userId);
+    outputInspection = await inspectPrompt(reply, userId, {
+      direction: "output",
+      usageLogId: inspection.usageLogId,
+    });
     if (outputInspection.blocked) {
       reply = "AI가 생성한 답변에 민감한 내용이 포함되어 있어 표시할 수 없습니다. 다른 방식으로 다시 질문해 주세요.";
     } else if (outputInspection.maskApplied) {
