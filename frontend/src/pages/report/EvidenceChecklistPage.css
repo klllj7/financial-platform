@@ -208,6 +208,368 @@
 
 
 /* ==================================================
+   평가결과 요약 탭
+================================================== */
+
+.ce-summary-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+/* ==================================================
+   공용 "인사이트 카드" — 전사 대시보드(ComplianceDashboardPage)의
+   아이콘+제목+부제 헤더 톤앤매너를 상시평가 화면에도 동일하게 맞춘다.
+================================================== */
+
+.ce-insight-card {
+  padding: 18px 20px;
+
+  background: #ffffff;
+  border: 1px solid #dfe5ef;
+  border-radius: 16px;
+
+  box-shadow: 0 7px 24px rgba(20, 35, 70, 0.04);
+}
+
+.ce-insight-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+.ce-insight-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 10px;
+}
+
+.ce-insight-icon-primary { color: #2f6fed; background: #eaf2ff; }
+.ce-insight-icon-cost { color: #0b9872; background: #e9f9f3; }
+.ce-insight-icon-warn { color: #b96800; background: #fff3d4; }
+
+.ce-insight-header h3 {
+  margin: 0;
+
+  color: #263853;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.ce-insight-header p {
+  margin: 3px 0 0;
+
+  color: #8794a8;
+  font-size: 11px;
+}
+
+/* 상단 핵심 지표 4개 */
+.ce-insight-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.ce-insight-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+
+  background: #f7faff;
+  border: 1px solid #e7ebf2;
+  border-radius: 12px;
+}
+
+.ce-insight-metric span {
+  color: #536b8f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-insight-metric strong {
+  color: var(--color-text);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ce-insight-metric small {
+  color: #8794a8;
+  font-size: 10px;
+}
+
+.ce-insight-metric strong.ce-tone-good { color: #079a70; }
+.ce-insight-metric strong.ce-tone-mid { color: var(--color-primary); }
+.ce-insight-metric strong.ce-tone-low { color: #c06a00; }
+
+/* 진행률 바차트 + 결과분포 도넛을 나란히 */
+.ce-summary-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.ce-summary-bar-chart {
+  width: 100%;
+  height: 190px;
+}
+
+.ce-summary-donut-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 190px;
+}
+
+.ce-summary-donut {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+.ce-summary-donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  pointer-events: none;
+}
+
+.ce-summary-donut-center strong {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ce-summary-donut-center span {
+  color: var(--color-text-sub);
+  font-size: 10px;
+}
+
+.ce-summary-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  flex: 1;
+}
+
+.ce-summary-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+.ce-summary-legend-row strong {
+  margin-left: 4px;
+  color: var(--color-text);
+}
+
+.ce-summary-legend-name {
+  flex: 1;
+}
+
+.ce-summary-legend-pct {
+  min-width: 32px;
+  color: var(--color-text-sub);
+  font-size: 11px;
+  text-align: right;
+}
+
+.ce-summary-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ce-summary-empty {
+  margin: 0;
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+.ce-summary-unprepared-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  max-height: 320px;
+  margin: 0;
+  padding: 2px 2px 2px 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.ce-summary-unprepared-list button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+
+  background: #f9fbff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+
+  text-align: left;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.ce-summary-unprepared-list button:hover {
+  background: #f2f7ff;
+  border-color: #bfd1f1;
+}
+
+.ce-summary-unprepared-category {
+  flex-shrink: 0;
+  padding: 2px 8px;
+
+  color: var(--color-text-sub);
+  background: #eef1f6;
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ce-summary-unprepared-title {
+  flex: 1;
+  min-width: 0;
+
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ce-summary-unprepared-arrow {
+  flex-shrink: 0;
+  color: var(--color-text-sub);
+}
+
+
+/* ==================================================
+   전체 자료 다운로드 탭
+================================================== */
+
+.ce-download-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  margin-bottom: 24px;
+}
+
+.ce-download-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ce-download-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+
+  background: #f7faff;
+  border: 1px solid #e7ebf2;
+  border-radius: 12px;
+}
+
+.ce-download-row-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 10px;
+}
+
+.ce-download-row-icon-xlsx { color: #0b9872; background: #e9f9f3; }
+.ce-download-row-icon-zip { color: #2f6fed; background: #eaf2ff; }
+
+.ce-download-row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ce-download-row-body strong {
+  display: block;
+  margin-bottom: 3px;
+
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ce-download-row-body p {
+  margin: 0;
+
+  color: #8794a8;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ce-download-button {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 18px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ce-download-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+@media (max-width: 900px) {
+  .ce-insight-metrics { grid-template-columns: repeat(2, 1fr); }
+  .ce-summary-grid { grid-template-columns: 1fr; }
+  .ce-download-row { flex-wrap: wrap; }
+}
+
+
+/* ==================================================
    필터
 ================================================== */
 
@@ -313,6 +675,7 @@
 .ce-table {
   width: 100%;
   min-width: 640px;
+  table-layout: fixed;
 
   border-collapse: collapse;
 }
@@ -348,10 +711,36 @@
   background: #f9fbff;
 }
 
-.ce-col-no { width: 56px; color: var(--color-text-sub); }
+.ce-col-no {
+  width: 52px;
+
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* 안내서 원문 항목번호 — 감독기관 대조용 보조 정보라 본번호보다 눈에 덜 띄게 회색·연하게 둔다 */
+.ce-col-original-no {
+  width: 68px;
+
+  color: #b7c0cf;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ce-modal-original-no {
+  color: var(--color-text-sub);
+  font-size: 11px;
+  font-weight: 600;
+}
 .ce-col-result { width: 90px; }
 .ce-col-evidence { width: 100px; }
-.ce-col-file { width: 220px; white-space: normal; }
+.ce-col-file { width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.ce-row-highlight td {
+  background: #fff6da;
+  transition: background 1.6s ease;
+}
 
 .ce-empty-row {
   padding: 20px;
@@ -420,16 +809,22 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  min-width: 0;
 
   color: var(--color-primary);
   font-size: 12px;
   font-weight: 700;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.ce-file-cell { display: flex; align-items: center; gap: 6px; }
+.ce-file-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
 
 .ce-upload-button {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 5px;
 
@@ -454,6 +849,7 @@
 
 .ce-generate-button {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 5px;
 
@@ -524,6 +920,7 @@
 
 .ce-modal {
   width: min(460px, 100%);
+  max-height: 86vh;
 
   background: #ffffff;
   border-radius: 16px;
@@ -531,6 +928,16 @@
   box-shadow: 0 24px 70px rgba(10, 22, 42, 0.24);
 
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ce-modal-wide {
+  width: min(600px, 100%);
+}
+
+.ce-modal-wide .ce-modal-body {
+  overflow-y: auto;
 }
 
 .ce-modal-header {
@@ -640,6 +1047,156 @@
 .ce-modal-option-none:hover {
   background: #eef1f6;
   border-color: #d7dde7;
+}
+
+
+/* ==================================================
+   Tier B 초안 편집기(통계 요약 + 서술 textarea + 기록 등록 폼)
+================================================== */
+
+.ce-draft-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ce-draft-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+
+  background: #f6f8fc;
+  border-radius: 8px;
+}
+
+.ce-draft-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  color: var(--color-text-sub);
+  font-size: 12px;
+}
+
+.ce-draft-stats-row strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.ce-draft-stats-monthly {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+
+  margin-top: 4px;
+  padding-top: 8px;
+
+  border-top: 1px dashed var(--color-border);
+
+  color: var(--color-text-sub);
+  font-size: 11px;
+}
+
+.ce-draft-stats-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  margin: 8px 0 0;
+  padding: 8px 0 0;
+
+  border-top: 1px dashed var(--color-border);
+  list-style: none;
+
+  color: var(--color-text-sub);
+  font-size: 11px;
+}
+
+.ce-draft-textarea {
+  width: 100%;
+  padding: 10px 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ce-log-entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ce-log-entry-toggle {
+  align-self: flex-start;
+  padding: 6px 10px;
+
+  color: var(--color-primary);
+  background: #edf4ff;
+  border: 1px solid #cfddf8;
+  border-radius: 6px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-log-entry-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+
+  background: #f9fbff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.ce-log-entry-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  color: var(--color-text-sub);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-log-entry-field input {
+  height: 32px;
+  padding: 0 10px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.ce-log-entry-save {
+  align-self: flex-end;
+  height: 32px;
+  padding: 0 14px;
+
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 6px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-log-entry-save:disabled {
+  opacity: 0.6;
 }
 
 

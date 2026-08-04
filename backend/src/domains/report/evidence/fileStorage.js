@@ -23,4 +23,10 @@ const saveEvidenceFile = async (relativePath, content) => {
   return `/uploads/evidence/${relativePath}`;
 };
 
-module.exports = { saveEvidenceFile };
+/** saveEvidenceFile이 반환한 publicPath("/uploads/evidence/...")를 실제 파일 시스템 경로로 되돌린다. */
+const resolveEvidenceFilePath = (publicPath) => {
+  const relativePath = publicPath.replace(/^\/uploads\/evidence\//, "");
+  return path.join(UPLOADS_ROOT, relativePath);
+};
+
+module.exports = { saveEvidenceFile, resolveEvidenceFilePath };

@@ -31,6 +31,51 @@ export const generateEvidenceItem = async ({ departmentId, targetYear, itemNo })
   return response.data;
 };
 
+export const exportEvidenceChecklistXlsx = async ({ departmentId, targetYear }) => {
+  const response = await axiosInstance.get("/report/evidence/export/checklist.xlsx", {
+    params: { departmentId, targetYear },
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const exportEvidenceZip = async ({ departmentId, targetYear }) => {
+  const response = await axiosInstance.get("/report/evidence/export/zip", {
+    params: { departmentId, targetYear },
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const addEvidenceLogEntry = async ({ departmentId, targetYear, itemNo, entry }) => {
+  const response = await axiosInstance.post(`/report/evidence/${itemNo}/log-entries`, {
+    departmentId,
+    targetYear,
+    entry,
+  });
+  return response.data;
+};
+
+export const confirmEvidenceDraft = async ({
+  departmentId,
+  targetYear,
+  itemNo,
+  draftContent,
+  editedContent,
+  stats,
+  isEdited,
+}) => {
+  const response = await axiosInstance.patch(`/report/evidence/${itemNo}/draft`, {
+    departmentId,
+    targetYear,
+    draftContent,
+    editedContent,
+    stats,
+    isEdited,
+  });
+  return response.data;
+};
+
 export const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, file }) => {
   const formData = new FormData();
   formData.append("departmentId", departmentId);
