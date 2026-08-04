@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import {
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Check,
   FileText,
   Upload,
@@ -45,9 +46,6 @@ export function progressTone(pct) {
   if (pct >= 50) return "ce-tone-mid";
   return "ce-tone-low";
 }
-
-// 차트(recharts Cell fill 등)는 CSS 클래스가 아닌 실제 색상값이 필요해 progressTone과 별도로 둔다.
-const TONE_COLOR = { "ce-tone-good": "#079a70", "ce-tone-mid": "#3b6ef6", "ce-tone-low": "#c06a00" };
 
 export function resultBadgeClass(result) {
   const map = {
@@ -96,6 +94,17 @@ const LOG_ENTRY_FIELDS = {
 // 상시평가 대상연도. 현재는 화면 문구("2026년 자체평가")와 동일하게 고정값으로 둔다.
 const TARGET_YEAR = 2026;
 
+// 대분류 라벨은 "① 동의원칙", "⑦ 관리적 보호조치"처럼 원문자(①~⑨, U+2460~U+2468)로 시작한다.
+// 이 원문자를 숫자로 변환해 대항목 번호 오름차순 정렬에 사용한다.
+const parseCircledNumber = (label) => {
+  const code = label?.codePointAt(0);
+  if (code === undefined || code < 0x2460 || code > 0x2468) return Number.MAX_SAFE_INTEGER;
+  return code - 0x2460 + 1;
+};
+
+const sortByCircledNumber = (list) =>
+  [...list].sort((a, b) => parseCircledNumber(a.label ?? a) - parseCircledNumber(b.label ?? b));
+
 // 사이드바(Sidebar.jsx)와 동일한 방식으로 로그인 사용자 정보를 안전하게 읽어온다.
 const getStoredUser = () => {
   try {
@@ -117,6 +126,7 @@ function EvidenceChecklistPage() {
   // categoryMeta가 API 응답 이후에야 채워지므로, 아코디언 펼침 상태도 그때 함께 초기화한다.
   const [expanded, setExpanded] = useState({});
   const [naExpanded, setNaExpanded] = useState(false);
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState("전체");
   const [filterResult, setFilterResult] = useState("전체");
   const [filterEvidence, setFilterEvidence] = useState("전체");
@@ -157,10 +167,11 @@ function EvidenceChecklistPage() {
 
     getEvidenceChecklist({ departmentId, targetYear: TARGET_YEAR })
       .then((res) => {
+        const sortedCategoryMeta = sortByCircledNumber(res.data.categoryMeta);
         setItems(res.data.items);
-        setCategoryMeta(res.data.categoryMeta);
-        setNaCategories(res.data.naCategories);
-        setExpanded(Object.fromEntries(res.data.categoryMeta.map((c) => [c.key, true])));
+        setCategoryMeta(sortedCategoryMeta);
+        setNaCategories(sortByCircledNumber(res.data.naCategories));
+        setExpanded(Object.fromEntries(sortedCategoryMeta.map((c) => [c.key, true])));
       })
       .catch((err) => {
         console.error("증빙자료 목록 조회 실패", err);
@@ -486,9 +497,9 @@ function EvidenceChecklistPage() {
 
   const resultDistribution = useMemo(
     () => [
-      { name: "이행", value: resultBuckets.이행, color: "#07835f" },
-      { name: "부분이행", value: resultBuckets.부분이행, color: "#b96800" },
-      { name: "미이행", value: resultBuckets.미이행, color: "#cd4048" },
+      { name: "이행", value: resultBuckets.이행, color: "#07815f" },
+      { name: "부분이행", value: resultBuckets.부분이행, color: "#a85f08" },
+      { name: "미이행", value: resultBuckets.미이행, color: "#e42438" },
       { name: "미제출", value: resultBuckets.미제출, color: "#64738b" },
     ],
     [resultBuckets]
@@ -566,8 +577,35 @@ function EvidenceChecklistPage() {
 
       <div className="ce-disclaimer-card">
         <div className="ce-disclaimer-content">
-          본 자료는 「금융분야 인공지능 보안 안내서」 점검항목을 준용한 초안이며, 정보보호 상시평가
-          143개 소항목과의 공식 매핑이 아닙니다.
+          <p className="ce-disclaimer-summary">
+            본 자료는 「금융분야 인공지능 보안 안내서」 점검항목을 준용한 초안이며, 정보보호 상시평가
+            143개 소항목과의 공식 매핑이 아닙니다.
+          </p>
+
+          <button
+            type="button"
+            className="ce-disclaimer-toggle"
+            onClick={() => setDisclaimerOpen((v) => !v)}
+          >
+            {disclaimerOpen ? "자세히 접기" : "자세히 보기"}
+            {disclaimerOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+
+          {disclaimerOpen && (
+            <div className="ce-disclaimer-detail">
+              <p>
+                정보보호 상시평가는 금융보안원이 금융회사를 대상으로 매년 실시하는 <strong>143개 소항목</strong>
+                기준 자체평가입니다. 이 화면은 그중 생성형 AI 이용과 직접 관련된 항목만, 금융보안원이
+                발간한 「금융분야 인공지능 보안 안내서」의 점검항목(대응 항목 총 <strong>38개</strong>)을
+                준용해 재구성한 초안입니다.
+              </p>
+              <p>
+                따라서 143개 소항목에 대한 공식 매핑표가 아니며, 143개 항목 중 물리적 보안·일반 정보시스템
+                접근통제 등 AI와 직접 관련이 없는 항목은 포함하지 않았습니다. 실제 상시평가 제출 시에는
+                반드시 금융보안원이 배포한 공식 143개 소항목 체크리스트를 기준으로 별도 대조·작성해야 합니다.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -629,22 +667,22 @@ function EvidenceChecklistPage() {
                 <div className="ce-insight-metrics">
                   <div className="ce-insight-metric">
                     <span>전체 진행률</span>
-                    <strong className={progressTone(overallPct)}>{overallPct}%</strong>
+                    <strong className="ce-tone-info">{overallPct}%</strong>
                     <small>{totalPrepared}/{totalItems}개 항목 준비완료</small>
                   </div>
                   <div className="ce-insight-metric">
-                    <span>준비완료</span>
-                    <strong className="ce-tone-good">{totalPrepared}건</strong>
-                    <small>전체 {totalItems}건 중</small>
-                  </div>
-                  <div className="ce-insight-metric">
                     <span>미제출</span>
-                    <strong className={unpreparedItems.length > 0 ? "ce-tone-low" : "ce-tone-good"}>{unpreparedItems.length}건</strong>
+                    <strong className="ce-tone-danger">{unpreparedItems.length}건</strong>
                     <small>아래 목록에서 바로 이동</small>
                   </div>
                   <div className="ce-insight-metric">
+                    <span>준비완료</span>
+                    <strong className="ce-tone-neutral">{totalPrepared}건</strong>
+                    <small>전체 {totalItems}건 중</small>
+                  </div>
+                  <div className="ce-insight-metric">
                     <span>이행 완료</span>
-                    <strong className="ce-tone-good">{resultBuckets.이행}건</strong>
+                    <strong className="ce-tone-neutral">{resultBuckets.이행}건</strong>
                     <small>결과값 "이행" 기준</small>
                   </div>
                 </div>
@@ -665,9 +703,9 @@ function EvidenceChecklistPage() {
                         <XAxis type="number" domain={[0, 100]} hide />
                         <YAxis type="category" dataKey="label" width={112} tick={{ fontSize: 11, fill: "#526582" }} axisLine={false} tickLine={false} />
                         <Tooltip formatter={(value) => [`${value}%`, "진행률"]} cursor={{ fill: "#f6f8fc" }} />
-                        <Bar dataKey="percentage" radius={[0, 6, 6, 0]} background={{ fill: "#f0f3f9", radius: 6 }}>
+                        <Bar dataKey="percentage" radius={[0, 6, 6, 0]} background={{ fill: "#e5eaf2", radius: 6 }}>
                           {categoryStats.map((c) => (
-                            <Cell key={c.key} fill={TONE_COLOR[progressTone(c.percentage)]} />
+                            <Cell key={c.key} fill="#64738b" />
                           ))}
                           <LabelList
                             dataKey="percentage"
@@ -822,6 +860,21 @@ function EvidenceChecklistPage() {
           </div>
 
           <div className="ce-category-list">
+            <div className="ce-panel ce-category">
+              <button className="ce-category-header" onClick={() => setNaExpanded((v) => !v)}>
+                {naExpanded ? <ChevronDown size={16} className="ce-chevron" /> : <ChevronRight size={16} className="ce-chevron" />}
+                <span className="ce-category-title ce-na-title">해당없음 (서비스 범위 외)</span>
+                <span className="ce-na-tag">범위 외</span>
+              </button>
+              {naExpanded && (
+                <div className="ce-na-body">
+                  {naCategories.map((c) => (
+                    <div key={c}>{c} — 매핑되는 점검항목 없음</div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {visibleCategories.map((cat) => {
               const catItems = items.filter((i) => i.category === cat.key);
               const prepared = catItems.filter((i) => i.evidence === "준비완료").length;
@@ -854,16 +907,17 @@ function EvidenceChecklistPage() {
                           <tr>
                             <th className="ce-col-no">번호</th>
                             <th className="ce-col-original-no">원문번호</th>
-                            <th>항목명</th>
+                            <th className="ce-col-title">항목명</th>
                             <th className="ce-col-result">결과</th>
                             <th className="ce-col-evidence">증빙상태</th>
                             <th className="ce-col-file">증빙파일</th>
+                            <th className="ce-col-manage">관리</th>
                           </tr>
                         </thead>
                         <tbody>
                           {rows.length === 0 && (
                             <tr>
-                              <td colSpan={6} className="ce-empty-row">
+                              <td colSpan={7} className="ce-empty-row">
                                 필터 조건에 해당하는 항목이 없습니다.
                               </td>
                             </tr>
@@ -876,7 +930,7 @@ function EvidenceChecklistPage() {
                             >
                               <td className="ce-col-no">{displayOrderByNo.get(item.no)}</td>
                               <td className="ce-col-original-no">{item.no}</td>
-                              <td>{item.title}</td>
+                              <td className="ce-col-title">{item.title}</td>
                               <td>
                                 <button
                                   type="button"
@@ -894,7 +948,7 @@ function EvidenceChecklistPage() {
                                   <span className="ce-evidence-pending"><Circle size={10} /> 미준비</span>
                                 )}
                               </td>
-                              <td>
+                              <td className="ce-col-file">
                                 <div className="ce-file-cell">
                                   {item.filePath ? (
                                     <a className="ce-file-link" href={item.filePath} target="_blank" rel="noreferrer" title={item.file}>
@@ -909,7 +963,10 @@ function EvidenceChecklistPage() {
                                       <FileText size={12} />{item.secondaryFile}
                                     </a>
                                   )}
-
+                                </div>
+                              </td>
+                              <td className="ce-col-manage">
+                                <div className="ce-manage-cell">
                                   {(() => {
                                     const mode = getGenerationMode(item.no);
                                     if (mode === "auto") {
@@ -965,21 +1022,6 @@ function EvidenceChecklistPage() {
                 </div>
               );
             })}
-
-            <div className="ce-panel ce-category">
-              <button className="ce-category-header" onClick={() => setNaExpanded((v) => !v)}>
-                {naExpanded ? <ChevronDown size={16} className="ce-chevron" /> : <ChevronRight size={16} className="ce-chevron" />}
-                <span className="ce-category-title ce-na-title">해당없음 (서비스 범위 외)</span>
-                <span className="ce-na-tag">범위 외</span>
-              </button>
-              {naExpanded && (
-                <div className="ce-na-body">
-                  {naCategories.map((c) => (
-                    <div key={c}>{c} — 매핑되는 점검항목 없음</div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
           </>
           )}
