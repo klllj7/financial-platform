@@ -83,6 +83,45 @@
   line-height: 1.55;
 }
 
+.ce-disclaimer-summary {
+  margin: 0;
+}
+
+.ce-disclaimer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  margin-top: 8px;
+  padding: 0;
+
+  color: #8a5a00;
+  background: none;
+  border: none;
+
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  cursor: pointer;
+}
+
+.ce-disclaimer-detail {
+  margin-top: 10px;
+  padding-top: 10px;
+
+  border-top: 1px solid #f0d896;
+}
+
+.ce-disclaimer-detail p {
+  margin: 0 0 8px;
+}
+
+.ce-disclaimer-detail p:last-child {
+  margin-bottom: 0;
+}
+
 
 /* ==================================================
    공통 흰색 패널
@@ -674,7 +713,7 @@
 
 .ce-table {
   width: 100%;
-  min-width: 640px;
+  min-width: 1000px;
   table-layout: fixed;
 
   border-collapse: collapse;
@@ -733,9 +772,25 @@
   font-size: 11px;
   font-weight: 600;
 }
+/*
+  항목명은 예전엔 폭 지정이 없어서 fixed 테이블에서 남는 공간을 전부 가져가
+  불필요하게 넓어졌다. 폭을 직접 정하고, 폭 안에서 줄바꿈되게 한다.
+*/
+.ce-col-title {
+  width: 280px;
+
+  white-space: normal;
+  word-break: keep-all;
+  line-height: 1.4;
+}
+
 .ce-col-result { width: 90px; }
 .ce-col-evidence { width: 100px; }
-.ce-col-file { width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ce-col-file { width: 200px; }
+
+/* 생성/업로드 버튼 전용 컬럼. 파일 링크와 분리해서 버튼이 항상 같은 자리·한 줄에 정렬되게 한다.
+   템플릿 항목처럼 버튼이 2개(템플릿 생성+재업로드) 나란히 붙어도 줄바꿈 없이 들어가도록 넉넉히 잡는다. */
+.ce-col-manage { width: 210px; }
 
 .ce-row-highlight td {
   background: #fff6da;
@@ -821,6 +876,14 @@
 }
 
 .ce-file-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+
+/* 관리(생성/업로드) 버튼 전용 셀. 줄바꿈을 막아서 버튼이 항상 한 줄에 나란히 정렬되게 한다. */
+.ce-manage-cell {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
 
 .ce-upload-button {
   display: inline-flex;
