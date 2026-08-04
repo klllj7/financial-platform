@@ -48,7 +48,8 @@ export function progressTone(pct) {
 }
 
 // 차트(recharts Cell fill 등)는 CSS 클래스가 아닌 실제 색상값이 필요해 progressTone과 별도로 둔다.
-const TONE_COLOR = { "ce-tone-good": "#079a70", "ce-tone-mid": "#3b6ef6", "ce-tone-low": "#c06a00" };
+// 전사 대시보드(ComplianceDashboardPage) 팔레트를 그대로 따른다.
+const TONE_COLOR = { "ce-tone-good": "#079a70", "ce-tone-mid": "#2f6fed", "ce-tone-low": "#f28b00" };
 
 export function resultBadgeClass(result) {
   const map = {
@@ -501,8 +502,8 @@ function EvidenceChecklistPage() {
   const resultDistribution = useMemo(
     () => [
       { name: "이행", value: resultBuckets.이행, color: "#07835f" },
-      { name: "부분이행", value: resultBuckets.부분이행, color: "#b96800" },
-      { name: "미이행", value: resultBuckets.미이행, color: "#cd4048" },
+      { name: "부분이행", value: resultBuckets.부분이행, color: "#f28b00" },
+      { name: "미이행", value: resultBuckets.미이행, color: "#d13c3c" },
       { name: "미제출", value: resultBuckets.미제출, color: "#64738b" },
     ],
     [resultBuckets]
@@ -706,7 +707,7 @@ function EvidenceChecklistPage() {
                         <XAxis type="number" domain={[0, 100]} hide />
                         <YAxis type="category" dataKey="label" width={112} tick={{ fontSize: 11, fill: "#526582" }} axisLine={false} tickLine={false} />
                         <Tooltip formatter={(value) => [`${value}%`, "진행률"]} cursor={{ fill: "#f6f8fc" }} />
-                        <Bar dataKey="percentage" radius={[0, 6, 6, 0]} background={{ fill: "#f0f3f9", radius: 6 }}>
+                        <Bar dataKey="percentage" radius={[0, 6, 6, 0]} background={{ fill: "#e5eaf2", radius: 6 }}>
                           {categoryStats.map((c) => (
                             <Cell key={c.key} fill={TONE_COLOR[progressTone(c.percentage)]} />
                           ))}
