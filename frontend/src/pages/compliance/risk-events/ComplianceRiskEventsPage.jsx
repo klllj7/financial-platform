@@ -78,7 +78,12 @@ function ComplianceRiskEventsPage() {
           const status = deriveActionStatus(event.actions);
           const createdAt = new Date(event.created_at);
           return {
-            id: event.event_id,
+            // 한 번의 대화 요청(usage_log)에 사용자 입력 이벤트와 AI 응답 이벤트가
+            // 각각 달릴 수 있어서 event_id는 행마다 고유하지 않다. 목록 key와 선택
+            // 상태에는 event_log.id를 쓰고, 조치 등록 API에만 event_id를 쓴다.
+            id: event.id ?? event.event_id,
+            eventId: event.event_id,
+            direction: event.direction ?? "input",
             riskLevel: event.grade,
             userName: event.user_name ?? "-",
             department: event.department_name ?? "-",
@@ -86,7 +91,8 @@ function ComplianceRiskEventsPage() {
             modelName: "-", // TODO: ai_tool_info 연동되면 실제 값으로 교체 (B 담당자)
             // 목록/기본 노출은 마스킹본으로 하고, 원문은 상세보기에서 토글로만 연다.
             maskedPromptSummary: event.masked_description ?? event.description,
-            rawPromptSummary: event.description,
+            // AI 응답에서 탐지된 이벤트는 원문을 저장하지 않으므로 마스킹본으로 대체한다.
+            rawPromptSummary: event.description ?? event.masked_description,
             similarityScore: event.similarity_score,
             // RAG 규제매핑 결과. 아직 백엔드가 안 내려줄 수도 있어서 빈 배열로 안전하게 처리한다.
             // (modelName처럼, 다른 담당자의 백엔드 작업이 끝나면 실제 값이 채워짐)
@@ -176,7 +182,8 @@ function ComplianceRiskEventsPage() {
     if (!selectedEvent) return;
     setSubmitting(true);
     try {
-      await postEventAction(selectedEvent.id, {
+      // 조치는 요청 단위(usage_log)로 남기므로 event_log.id가 아니라 event_id를 보낸다.
+      await postEventAction(selectedEvent.eventId, {
         actor_user_id: getLoggedInUserId(),
         action_type: actionType,
         action_reason: actionReason,
@@ -284,6 +291,7 @@ function ComplianceRiskEventsPage() {
             <dl>
               <div><dt>사용자</dt><dd>{selectedEvent.userName} · {selectedEvent.department}</dd></div>
               <div><dt>발생 시각</dt><dd>{selectedEvent.occurredAt}</dd></div>
+              <div><dt>탐지 위치</dt><dd>{selectedEvent.direction === "output" ? "AI 응답" : "사용자 입력"}</dd></div>
               <div><dt>사용 모델</dt><dd>{selectedEvent.modelName}</dd></div>
               <div><dt>조치 상태</dt><dd>{selectedEvent.actionStatus}</dd></div>
               {getMonthlyCount(selectedEvent) > 1 && (

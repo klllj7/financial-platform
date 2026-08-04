@@ -45,6 +45,19 @@ class EventLog(Base):
     # Embedding Similarity 탐지의 근거(코사인 유사도)를 감사용으로 남긴다.
     # 정규식 탐지만 걸린 경우엔 값이 없다(NULL).
     similarity_score = Column(Float, nullable=True)
+    # 사용자 입력에서 탐지된 것("input")인지 AI 응답에서 탐지된 것("output")인지.
+    # 하나의 usage_log(=한 번의 대화 요청)에 입력 이벤트와 출력 이벤트가
+    # 각각 최대 1건씩 달릴 수 있어서, 둘을 구분하려면 이 값이 필요하다.
+    direction = Column(String, nullable=False, default="input")
+    # 출력("output") 이벤트에서 탐지된 AI 응답 본문. AI 응답은 usage_log에 남기지
+    # 않으므로(그건 사용자의 사용 이력이 아니다) 여기에 보관한다.
+    # 입력 이벤트는 usage_log 쪽 컬럼을 쓰기 때문에 둘 다 NULL이다.
+    #
+    # usage_log와 같은 규칙이다 — 목록 기본 노출은 마스킹본, 원문은 상세보기에서만.
+    # confidential_similarity는 문장 전체가 마스킹되어 마스킹본이 별표만 남기 때문에,
+    # 원문이 없으면 담당자가 오탐 여부를 판단할 수단이 아예 없어진다.
+    description = Column(String, nullable=True)
+    masked_description = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -75,4 +88,8 @@ class ActionHistory(Base):
     actor_user_id = Column(Integer)  # user_info 테이블 생기면 ForeignKey로 변경
     action_type = Column(String)
     action_reason = Column(String)
+    # 시스템 자동 조치가 입력·출력 중 어느 쪽에서 나온 것인지.
+    # 담당자가 직접 남기는 수동 조치(reviewed/escalated/dismissed)는 요청 전체에
+    # 대한 판단이라 NULL로 두고, 조회 시 입력·출력 양쪽 이벤트에 모두 표시한다.
+    direction = Column(String, nullable=True)
     action_time = Column(DateTime(timezone=True), server_default=func.now())
