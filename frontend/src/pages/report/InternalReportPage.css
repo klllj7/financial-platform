@@ -287,6 +287,16 @@
   font-weight: 700;
 }
 
+/*
+  탐지 내용/조치 사유 등은 사용자가 입력하거나 원문에서 그대로 가져온 텍스트라
+  공백 없는 긴 문자열(URL, 토큰 등)이 섞이면 고정폭 컬럼(table-layout: fixed)을
+  뚫고 나가 문서 레이아웃이 깨질 수 있다. td에는 어디서든 줄바꿈이 가능하게 한다.
+*/
+.car-detail-table td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .car-user-department {
   display: flex;
   flex-direction: column;
@@ -636,11 +646,15 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .car-event-impact small {
   color: #7a8392;
   font-size: 9px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* 이벤트 조치 상태 공통 배지 */
@@ -672,6 +686,15 @@
    인쇄 전용 스타일
 ================================================== */
 
+/*
+  브라우저마다 인쇄 여백 기본값이 달라 "여백이 이상해 보이는" 원인이 된다.
+  A4 용지와 여백을 직접 고정해서 어떤 브라우저에서 인쇄해도 동일하게 만든다.
+*/
+@page {
+  size: A4;
+  margin: 22mm 18mm;
+}
+
 @media print {
   .car-toolbar,
   .car-filter-bar {
@@ -697,6 +720,67 @@
   .car-appendix-section {
     break-before: page;
     page-break-before: always;
+  }
+
+  /*
+    카드/박스/표 한 줄처럼 하나로 봐야 하는 덩어리가 페이지 경계에서 반으로
+    잘리지 않게 한다. (제목만 페이지 아래에 남고 내용은 다음 페이지로 넘어가는 등
+    "분할이 이상해 보이는" 현상의 주된 원인)
+  */
+  .car-document-header,
+  .car-summary-cards,
+  .car-executive-summary,
+  .car-risk-criteria,
+  .car-action-summary,
+  .car-follow-up-plan,
+  .car-compliance-status,
+  .car-compliance-conclusion,
+  .car-approval-line {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 표의 한 행이 페이지 경계에서 위아래로 잘리지 않게 한다. */
+  .car-summary-table tr,
+  .car-detail-table tr,
+  .car-overview-table tr,
+  .car-document-info-table tr,
+  .car-compliance-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 표가 페이지를 넘어갈 때마다 헤더 행이 다시 표시되게 한다. */
+  thead {
+    display: table-header-group;
+  }
+
+  /* 섹션 제목만 페이지 맨 아래에 혼자 남고 내용은 다음 페이지로 넘어가지 않게 한다. */
+  .car-section h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /*
+    화면 CSS px는 인쇄 시 실제 물리 크기(px = 1/96인치)로 그대로 찍혀서,
+    화면에서 괜찮아 보이던 10~12px 글자가 종이 위에서는 훨씬 작게 느껴진다.
+    표 글자 크기를 인쇄에서만 살짝 키워 칸 여백(padding)과의 비례를 맞춘다.
+  */
+  .car-summary-table th,
+  .car-summary-table td,
+  .car-detail-table th,
+  .car-detail-table td {
+    padding: 6px 8px;
+    font-size: 12.5px;
+  }
+
+  .car-overview-table th,
+  .car-overview-table td,
+  .car-document-info-table th,
+  .car-document-info-table td,
+  .car-compliance-table th,
+  .car-compliance-table td {
+    font-size: 12px;
   }
 }
 
@@ -945,8 +1029,126 @@
 
   .car-all-event-table th,
   .car-all-event-table td {
-    padding: 5px 4px;
-    font-size: 7px;
-    line-height: 1.35;
+    padding: 3px 3px;
+    font-size: 9px;
+    line-height: 1.3;
   }
+
+  .car-report-list-section {
+    display: none;
+  }
+}
+
+/* ==================================================
+   보고서 목록 / 생성 화면
+================================================== */
+
+.car-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.car-back-button {
+  display: inline-flex;
+  align-items: center;
+
+  height: 38px;
+  padding: 0 16px;
+
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.car-generate-button {
+  align-self: flex-end;
+  flex-shrink: 0;
+
+  height: 34px;
+  padding: 0 18px;
+
+  color: #ffffff;
+  background: var(--color-text);
+  border: 1px solid var(--color-text);
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.car-generate-button:disabled {
+  opacity: 0.6;
+}
+
+.car-report-list-section {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.car-report-list-table-wrap {
+  overflow-x: auto;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.car-report-list-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.car-report-list-table th,
+.car-report-list-table td {
+  padding: 10px 12px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.car-report-list-table th {
+  color: var(--color-text-sub);
+  background: #f7f8fa;
+  font-weight: 700;
+}
+
+.car-report-list-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.car-list-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.car-list-view-button,
+.car-list-delete-button {
+  height: 28px;
+  padding: 0 10px;
+
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.car-list-view-button {
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+}
+
+.car-list-delete-button {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fda29b;
 }
