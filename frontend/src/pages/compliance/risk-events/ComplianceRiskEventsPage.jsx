@@ -120,34 +120,33 @@ function ComplianceRiskEventsPage() {
     return ["전체", ...Array.from(unique).sort()];
   }, [events]);
 
-  // 같은 사용자가 같은 달에 몇 번째 걸린 건인지 계산한다 (반복 위반자 파악용).
-  const monthlyViolationCounts = useMemo(() => {
-    const counts = {};
-    events.forEach((event) => {
-      const key = `${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`;
-      counts[key] = (counts[key] ?? 0) + 1;
-    });
-    return counts;
-  }, [events]);
+  // 반복 위험 발생 여부를 확인할 기간
+  const REPEAT_RISK_PERIOD_DAYS = 30;
 
-  const getMonthlyCount = (event) =>
-    monthlyViolationCounts[`${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`] ?? 1;
+  /*
+  * 선택한 이벤트 발생일을 기준으로 이전 30일 동안
+  * 동일 사용자에게 발생한 위험 이벤트 건수를 계산한다.
+  *
+  * 달력 기준이 아니라 각 이벤트 시점 기준으로 계산하기 때문에
+  * 월이 바뀌어도 최근 발생 빈도를 일관되게 확인할 수 있다.
+  */
+  const getRecentUserEventCount = (targetEvent) => {
+    const periodStart = new Date(targetEvent.createdAt);
 
-  // 월간 반복 횟수 배지는 같은 사용자·같은 달의 가장 최근 이벤트 한 건에만 표시한다.
-  const latestMonthlyEventIds = useMemo(() => {
-    const latestEvents = new Map();
+    periodStart.setDate(
+      periodStart.getDate() - REPEAT_RISK_PERIOD_DAYS,
+    );
 
-    events.forEach((event) => {
-      const key = `${event.userName}-${event.createdAt.getFullYear()}-${event.createdAt.getMonth()}`;
-      const latest = latestEvents.get(key);
+    return events.filter((event) => {
+      const isSameUser = event.userName === targetEvent.userName;
 
-      if (!latest || event.createdAt > latest.createdAt) {
-        latestEvents.set(key, event);
-      }
-    });
+      const isWithinPeriod =
+        event.createdAt >= periodStart &&
+        event.createdAt <= targetEvent.createdAt;
 
-    return new Set(Array.from(latestEvents.values(), (event) => event.id));
-  }, [events]);
+      return isSameUser && isWithinPeriod;
+    }).length;
+  };
 
   const filteredEvents = useMemo(() => {
     const query = keyword.trim().toLowerCase();
@@ -168,6 +167,7 @@ function ComplianceRiskEventsPage() {
   }, [events, keyword, riskFilter, statusFilter, departmentFilter, dateFrom, dateTo]);
 
   const selectedEvent = events.find((event) => event.id === selectedEventId);
+  const isSelectedEventCompleted = selectedEvent?.actionStatus === "조치 완료";
   const countBy = (key, value) => events.filter((event) => event[key] === value).length;
 
   const openEventDetail = (eventId) => {
@@ -180,19 +180,37 @@ function ComplianceRiskEventsPage() {
 
   const handleSubmitAction = async () => {
     if (!selectedEvent) return;
+    
+    // 완료된 이벤트에 대해서는 추가 조치 이력을 등록하지 않는다.
+    if (isSelectedEventCompleted) {
+      alert("이미 조치 완료된 이벤트는 수정할 수 없습니다.");
+      return;
+    }
+
+    const trimmedReason = actionReason.trim();
+
+    // 감사 이력에 조치 근거가 반드시 남도록 사유 입력을 필수로 검증한다.
+    if (!trimmedReason) {
+      alert("조치 사유를 입력해주세요.");
+      return;
+    }
+
     setSubmitting(true);
+
     try {
       // 조치는 요청 단위(usage_log)로 남기므로 event_log.id가 아니라 event_id를 보낸다.
       await postEventAction(selectedEvent.eventId, {
         actor_user_id: getLoggedInUserId(),
         action_type: actionType,
-        action_reason: actionReason,
+        action_reason: trimmedReason,
       });
       setSelectedEventId(null);
       fetchEvents();
     } catch (error) {
       console.error("조치 등록 실패:", error);
-      alert("조치 등록에 실패했습니다.");
+
+      const message = error.response?.data?.detail ?? "조치 등록에 실패했습니다.";
+      alert(message);
     } finally {
       setSubmitting(false);
     }
@@ -249,7 +267,7 @@ function ComplianceRiskEventsPage() {
             <table className="risk-events-table">
               <thead><tr><th>발생 시각</th><th>위험 등급</th><th>사용자 / 부서</th><th>탐지 유형</th><th>사용 모델</th><th>조치 상태</th><th /></tr></thead>
               <tbody>{filteredEvents.map((event) => {
-                const monthlyCount = getMonthlyCount(event);
+                const recentEventCount = getRecentUserEventCount(event);
                 return (
                 <tr key={event.id}>
                   <td>{event.occurredAt}</td>
@@ -257,9 +275,12 @@ function ComplianceRiskEventsPage() {
                   <td>
                     <strong>{event.userName}</strong>
                     <small>{event.department}</small>
-                    {monthlyCount > 1 && latestMonthlyEventIds.has(event.id) && (
-                      <span className="risk-repeat-badge" title="이 사용자가 이번 달 발생한 위험 이벤트 건수">
-                        이번 달 {monthlyCount}번째
+                    {recentEventCount > 2 && (
+                      <span 
+                        className="risk-repeat-badge" 
+                        title={`해당 이벤트 발생일 기준 최근 ${REPEAT_RISK_PERIOD_DAYS}일 동안 동일 사용자에게 탐지된 위험 이벤트 건수`}
+                      >
+                        최근 {REPEAT_RISK_PERIOD_DAYS}일 {recentEventCount}건
                       </span>
                     )}
                   </td>
@@ -294,8 +315,14 @@ function ComplianceRiskEventsPage() {
               <div><dt>탐지 위치</dt><dd>{selectedEvent.direction === "output" ? "AI 응답" : "사용자 입력"}</dd></div>
               <div><dt>사용 모델</dt><dd>{selectedEvent.modelName}</dd></div>
               <div><dt>조치 상태</dt><dd>{selectedEvent.actionStatus}</dd></div>
-              {getMonthlyCount(selectedEvent) > 1 && (
-                <div><dt>이번 달 발생 건수</dt><dd>{getMonthlyCount(selectedEvent)}번째 (반복 발생)</dd></div>
+              {getRecentUserEventCount(selectedEvent) > 1 && (
+                <div>
+                  <dt>최근 반복 탐지</dt>
+                  <dd>
+                    최근 {REPEAT_RISK_PERIOD_DAYS}일 동안 동일 사용자{" "}
+                    {getRecentUserEventCount(selectedEvent)}건
+                  </dd>
+                </div>
               )}
               {selectedEvent.similarityScore != null && (
                 <div><dt>탐지 신뢰도(유사도)</dt><dd>{(selectedEvent.similarityScore * 100).toFixed(1)}%</dd></div>
@@ -333,26 +360,56 @@ function ComplianceRiskEventsPage() {
             </dl>
 
             <div className="risk-event-action-form">
+              {isSelectedEventCompleted && (
+                <div className="risk-action-locked-message">
+                  <CheckCircle2 size={16} />
+
+                  <div>
+                    <strong>조치가 완료된 이벤트입니다.</strong>
+                    <p>
+                      감사 이력 보호를 위해 완료 이후에는
+                      조치 유형과 사유를 변경할 수 없습니다.
+                    </p>
+                  </div>
+                </div>
+              )}
               <label>
                 조치 유형
-                <select value={actionType} onChange={(event) => setActionType(event.target.value)}>
+                <select value={actionType} onChange={(event) => setActionType(event.target.value)} disabled={isSelectedEventCompleted}>
                   {ACTION_FORM_TYPES.map((type) => (
                     <option key={type.value} value={type.value}>{type.label}</option>
                   ))}
                 </select>
               </label>
               <label>
-                조치 사유
+                <span>
+                  조치 사유
+                  <em className="risk-action-required">*</em>
+                </span>
                 <textarea
                   value={actionReason}
                   onChange={(event) => setActionReason(event.target.value)}
-                  placeholder="조치 사유를 입력하세요"
+                  placeholder="조치 근거와 처리 내용을 입력하세요"
+                  required
+                  disabled={isSelectedEventCompleted}
                 />
               </label>
             </div>
 
             <footer>
-              <button type="button" disabled={submitting} onClick={handleSubmitAction}>조치 저장</button>
+              <button 
+                type="button" 
+                disabled={
+                  submitting || isSelectedEventCompleted || !actionReason.trim()
+                } 
+                onClick={handleSubmitAction}
+              >
+                {isSelectedEventCompleted
+                  ? "조치 완료됨"
+                  : submitting
+                    ? "저장 중..."
+                    : "조치 저장"}
+              </button>
             </footer>
           </section>
         </div>
