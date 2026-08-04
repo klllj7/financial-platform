@@ -339,6 +339,7 @@ const generateReport = async ({ departmentFilter, periodStart, periodEnd, riskTh
     userName: event.user_name ?? "-",
     department: event.department_name ?? "미지정 부서",
     eventType: formatDetectionType(event.detection_type) || "-",
+    modelName: event.ai_tool_name ?? "-",
     // 원문 대신 마스킹본만 스냅샷에 남긴다(영구 저장 데이터라 원문 노출 리스크가 더 큼).
     description: event.masked_description ?? "-",
     createdAt: event.created_at,

@@ -115,153 +115,6 @@
   font-weight: 700;
 }
 
-
-/* ==================================================
-   목록 화면 (생성 패널 + 저장된 버전 목록)
-================================================== */
-
-.car-toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.car-back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-
-  height: 38px;
-  padding: 0 16px;
-
-  color: var(--color-text);
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.car-panel {
-  margin: 0 auto 18px;
-  max-width: 860px;
-  padding: 16px 18px;
-
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-}
-
-.car-panel h3 {
-  margin: 0 0 12px;
-
-  color: var(--color-text);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.car-generate-panel .car-filter-bar {
-  margin: 0;
-  padding: 0;
-  border: none;
-  align-items: flex-end;
-}
-
-.car-generate-button {
-  height: 34px;
-  padding: 0 20px;
-
-  color: #ffffff;
-  background: var(--color-primary);
-  border: none;
-  border-radius: 6px;
-
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.car-generate-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.car-empty-note {
-  margin: 0;
-  color: var(--color-text-sub);
-  font-size: 12px;
-}
-
-.car-list-table-wrapper {
-  overflow-x: auto;
-}
-
-.car-list-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.car-list-table th,
-.car-list-table td {
-  padding: 10px 12px;
-
-  border-bottom: 1px solid #e5eaf2;
-
-  font-size: 12px;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.car-list-table th {
-  color: var(--color-text-sub);
-  background: #f6f8fc;
-  font-weight: 700;
-}
-
-.car-list-table td {
-  color: var(--color-text);
-}
-
-.car-list-table tbody tr:hover td {
-  background: #f9fbff;
-}
-
-.car-list-open-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-
-  color: var(--color-primary);
-  background: none;
-  border: none;
-
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.car-list-delete-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-
-  height: 28px;
-  padding: 0 10px;
-
-  color: #cd4048;
-  background: #ffffff;
-  border: 1px solid #f0b0b4;
-  border-radius: 6px;
-
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.car-list-delete-button:hover {
-  background: #ffe7e8;
-}
-
 /* ==================================================
    문서 본문 (A4 느낌)
 ================================================== */
@@ -432,6 +285,16 @@
   color: var(--color-text);
   background: #f0f0f0;
   font-weight: 700;
+}
+
+/*
+  탐지 내용/조치 사유 등은 사용자가 입력하거나 원문에서 그대로 가져온 텍스트라
+  공백 없는 긴 문자열(URL, 토큰 등)이 섞이면 고정폭 컬럼(table-layout: fixed)을
+  뚫고 나가 문서 레이아웃이 깨질 수 있다. td에는 어디서든 줄바꿈이 가능하게 한다.
+*/
+.car-detail-table td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .car-user-department {
@@ -783,11 +646,15 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .car-event-impact small {
   color: #7a8392;
   font-size: 9px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* 이벤트 조치 상태 공통 배지 */
@@ -1096,4 +963,122 @@
     font-size: 7px;
     line-height: 1.35;
   }
+
+  .car-report-list-section {
+    display: none;
+  }
+}
+
+/* ==================================================
+   보고서 목록 / 생성 화면
+================================================== */
+
+.car-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.car-back-button {
+  display: inline-flex;
+  align-items: center;
+
+  height: 38px;
+  padding: 0 16px;
+
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.car-generate-button {
+  align-self: flex-end;
+  flex-shrink: 0;
+
+  height: 34px;
+  padding: 0 18px;
+
+  color: #ffffff;
+  background: var(--color-text);
+  border: 1px solid var(--color-text);
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.car-generate-button:disabled {
+  opacity: 0.6;
+}
+
+.car-report-list-section {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.car-report-list-table-wrap {
+  overflow-x: auto;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.car-report-list-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.car-report-list-table th,
+.car-report-list-table td {
+  padding: 10px 12px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.car-report-list-table th {
+  color: var(--color-text-sub);
+  background: #f7f8fa;
+  font-weight: 700;
+}
+
+.car-report-list-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.car-list-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.car-list-view-button,
+.car-list-delete-button {
+  height: 28px;
+  padding: 0 10px;
+
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.car-list-view-button {
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+}
+
+.car-list-delete-button {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fda29b;
 }
