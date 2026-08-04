@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Literal, Optional
 from detector import detect_pii, mask_text, compute_grade, BLOCK_TYPES
 from embedding_detector import detect_similarity
@@ -34,6 +34,44 @@ class ActionRequest(BaseModel):
     actor_user_id: int
     action_type: ActionType
     action_reason: str
+
+    @field_validator("action_reason")
+    @classmethod
+    def validate_action_reason(cls, value: str) -> str:
+        """
+        감사 이력에는 조치 근거가 반드시 남아야 하므로 
+        빈 문자열이나 공백만 입력된 사유는 허용하지 않는다.
+        """
+
+        trimmed_value = value.strip()
+
+        if not trimmed_value:
+            raise ValueError("조치 사유는 필수입니다.")
+
+        return trimmed_value
+
+def get_latest_manual_action(db, event_id: int):
+    """
+    담당자가 직접 등록한 수동 조치 중 가장 최근 기록을 반환한다.
+
+    시스템 자동 조치인 allowed, masked, blocked는 direction 값이 있고,
+    담당자 수동 조치인 reviewed, escalated, dismissed는 direction이 NULL이다.
+    """
+    return (
+        db.query(ActionHistory)
+        .filter(
+            ActionHistory.event_id == event_id,
+            ActionHistory.direction.is_(None),
+            ActionHistory.action_type.in_(
+                ["reviewed", "escalated", "dismissed"]
+            ),
+        )
+        .order_by(
+            ActionHistory.action_time.desc(),
+            ActionHistory.id.desc(),
+        )
+        .first()
+    )
 
 def _record_detection(db, usage_log_id: int, direction: str, detected: list[dict],
                       action_status: str, text: str, masked_text: str) -> None:
@@ -130,16 +168,31 @@ def gateway_chat(request: ChatRequest):
 def create_action(event_id: int, request: ActionRequest):
     db = SessionLocal()
     try:
-        event = db.query(EventLog).filter(EventLog.event_id == event_id).first()
+        # 전달받은 event_id에 해당하는 위험 이벤트가 실제로 존재하는지 확인
+        event = (db.query(EventLog).filter(EventLog.event_id == event_id).first())
+        
         if event is None:
             raise HTTPException(status_code=404, detail="해당 event_id의 이벤트를 찾을 수 없습니다.")
         
+        # 가장 최근 수동 조치가 완료 상태인지 확인
+        latest_manual_action = get_latest_manual_action(
+            db,
+            event_id,
+        )
+
+        # 완료 처리된 이벤트는 감사 이력 보호를 위해 다시 수정하지 못하게 함
+        if (latest_manual_action is not None and latest_manual_action.action_type == "dismissed"):
+            raise HTTPException(status_code=409, detail="이미 조치 완료된 이벤트에는 추가 조치를 등록할 수 없습니다.", )
+        
+        # 검증이 끝난 경우에만 새로운 수동 조치 이력을 저장
         action_history = ActionHistory(
             event_id = event_id,
             actor_user_id = request.actor_user_id,
             action_type = request.action_type.value,
-            action_reason = request.action_reason
+            action_reason = request.action_reason,
+            direction=None,
         )
+
         db.add(action_history)
         db.commit()
         db.refresh(action_history)
@@ -152,6 +205,19 @@ def create_action(event_id: int, request: ActionRequest):
             "action_reason": action_history.action_reason,
             "action_time": action_history.action_time,
         }
+      
+    except HTTPException:
+        # 이미 정의한 404, 409 오류는 그대로 프론트에 전달
+        raise
+
+    except Exception as error:
+        # 저장 중 오류가 발생하면 세션 상태를 원래대로 되돌림
+        db.rollback()
+
+        print(f"조치 이력 등록 실패: {error}")
+
+        raise HTTPException(status_code=500, detail="조치 이력 등록 중 오류가 발생했습니다.", )
+    
     finally:
         db.close()
 

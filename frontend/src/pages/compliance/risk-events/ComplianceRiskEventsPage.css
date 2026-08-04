@@ -236,15 +236,19 @@
 }
 
 .risk-repeat-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+
     margin-top: 6px;
-    padding: 2px 6px;
+    padding: 3px 7px;
+
     color: #b3261e;
     background: #fdeceb;
     border: 1px solid #f5c2bd;
     border-radius: 5px;
+
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
     white-space: nowrap;
 }
 
@@ -372,6 +376,63 @@
 .risk-event-action-form select,
 .risk-event-action-form textarea { padding: 9px 11px; color: #2e4262; background: #fff; border: 1px solid #dce3ed; border-radius: 8px; font-family: inherit; font-size: 12px; }
 .risk-event-action-form textarea { min-height: 64px; resize: vertical; }
+/*
+ * 조치 완료된 이벤트의 입력 영역은 비활성 상태임을
+ * 사용자가 명확하게 알 수 있도록 표현한다.
+ */
+.risk-event-action-form select:disabled,
+.risk-event-action-form textarea:disabled {
+  color: #98a2b3;
+  background: #f2f4f7;
+  cursor: not-allowed;
+}
+
+/* 조치 사유 필수 입력 표시 */
+.risk-action-required {
+  margin-left: 3px;
+  color: #d92d20;
+  font-style: normal;
+  font-size: 11px;
+}
+
+/* 완료된 이벤트의 조치 잠금 안내 */
+.risk-action-locked-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  padding: 11px 12px;
+
+  color: #027a48;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+  border-radius: 8px;
+}
+
+.risk-action-locked-message svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.risk-action-locked-message strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.risk-action-locked-message p {
+  margin: 4px 0 0;
+  color: #475467;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* 저장할 수 없는 상태의 버튼 */
+.risk-event-modal footer button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (max-width: 1000px) { .risk-events-summary-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 700px) { .compliance-risk-events-page { padding: 22px 16px 30px; } .compliance-risk-events-heading, .risk-events-panel-header, .risk-events-filters { align-items: stretch; flex-direction: column; } .risk-events-search { width: 100%; } .risk-events-filters > div { flex-wrap: wrap; } }
 @media (max-width: 480px) { .risk-events-summary-grid { grid-template-columns: 1fr; } .risk-event-modal dl { grid-template-columns: 1fr; } .risk-event-modal dl > div.wide { grid-column: auto; } }
