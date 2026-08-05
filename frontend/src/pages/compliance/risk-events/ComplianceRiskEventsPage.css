@@ -433,6 +433,50 @@
   cursor: not-allowed;
 }
 
+/* 조치 이력 타임라인 (오래된 순 → 최신 순) */
+.risk-action-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.risk-action-history li {
+  padding: 9px 11px;
+  background: #f8faff;
+  border: 1px solid #e4e9f1;
+  border-radius: 8px;
+}
+
+/* 시스템 자동 조치는 담당자 조치와 구분되도록 흐리게 */
+.risk-action-history li.auto {
+  background: #fbfcfe;
+  border-style: dashed;
+  opacity: .72;
+}
+
+.risk-action-history li > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.risk-action-history-label { color: #2266d7; font-size: 10px; font-weight: 800; }
+.risk-action-history li.auto .risk-action-history-label { color: #8794a8; }
+.risk-action-history time,
+.risk-action-history li > div > span:last-child { color: #8794a8; font-size: 10px; font-weight: 700; }
+
+.risk-action-history p {
+  margin: 5px 0 0;
+  color: #2e4262;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 1000px) { .risk-events-summary-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 700px) { .compliance-risk-events-page { padding: 22px 16px 30px; } .compliance-risk-events-heading, .risk-events-panel-header, .risk-events-filters { align-items: stretch; flex-direction: column; } .risk-events-search { width: 100%; } .risk-events-filters > div { flex-wrap: wrap; } }
 @media (max-width: 480px) { .risk-events-summary-grid { grid-template-columns: 1fr; } .risk-event-modal dl { grid-template-columns: 1fr; } .risk-event-modal dl > div.wide { grid-column: auto; } }

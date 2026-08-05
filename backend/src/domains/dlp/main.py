@@ -252,12 +252,23 @@ def list_events():
         )
         department_by_id = {d.id: d for d in departments}
 
-        # action_history를 한 번에 조회
+        # action_history를 한 번에 조회 (오래된 순 → 최신 순)
         actions = (
-            db.query(ActionHistory).filter(ActionHistory.event_id.in_(usage_log_ids)).all()
+            db.query(ActionHistory)
+            .filter(ActionHistory.event_id.in_(usage_log_ids))
+            .order_by(ActionHistory.action_time, ActionHistory.id)
+            .all()
             if usage_log_ids else []
         )
         actions_by_event_id = {}
+        
+        # 조치자 이름 표시용. 이벤트 발생자와 조치자가 다를 수 있어 빠진 사람만 추가로 조회한다.
+        actor_ids = {a.actor_user_id for a in actions if a.actor_user_id is not None}
+        missing_actor_ids = actor_ids - set(user_by_id)
+        if missing_actor_ids:
+            for u in db.query(User).filter(User.id.in_(missing_actor_ids)).all():
+                user_by_id[u.id] = u
+
         for a in actions:
             actions_by_event_id.setdefault(a.event_id, []).append(a)
 
@@ -297,9 +308,16 @@ def list_events():
                 "created_at": event.created_at,
                 "actions": [
                     {
+                        "id": a.id,
                         "action_type": a.action_type,
                         "action_reason": a.action_reason,
                         "actor_user_id": a.actor_user_id,
+                        # 자동 조치는 input/output 값이, 담당자 수동 조치는 None이 들어온다.
+                        "actor_name": (
+                            user_by_id[a.actor_user_id].name
+                            if a.actor_user_id in user_by_id else None
+                        ),
+                        "direction": a.direction,
                         "action_time": a.action_time
                     }
                     # 자동 조치는 자기 방향 것만, 담당자의 수동 조치(direction=NULL)는

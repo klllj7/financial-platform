@@ -18,6 +18,16 @@ const ACTION_STATUS_BY_TYPE = {
 };
 const NO_ACTION_STATUS = { label: "미조치", type: "none" };
 
+// 이력 목록에는 자동 조치까지 나오므로 별도 라벨 맵이 필요하다.
+const ACTION_HISTORY_LABELS = {
+  blocked: "자동 차단",
+  masked: "자동 마스킹",
+  allowed: "자동 허용",
+  reviewed: "모니터링",
+  escalated: "조치 중",
+  dismissed: "조치 완료",
+};
+
 const deriveActionStatus = (actions = []) => {
   const manualActions = actions.filter((a) =>
     ["reviewed", "escalated", "dismissed"].includes(a.action_type),
@@ -101,7 +111,15 @@ function ComplianceRiskEventsPage() {
             actionStatusType: status.type,
             occurredAt: formatOccurredAt(event.created_at),
             createdAt,
-            actions: event.actions,
+            actions: (event.actions ?? []).map((action) => ({
+              id: action.id,
+              label: ACTION_HISTORY_LABELS[action.action_type] ?? action.action_type,
+              reason: action.action_reason,
+              actorName: action.actor_name,
+              // 담당자 수동 조치는 direction이 null로 내려온다.
+              isAuto: action.direction != null,
+              actedAt: formatOccurredAt(action.action_time),
+            })),
           };
         });
         setEvents(mapped);
@@ -204,7 +222,12 @@ function ComplianceRiskEventsPage() {
         action_type: actionType,
         action_reason: trimmedReason,
       });
-      setSelectedEventId(null);
+      
+      // 모달을 닫지 않고 이력만 갱신해서, 방금 남긴 사유가 바로 보이게 한다.
+      setActionType(ACTION_FORM_TYPES[0].value);
+      setActionReason("");
+      fetchEvents();
+
       fetchEvents();
     } catch (error) {
       console.error("조치 등록 실패:", error);
@@ -284,7 +307,7 @@ function ComplianceRiskEventsPage() {
                       </span>
                     )}
                   </td>
-                  <td><strong>{formatDetectionType(event.eventType)}</strong><small>{event.maskedPromptSummary}</small></td>
+                  <td><strong>{formatDetectionType(event.eventType)}</strong></td>
                   <td>{event.modelName}</td>
                   <td><span className={`risk-status ${event.actionStatusType}`}>{event.actionStatus}</span></td>
                   <td>
@@ -357,6 +380,25 @@ function ComplianceRiskEventsPage() {
                   </dd>
                 </div>
               )}
+              {selectedEvent.actions.length > 0 && (
+                <div className="wide">
+                  <dt>조치 이력</dt>
+                  <dd>
+                    <ol className="risk-action-history">
+                      {selectedEvent.actions.map((action) => (
+                        <li key={action.id} className={action.isAuto ? "auto" : ""}>
+                          <div>
+                            <span className="risk-action-history-label">{action.label}</span>
+                            <time>{action.actedAt}</time>
+                            {!action.isAuto && <span>{action.actorName ?? "담당자"}</span>}
+                          </div>
+                          <p>{action.reason}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </dd>
+                </div>
+              )}              
             </dl>
 
             <div className="risk-event-action-form">
