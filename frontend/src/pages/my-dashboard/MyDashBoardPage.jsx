@@ -165,7 +165,7 @@ function MyDashboardPage() {
               return new Date(secondNotice.createdAt).getTime() -
                 new Date(firstNotice.createdAt).getTime();
             })
-            .slice(0, 3)
+            .slice(0, 5)
             .map((notice) => {
             const createdAt = new Date(notice.createdAt);
 

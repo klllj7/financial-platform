@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import {
   getPolicies,
@@ -27,6 +28,9 @@ const ACTIVE_FILTERS = [
 const PAGE_SIZE = 5;
 
 function PolicyManagementPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   // 로그인한 사용자 정보 (Sidebar.jsx와 같은 방식으로 localStorage에서 읽음) — "작성자"에 쓴다.
   const storedUser = localStorage.getItem("user");
   const currentUser = storedUser ? JSON.parse(storedUser) : null;
@@ -107,6 +111,22 @@ function PolicyManagementPage() {
       (a, b) => Number(b.active_yn) - Number(a.active_yn)
     );
     setPolicies(sorted);
+
+    const selectedPolicyId = location.state?.selectedPolicyId;
+    if (selectedPolicyId != null) {
+      const requestedPolicy = sorted.find(
+        (policy) => String(policy.id) === String(selectedPolicyId),
+      );
+
+      if (requestedPolicy) {
+        setSelectedPolicy(requestedPolicy);
+      }
+
+      navigate(location.pathname, {
+        replace: true,
+        state: null,
+      });
+    }
   };
 
   // 페이지가 처음 열릴 때 한 번 정책 목록을 불러온다.
