@@ -238,7 +238,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               return new Date(secondNotice.createdAt).getTime() -
                 new Date(firstNotice.createdAt).getTime();
             })
-            .slice(0, 3)
+            .slice(0, 6)
             .map((notice) => ({
               id: notice.id,
               category: notice.category,
@@ -569,6 +569,12 @@ function ComplianceDashboardPage({ isAdminView = false }) {
 
   const handlePolicyViewAll = () => {
     navigate("/policies");
+  };
+
+  const handlePolicyClick = (policyId) => {
+    navigate("/policies", {
+      state: { selectedPolicyId: policyId },
+    });
   };
 
   const handleAiToolViewAll = () => {
@@ -1045,7 +1051,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                   <button
                     key={policy.id}
                     type="button"
-                    onClick={handlePolicyViewAll}
+                    onClick={() => handlePolicyClick(policy.id)}
                   >
                     <div>
                       <strong>{policy.name}</strong>
@@ -1216,7 +1222,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 top: 10,
                 right: 20,
                 left: -10,
-                bottom: 20,
+                bottom: 8,
               }}
             >
               <CartesianGrid
@@ -1236,9 +1242,10 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 }}
                 tickLine={false}
                 interval={0}
-                angle={-18}
-                textAnchor="end"
-                height={54}
+                angle={0}
+                textAnchor="middle"
+                tickMargin={10}
+                height={40}
               />
 
               <YAxis
@@ -1251,7 +1258,17 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 tickLine={false}
               />
 
-              <Tooltip />
+              <Tooltip
+                itemSorter={(item) => {
+                  const riskOrder = {
+                    HIGH: 0,
+                    MEDIUM: 1,
+                    LOW: 2,
+                  };
+
+                  return riskOrder[item.name] ?? 3;
+                }}
+              />
 
               <Bar
                 dataKey="high"
