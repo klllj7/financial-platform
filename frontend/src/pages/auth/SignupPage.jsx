@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signup, getDepartments } from "../../api/authApi";
 import { Eye, EyeOff } from "lucide-react";
 import "./SignupPage.css";
@@ -343,29 +343,54 @@ function SignupPage() {
 
               <div className="signup-agreement-divider" />
 
-              <label className="signup-agreement-item">
-                <input
-                  type="checkbox"
-                  name="termsAgreed"
-                  checked={signupForm.termsAgreed}
-                  onChange={handleInputChange}
-                />
-                <span>
-                  <strong>[필수]</strong> 서비스 이용약관 동의
-                </span>
-              </label>
+              {/* 서비스 이용약관 */}
+              <div className="signup-agreement-row">
+                <label className="signup-agreement-item">
+                  <input
+                    type="checkbox"
+                    name="termsAgreed"
+                    checked={signupForm.termsAgreed}
+                    onChange={handleInputChange}
+                  />
+                  <span>
+                    <strong>[필수]</strong> 서비스 이용약관 동의
+                  </span>
+                </label>
 
-              <label className="signup-agreement-item">
-                <input
-                  type="checkbox"
-                  name="privacyAgreed"
-                  checked={signupForm.privacyAgreed}
-                  onChange={handleInputChange}
-                />
-                <span>
-                  <strong>[필수]</strong> 개인정보 수집·이용 동의
-                </span>
-              </label>
+                <Link
+                  to="/terms-of-service"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="signup-agreement-link"
+                >
+                  전문보기
+                </Link>
+              </div>
+              
+              {/* 개인정보 수집·이용 동의 */}
+              <div className="signup-agreement-row">
+                <label className="signup-agreement-item">
+                  <input
+                    type="checkbox"
+                    name="privacyAgreed"
+                    checked={signupForm.privacyAgreed}
+                    onChange={handleInputChange}
+                  />
+                  <span>
+                    <strong>[필수]</strong> 개인정보 수집·이용 동의
+                  </span>
+                </label>
+
+                <Link
+                  to="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="signup-agreement-link"
+                >
+                  전문보기
+                </Link>
+              </div>
+              
             </section>
 
             {/* 에러 메시지 */}

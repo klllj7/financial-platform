@@ -189,6 +189,40 @@
   cursor: pointer;
 }
 
+/* 개별 약관 문구와 전문보기 버튼을 한 줄에 배치 */
+.signup-agreement-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-top: 12px;
+}
+
+/* row에서 간격을 관리하므로 기존 item의 위쪽 여백 제거 */
+.signup-agreement-row .signup-agreement-item {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+/* 약관 전문보기 링크 */
+.signup-agreement-link {
+  flex-shrink: 0;
+
+  color: #2f6fed;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  cursor: pointer;
+}
+
+.signup-agreement-link:hover {
+  color: #245fd5;
+}
+
 /* 전체 동의와 개별 동의 사이 구분선 */
 .signup-agreement-divider {
   height: 1px;
@@ -400,6 +434,19 @@
     box-shadow: none;
   }
 
+  /* 모바일에서는 약관 문구와 전문보기 간격을 줄인다. */
+  .signup-agreement-row {
+    gap: 10px;
+  }
+
+  .signup-agreement-item {
+    font-size: 13px;
+  }
+
+  .signup-agreement-link {
+    font-size: 12px;
+  }
+  
   .login-link-area {
     flex-direction: column;
   }
