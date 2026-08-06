@@ -41,10 +41,10 @@ const UserAgreement = sequelize.define(
     },
 
     // 동의 요청이 발생한 IP 주소
-    ipAddress: {
+    userIp: {
       type: DataTypes.STRING(45),
       allowNull: true,
-      field: "ip_address",
+      field: "user_ip",
     },
 
     // 사용자의 브라우저 및 운영체제 정보
