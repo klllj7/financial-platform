@@ -382,7 +382,7 @@ function SignupPage() {
                 </label>
 
                 <Link
-                  to="/privacy-policy?from=signup"
+                  to="/privacy-collection-consent?from=signup"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="signup-agreement-link"
