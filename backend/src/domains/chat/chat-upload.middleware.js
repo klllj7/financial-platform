@@ -1,7 +1,14 @@
 const multer = require("multer");
 const path = require("path");
 
-const ALLOWED_EXTENSIONS = new Set([".txt", ".md", ".csv", ".json", ".log"]);
+const ALLOWED_EXTENSIONS = new Set([
+  ".txt",
+  ".md",
+  ".csv",
+  ".json",
+  ".log",
+  ".pdf",
+]);
 
 const uploadChatAttachment = multer({
   storage: multer.memoryStorage(),
@@ -17,7 +24,7 @@ const uploadChatAttachment = multer({
 
     if (!ALLOWED_EXTENSIONS.has(extension)) {
       const error = new Error(
-        "txt, md, csv, json, log 파일만 첨부할 수 있습니다.",
+        "TXT, MD, CSV, JSON, LOG, PDF 파일만 첨부할 수 있습니다.",
       );
       error.code = "CHAT_ATTACHMENT_TYPE_NOT_ALLOWED";
       error.statusCode = 400;

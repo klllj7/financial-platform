@@ -232,8 +232,8 @@ function AiChatPage() {
     if (!file) return;
 
     const extension = file.name.split(".").pop()?.toLowerCase();
-    if (!["txt", "md", "csv", "json", "log"].includes(extension)) {
-      setError("txt, md, csv, json, log 파일만 첨부할 수 있습니다.");
+    if (!["txt", "md", "csv", "json", "log", "pdf"].includes(extension)) {
+      setError("TXT, MD, CSV, JSON, LOG, PDF 파일만 첨부할 수 있습니다.");
       event.target.value = "";
       return;
     }
@@ -643,7 +643,7 @@ function AiChatPage() {
                 <input
                   ref={attachmentInputRef}
                   type="file"
-                  accept=".txt,.md,.csv,.json,.log"
+                  accept=".txt,.md,.csv,.json,.log,.pdf,application/pdf"
                   onChange={handleAttachmentChange}
                 />
                 <button
@@ -655,7 +655,7 @@ function AiChatPage() {
                   <Paperclip size={14} />
                   파일 첨부
                 </button>
-                <span>최대 2MB · 텍스트 파일</span>
+                <span>TXT, MD, CSV, JSON, LOG, PDF · 최대 2MB</span>
               </div>
               <button
                 type="button"
