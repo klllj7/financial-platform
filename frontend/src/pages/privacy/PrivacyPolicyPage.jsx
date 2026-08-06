@@ -27,7 +27,7 @@ function PrivacyPolicyPage() {
             개인정보의 항목, 목적, 보유기간 및 보호조치를 안내하기 위해
             수립되었습니다.
           </p>
-          <p className="privacy-effective-date">시행일자: 2026년 7월 30일</p>
+          <p className="privacy-effective-date">시행일자: 2026년 8월 6일</p>
         </header>
 
         {/* 주요 개인정보 처리 표시 */}
@@ -164,6 +164,13 @@ function PrivacyPolicyPage() {
                   <td>로그인 이력 관리</td>
                   <td>사용자 ID, 로그인 성공 여부, 실패 사유, IP 주소, 접속 환경, 로그인 시각</td>
                   <td>서비스 운영 및 감사 목적 달성 시까지</td>
+                </tr>
+                <tr>
+                  <td>회원가입 약관 동의 이력 관리</td>
+                  <td>
+                    사용자 ID, 동의한 약관 종류 및 버전, 동의 여부, 동의 시각, IP 주소, 접속 환경
+                  </td>
+                  <td>회원 탈퇴 또는 계정 삭제 시까지</td>
                 </tr>
                 <tr>
                   <td>AI 사용 신청 관리</td>
