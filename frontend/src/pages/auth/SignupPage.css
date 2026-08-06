@@ -132,6 +132,71 @@
   color: #a1aabc;
 }
 
+/* 필수 약관 동의 영역 */
+.signup-agreement-section {
+  grid-column: 1 / -1;
+
+  padding: 18px;
+  margin-top: 4px;
+
+  background: #f8faff;
+  border: 1px solid #dce5f3;
+  border-radius: 16px;
+}
+
+/* 약관 전체 동의 */
+.signup-agreement-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  color: #1d2a40;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 개별 약관 동의 */
+.signup-agreement-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 12px;
+
+  color: #536176;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+/* 필수 표시 */
+.signup-agreement-item strong {
+  color: #2f6fed;
+  font-weight: 800;
+}
+
+/* 약관 체크박스 */
+.signup-agreement-all input,
+.signup-agreement-item input {
+  flex-shrink: 0;
+
+  width: 18px;
+  height: 18px;
+  margin: 0;
+
+  accent-color: #2f6fed;
+  cursor: pointer;
+}
+
+/* 전체 동의와 개별 동의 사이 구분선 */
+.signup-agreement-divider {
+  height: 1px;
+  margin: 14px 0 2px;
+
+  background: #dce5f3;
+}
+
 /* 에러 메시지는 가로 전체 차지 */
 .signup-error {
   grid-column: 1 / -1;
@@ -158,10 +223,22 @@
 }
 
 /* 회원가입 버튼 hover */
-.signup-button:hover {
+/* 활성화된 회원가입 버튼에만 hover 적용 */
+.signup-button:not(:disabled):hover {
   background: #245fd5;
   transform: translateY(-1px);
   box-shadow: 0 12px 28px rgba(47, 111, 237, 0.28);
+}
+
+/* 필수 약관에 동의하기 전 버튼 상태 */
+.signup-button:disabled {
+  color: #ffffff;
+  background: #aebbd1;
+
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
+  box-shadow: none;
 }
 
 /* 로그인 이동 영역 */
