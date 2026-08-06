@@ -1,19 +1,32 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "./TermsOfServicePage.css";
 
 function TermsOfServicePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // 회원가입 화면의 전문보기에서 열림 페이지인지 확인
+  const isOpenedFromSignup = searchParams.get("from") === "signup";
+
+  const handlePageExit = () => {
+    if (isOpenedFromSignup) {
+      window.close();
+      return;
+    }
+
+    navigate(-1);
+  };
 
   return (
     <main className="terms-page">
       <section className="terms-container">
-        {/* 이전 화면으로 돌아가기 */}
+        {/* 접근 경로에 따라 창 닫기 또는 이전 화면 이동 */}
         <button
           type="button"
           className="terms-back-button"
-          onClick={() => navigate(-1)}
+          onClick={handlePageExit}
         >
-          ← 이전 화면으로
+          {isOpenedFromSignup ? "✕ 창 닫기" : "← 이전 화면으로"}
         </button>
 
         {/* 상단 제목 영역 */}
