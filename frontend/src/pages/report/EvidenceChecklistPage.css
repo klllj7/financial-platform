@@ -785,6 +785,28 @@
   line-height: 1.4;
 }
 
+/* 항목명을 누르면 상세 설명 사이드바가 열린다는 걸 알리는 최소한의 클릭 신호만 준다. */
+.ce-title-button {
+  padding: 0;
+
+  color: inherit;
+  background: none;
+  border: none;
+
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: left;
+  line-height: inherit;
+
+  cursor: pointer;
+}
+
+.ce-title-button:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .ce-col-result { width: 90px; }
 .ce-col-evidence { width: 100px; }
 
@@ -1292,4 +1314,153 @@
   .ce-tab {
     flex-shrink: 0;
   }
+}
+
+
+/* ==================================================
+   항목 상세 설명 사이드바 ("이 항목은 무엇을 점검하나요?")
+================================================== */
+
+.ce-detail-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+
+  display: flex;
+  justify-content: flex-end;
+
+  background: rgba(15, 28, 48, 0.46);
+}
+
+.ce-detail-sidebar {
+  width: min(560px, 100%);
+  height: 100%;
+
+  background: #ffffff;
+  box-shadow: -24px 0 70px rgba(10, 22, 42, 0.24);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-y: auto;
+
+  animation: ce-detail-slide-in 0.18s ease-out;
+}
+
+@keyframes ce-detail-slide-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.ce-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 20px 22px;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ce-detail-no {
+  display: block;
+  margin-bottom: 6px;
+
+  color: var(--color-text-sub);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-detail-header h3 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.ce-detail-close {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  color: var(--color-text-sub);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  padding: 22px;
+}
+
+.ce-detail-section h4 {
+  margin: 0 0 8px;
+
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ce-detail-section p {
+  margin: 0;
+
+  color: var(--color-text-sub);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* "실제로 무엇을 수집해야 하는지"는 이 시스템 기준 실무 안내라, 원문 설명과 구분되게 강조한다. */
+.ce-detail-section-collect {
+  padding: 14px 16px;
+
+  background: #f7faff;
+  border: 1px solid #e7ebf2;
+  border-left: 3px solid var(--color-primary);
+  border-radius: 10px;
+}
+
+.ce-detail-section-collect p {
+  color: var(--color-text);
+}
+
+dl.ce-detail-meta {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+dl.ce-detail-meta > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 8px 0;
+
+  border-bottom: 1px solid #f0f3f9;
+}
+
+dl.ce-detail-meta dt {
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+dl.ce-detail-meta dd {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
 }

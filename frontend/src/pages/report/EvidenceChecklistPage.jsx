@@ -127,6 +127,8 @@ function EvidenceChecklistPage() {
   const [expanded, setExpanded] = useState({});
   const [naExpanded, setNaExpanded] = useState(false);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+  // 항목명을 클릭하면 열리는 "이 항목은 무엇을 점검하나요?" 사이드바 대상 (없으면 닫힘)
+  const [detailTarget, setDetailTarget] = useState(null);
   const [filterCategory, setFilterCategory] = useState("전체");
   const [filterResult, setFilterResult] = useState("전체");
   const [filterEvidence, setFilterEvidence] = useState("전체");
@@ -566,6 +568,10 @@ function EvidenceChecklistPage() {
     }
   };
 
+  // 사이드바가 열려 있는 동안 생성/업로드로 결과·증빙상태가 바뀔 수 있으므로, 클릭 시점 스냅샷이 아니라
+  // items에서 최신 값을 다시 찾아 보여준다.
+  const detailItem = detailTarget ? items.find((i) => i.no === detailTarget.no) ?? detailTarget : null;
+
   return (
     <div className="evidence-checklist-page">
       <div className="ce-heading">
@@ -930,7 +936,16 @@ function EvidenceChecklistPage() {
                             >
                               <td className="ce-col-no">{displayOrderByNo.get(item.no)}</td>
                               <td className="ce-col-original-no">{item.no}</td>
-                              <td className="ce-col-title">{item.title}</td>
+                              <td className="ce-col-title">
+                                <button
+                                  type="button"
+                                  className="ce-title-button"
+                                  onClick={() => setDetailTarget(item)}
+                                  title="클릭해서 상세 설명 보기"
+                                >
+                                  {item.title}
+                                </button>
+                              </td>
                               <td>
                                 <button
                                   type="button"
@@ -1230,6 +1245,69 @@ function EvidenceChecklistPage() {
               </div>
             );
           })()}
+
+          {detailItem && (
+            <div className="ce-detail-backdrop" role="presentation" onMouseDown={() => setDetailTarget(null)}>
+              <aside className="ce-detail-sidebar" onMouseDown={(e) => e.stopPropagation()}>
+                <header className="ce-detail-header">
+                  <div>
+                    <span className="ce-detail-no">
+                      {displayOrderByNo.get(detailItem.no)}번 · 원문번호 {detailItem.no}
+                    </span>
+                    <h3>{detailItem.title}</h3>
+                  </div>
+                  <button type="button" className="ce-detail-close" onClick={() => setDetailTarget(null)}>
+                    닫기
+                  </button>
+                </header>
+
+                <div className="ce-detail-body">
+                  <section className="ce-detail-section">
+                    <h4>이 항목은 무엇을 점검하나요?</h4>
+                    <p>
+                      {detailItem.guideDetail ??
+                        "금융보안원 「금융분야 인공지능 보안 안내서」의 해당 점검항목에 대한 설명이 아직 등록되지 않았습니다."}
+                    </p>
+                  </section>
+
+                  <section className="ce-detail-section ce-detail-section-collect">
+                    <h4>우리 회사는 실제로 무엇을 수집해야 하나요?</h4>
+                    <p>
+                      {detailItem.whatToCollect ??
+                        "현재 시스템 기준 수집 대상 안내가 아직 등록되지 않았습니다."}
+                    </p>
+                  </section>
+
+                  {detailItem.preparedMaterial && (
+                    <section className="ce-detail-section">
+                      <h4>준비 자료 예시</h4>
+                      <p>{detailItem.preparedMaterial}</p>
+                    </section>
+                  )}
+
+                  <section className="ce-detail-section">
+                    <h4>현재 상태</h4>
+                    <dl className="ce-detail-meta">
+                      <div>
+                        <dt>대분류</dt>
+                        <dd>{detailItem.category}</dd>
+                      </div>
+                      <div>
+                        <dt>결과</dt>
+                        <dd>
+                          <span className={resultBadgeClass(detailItem.result)}>{detailItem.result}</span>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>증빙상태</dt>
+                        <dd>{detailItem.evidence}</dd>
+                      </div>
+                    </dl>
+                  </section>
+                </div>
+              </aside>
+            </div>
+          )}
         </>
       )}
     </div>
