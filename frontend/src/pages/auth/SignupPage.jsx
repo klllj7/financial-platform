@@ -397,7 +397,7 @@ function SignupPage() {
             {errorMessage && <p className="signup-error">{errorMessage}</p>}
 
             {/* 회원가입 버튼 */}
-            <button className="signup-button" type="submit">
+            <button className="signup-button" type="submit" disabled={!isAllAgreed}>
               회원가입
             </button>
           </form>
