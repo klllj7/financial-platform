@@ -1,5 +1,28 @@
 const service = require("./chat.service");
 const { success, fail } = require("../../common/utils/response");
+const path = require("path");
+const pdfParse = require("pdf-parse");
+
+const extractAttachmentContent = async (file) => {
+  const extension = path.extname(file.originalname).toLowerCase();
+
+  if (extension !== ".pdf") {
+    return file.buffer.toString("utf8").replace(/\0/g, "").trim();
+  }
+
+  try {
+    const parsedPdf = await pdfParse(file.buffer);
+    return parsedPdf.text.replace(/\0/g, "").trim();
+  } catch (parseError) {
+    const error = new Error(
+      "PDF 내용을 읽을 수 없습니다. 암호화되거나 손상된 파일인지 확인해 주세요.",
+    );
+    error.code = "CHAT_PDF_PARSE_FAILED";
+    error.statusCode = 400;
+    error.cause = parseError;
+    throw error;
+  }
+};
 
 const getSessions = async (req, res) => {
   try { return success(res, await service.getSessions(req.user.userId)); }
@@ -52,7 +75,7 @@ const sendMessage = async (req, res) => {
     const attachment = req.file
       ? {
         fileName: req.file.originalname,
-        content: req.file.buffer.toString("utf8").replace(/\0/g, "").trim(),
+        content: await extractAttachmentContent(req.file),
       }
       : null;
     if (!message && !attachment) {

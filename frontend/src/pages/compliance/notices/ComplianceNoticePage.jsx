@@ -13,13 +13,17 @@ import {
 import {
   Bell,
   Megaphone,
+  Pencil,
   Plus,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import {
   createNotice,
+  deleteNotice,
   getNotices,
+  updateNotice,
 } from "../../../api/noticeApi";
 import {
   getReadNoticeIds,
@@ -62,6 +66,8 @@ function ComplianceNoticePage() {
   */
   const [isWriteModalOpen, setIsWriteModalOpen] =
     useState(false);
+  const [editingNoticeId, setEditingNoticeId] =
+    useState(null);
 
   /*
     공지사항 작성 폼의 입력값이다.
@@ -144,7 +150,20 @@ function ComplianceNoticePage() {
     작성 모달을 연다.
   */
   const handleOpenWriteModal = () => {
+    setEditingNoticeId(null);
     setNoticeForm(INITIAL_FORM);
+    setIsWriteModalOpen(true);
+  };
+
+  const handleOpenEditModal = (notice) => {
+    setEditingNoticeId(notice.id);
+    setNoticeForm({
+      category: notice.category || "일반",
+      title: notice.title || "",
+      content: notice.content || "",
+      isPinned: Boolean(notice.isPinned),
+    });
+    setSelectedNotice(null);
     setIsWriteModalOpen(true);
   };
 
@@ -153,6 +172,7 @@ function ComplianceNoticePage() {
     작성 모달을 닫고 입력값을 초기화한다.
   */
   const handleCloseWriteModal = () => {
+    setEditingNoticeId(null);
     setNoticeForm(INITIAL_FORM);
     setIsWriteModalOpen(false);
   };
@@ -198,20 +218,64 @@ function ComplianceNoticePage() {
     }
 
     try {
-      const response = await createNotice({
+      const payload = {
         category: noticeForm.category,
         title: trimmedTitle,
         content: trimmedContent,
         isPinned: noticeForm.isPinned,
-      });
-      setNotices((previousNotices) => [
-        { ...response.data, isNew: true },
-        ...previousNotices,
-      ]);
+      };
+      const response = editingNoticeId
+        ? await updateNotice(editingNoticeId, payload)
+        : await createNotice(payload);
+
+      if (editingNoticeId) {
+        setNotices((previousNotices) =>
+          previousNotices.map((notice) =>
+            String(notice.id) === String(editingNoticeId)
+              ? { ...notice, ...response.data }
+              : notice,
+          ),
+        );
+      } else {
+        setNotices((previousNotices) => [
+          { ...response.data, isNew: true },
+          ...previousNotices,
+        ]);
+      }
+
+      const successMessage = editingNoticeId
+        ? "공지사항이 수정되었습니다."
+        : "공지사항이 등록되었습니다.";
       handleCloseWriteModal();
-      alert("공지사항이 등록되었습니다.");
+      alert(successMessage);
     } catch (error) {
-      alert(error.response?.data?.error?.message || "공지사항 등록에 실패했습니다.");
+      alert(
+        error.response?.data?.error?.message ||
+          `공지사항 ${editingNoticeId ? "수정" : "등록"}에 실패했습니다.`,
+      );
+    }
+  };
+
+  const handleDeleteNotice = async (notice) => {
+    const shouldDelete = window.confirm(
+      `“${notice.title}” 공지사항을 삭제하시겠습니까?\n삭제한 공지사항은 복구할 수 없습니다.`,
+    );
+    if (!shouldDelete) return;
+
+    try {
+      await deleteNotice(notice.id);
+      setNotices((previousNotices) =>
+        previousNotices.filter(
+          (item) => String(item.id) !== String(notice.id),
+        ),
+      );
+      setSelectedNotice(null);
+      alert("공지사항이 삭제되었습니다.");
+    } catch (error) {
+      alert(
+        error.response?.data?.error?.message ||
+          "공지사항 삭제에 실패했습니다.",
+      );
     }
   };
 
@@ -518,6 +582,24 @@ function ComplianceNoticePage() {
               </div>
               <p>{selectedNotice.content}</p>
             </div>
+            <footer className="compliance-notice-detail-actions">
+              <button
+                type="button"
+                className="compliance-notice-edit-button"
+                onClick={() => handleOpenEditModal(selectedNotice)}
+              >
+                <Pencil size={15} />
+                수정
+              </button>
+              <button
+                type="button"
+                className="compliance-notice-delete-button"
+                onClick={() => handleDeleteNotice(selectedNotice)}
+              >
+                <Trash2 size={15} />
+                삭제
+              </button>
+            </footer>
           </section>
         </div>
       )}
@@ -546,12 +628,13 @@ function ComplianceNoticePage() {
             <header className="compliance-notice-modal-header">
               <div>
                 <h3 id="notice-write-title">
-                  공지사항 작성
+                  공지사항 {editingNoticeId ? "수정" : "작성"}
                 </h3>
 
                 <p>
-                  임직원에게 전달할 공지 내용을
-                  입력해 주세요.
+                  {editingNoticeId
+                    ? "수정할 공지 내용을 확인해 주세요."
+                    : "임직원에게 전달할 공지 내용을 입력해 주세요."}
                 </p>
               </div>
 
@@ -671,7 +754,7 @@ function ComplianceNoticePage() {
                   type="submit"
                   className="compliance-notice-submit-button"
                 >
-                  공지 등록
+                  공지 {editingNoticeId ? "수정" : "등록"}
                 </button>
               </div>
             </form>
