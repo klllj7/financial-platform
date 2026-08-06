@@ -1,19 +1,32 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "./PrivacyPolicyPage.css";
 
 function PrivacyPolicyPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // 회원가입 화면의 전문보기에서 열림 페이지인지 확인
+  const isOpenedFromSignup = searchParams.get("from") === "signup";
+
+  const handlePageExit = () => {
+    if (isOpenedFromSignup) {
+      window.close();
+      return;
+    }
+
+    navigate(-1);
+  };
 
   return (
     <main className="privacy-page">
       <section className="privacy-container">
-        {/* 이전 화면으로 돌아가기 버튼 */}
+        {/* 접근 경로에 따라 창 닫기 또는 이전 화면 이동 */}
         <button 
           type="button"
           className="privacy-back-button"
-          onClick={() => navigate(-1)}
+          onClick={handlePageExit}
         >
-          ← 이전 화면으로
+          {isOpenedFromSignup ? "✕ 창 닫기" : "← 이전 화면으로"} 
         </button>
         
         {/* 개인정보처리방침 상단 제목 영역 */}

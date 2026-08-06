@@ -358,7 +358,7 @@ function SignupPage() {
                 </label>
 
                 <Link
-                  to="/terms-of-service"
+                  to="/terms-of-service?from=signup"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="signup-agreement-link"
@@ -382,7 +382,7 @@ function SignupPage() {
                 </label>
 
                 <Link
-                  to="/privacy-policy"
+                  to="/privacy-policy?from=signup"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="signup-agreement-link"
