@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { User, Role, Department, LoginHistory } = require("./auth.models");
+const sequelize = require("../../common/config/db");
+const { User, Role, Department, LoginHistory, UserAgreement, } = require("./auth.models");
+const { AGREEMENT_TYPES, AGREEMENT_VERSIONS, } = require("./agreement.constants");
 
 // 비밀번호 규칙 검증
 // 프론트 검증은 우회될 수 있으므로 백엔드에서도 동일하게 검사한다.
@@ -89,12 +91,21 @@ const saveLoginHistory = async ({
 };
 
 // 회원가입
-const signup = async ({ name, email, password, department }) => {
+const signup = async ({ name, email, password, department, termsAgreed, privacyAgreed, userIp, userAgent, }) => {
   // 회원가입 요청값 기본 검증
   if (!name || !email || !password || !department) {
     const error = new Error("필수 항목을 모두 입력해주세요.");
     error.statusCode = 400;
     error.code = "AUTH_SIGNUP_REQUIRED";
+    throw error;
+  }
+
+  // API를 직접 호출해 약관 동의를 우회하는 경우도 차단
+  if (termsAgreed !== true || privacyAgreed !== true) {
+    const error = new Error("서비스 이용약관과 개인정보 수집·이용 안내에 모두 동의해주세요.");
+    
+    error.statusCode = 400;
+    error.code = "AUTH_REQUIRED_AGREEMENT";
     throw error;
   }
 
@@ -148,13 +159,51 @@ const signup = async ({ name, email, password, department }) => {
   // 비밀번호 암호화
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // 사용자 생성
-  const user = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-    departmentId: foundDepartment.id,
-    roleId: foundRole.id,
+  // 두 약관의 동의 시각을 동일하게 저장
+  const agreedAt = new Date();
+
+  // 사용자 생성과 약관 동의 이력 저장을 하나의 트랜잭션으로 처리
+  const user = await sequelize.transaction(async (transaction) => {
+    const createdUser = await User.create(
+      {
+        name,
+        email,
+        password: hashedPassword,
+        departmentId: foundDepartment.id,
+        roleId: foundRole.id,
+      },
+      {
+        transaction,
+      }
+    );
+    
+    await UserAgreement.bulkCreate(
+      [
+        {
+          userId: createdUser.id,
+          agreementType: AGREEMENT_TYPES.TERMS_OF_SERVICE,
+          agreementVersion: AGREEMENT_VERSIONS.TERMS_OF_SERVICE,
+          isAgreed: true,
+          agreedAt,
+          userIp: userIp || null,
+          userAgent: userAgent || null,
+        },
+        {
+          userId: createdUser.id,
+          agreementType: AGREEMENT_TYPES.PRIVACY_COLLECTION_USE,
+          agreementVersion: AGREEMENT_VERSIONS.PRIVACY_COLLECTION_USE,
+          isAgreed: true,
+          agreedAt,
+          userIp: userIp || null,
+          userAgent: userAgent || null,
+        },
+      ],
+      {
+        transaction,
+      }
+    );
+    
+    return createdUser;
   });
 
   return {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signup, getDepartments } from "../../api/authApi";
 import { Eye, EyeOff } from "lucide-react";
 import "./SignupPage.css";
@@ -14,6 +14,10 @@ function SignupPage() {
     password: "",
     passwordConfirm: "",
     department: "",
+
+    // 필수 약관 동의 여부
+    termsAgreed: false,
+    privacyAgreed: false,
   });
 
   // 비밀번호 입력값 표시 여부
@@ -30,13 +34,28 @@ function SignupPage() {
 
   // input, select 값이 변경될 때 실행되는 함수
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
 
     setSignupForm((prev) => ({
       ...prev,
-      [name]: value,
+      
+      // 체크박스는 value가 아니라 checked 값을 저장
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
+
+  // 필수 약관 전체 동의/해제
+  const handleAllAgreementChange = (e) => {
+    const { checked } = e.target;
+
+    setSignupForm((prev) => ({
+      ...prev,
+      termsAgreed: checked,
+      privacyAgreed: checked,
+    }));
+  };
+
+  const isAllAgreed = signupForm.termsAgreed && signupForm.privacyAgreed;
 
   // 부서 목록 조회
   const fetchDepartments = async () => {
@@ -79,6 +98,12 @@ function SignupPage() {
       return;
     }
 
+    // 필수 약관에 동의하지 않으면 회원가입 요청을 보내지 않는다.
+    if (!signupForm.termsAgreed || !signupForm.privacyAgreed) {
+      setErrorMessage("서비스 이용약관과 개인정보 수집·이용 안내에 모두 동의해주세요.");
+      return;
+    }
+
     try{
       setErrorMessage("");
 
@@ -88,6 +113,10 @@ function SignupPage() {
         email: signupForm.email,
         password: signupForm.password,
         department: signupForm.department,
+
+        // 백엔드에서 필수 약관 동의 여부를 다시 검증
+        termsAgreed: signupForm.termsAgreed,
+        privacyAgreed: signupForm.privacyAgreed,
       };
 
       const result = await signup(payload);
@@ -301,11 +330,74 @@ function SignupPage() {
               </p>
             </div>
 
+            {/* 필수 약관 동의 */}
+            <section className="signup-agreement-section">
+              <label className="signup-agreement-all">
+                <input
+                  type="checkbox"
+                  checked={isAllAgreed}
+                  onChange={handleAllAgreementChange}
+                />
+                <span>필수 약관 전체 동의</span>
+              </label>
+
+              <div className="signup-agreement-divider" />
+
+              {/* 서비스 이용약관 */}
+              <div className="signup-agreement-row">
+                <label className="signup-agreement-item">
+                  <input
+                    type="checkbox"
+                    name="termsAgreed"
+                    checked={signupForm.termsAgreed}
+                    onChange={handleInputChange}
+                  />
+                  <span>
+                    <strong>[필수]</strong> 서비스 이용약관 동의
+                  </span>
+                </label>
+
+                <Link
+                  to="/terms-of-service?from=signup"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="signup-agreement-link"
+                >
+                  전문보기
+                </Link>
+              </div>
+              
+              {/* 개인정보 수집·이용 동의 */}
+              <div className="signup-agreement-row">
+                <label className="signup-agreement-item">
+                  <input
+                    type="checkbox"
+                    name="privacyAgreed"
+                    checked={signupForm.privacyAgreed}
+                    onChange={handleInputChange}
+                  />
+                  <span>
+                    <strong>[필수]</strong> 개인정보 수집·이용 동의
+                  </span>
+                </label>
+
+                <Link
+                  to="/privacy-collection-consent?from=signup"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="signup-agreement-link"
+                >
+                  전문보기
+                </Link>
+              </div>
+              
+            </section>
+
             {/* 에러 메시지 */}
             {errorMessage && <p className="signup-error">{errorMessage}</p>}
 
             {/* 회원가입 버튼 */}
-            <button className="signup-button" type="submit">
+            <button className="signup-button" type="submit" disabled={!isAllAgreed}>
               회원가입
             </button>
           </form>

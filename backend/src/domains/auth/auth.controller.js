@@ -4,7 +4,14 @@ const { success, fail } = require("../../common/utils/response");
 // 회원가입 controller
 const signup = async (req, res) => {
   try {
-    const result = await authService.signup(req.body);
+    // 로컬 환경에서는 req.ip가 ::1로 들어올 수 있으므로 확인하기 쉬운 IPv4 형식으로 변환
+    const userIp = req.ip === "::1" ? "127.0.0.1" : req.ip;
+
+    const result = await authService.signup({
+      ...req.body, 
+      userIp,
+      userAgent: req.headers["user-agent"] || null,
+    });
 
     return success(res, result, 201);
   } catch (error) {
