@@ -24,7 +24,7 @@ import AuthLayout from "./components/layout/AuthLayout";
 
 // 임직원용 기능 페이지
 import AiChatPage from "./pages/ai-chat/AiChatPage";
-import MyDashboardPage from "./pages/my-dashboard/MyDashboardPage";
+import MyDashboardPage from "./pages/my-dashboard/MyDashBoardPage";
 import UsageHistoryPage from "./pages/usage-history/UsageHistoryPage";
 import NoticePage from "./pages/notices/NoticePage";
 import AiToolsPage from "./pages/ai-tools/AiToolsPage";
