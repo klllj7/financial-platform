@@ -87,6 +87,7 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error("서버 시작 실패:", error);
+    process.exit(1);
   }
 };
 
