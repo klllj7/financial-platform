@@ -1,3 +1,4 @@
+//주석
 const CATEGORY_META = [
   { key: "관리적", label: "⑦ 관리적 보호조치", tier: "핵심" },
   { key: "기술적", label: "⑧ 기술적 보호조치", tier: "핵심" },
