@@ -168,9 +168,16 @@ const getLogEntries = async ({ departmentId, targetYear, itemNo }) => {
   return row?.log_entries ?? [];
 };
 
+/** 해당 부서 소속 사용자 id 목록. 위험이벤트/접근이력을 부서 단위로 좁힐 때 공통으로 쓴다. */
+const getDepartmentUserIds = async (departmentId) => {
+  const users = await User.findAll({ attributes: ["id"], where: { department_id: departmentId } });
+  return users.map((u) => u.id);
+};
+
 /** ⑤ 입력 정상범위 사전검토 — 룰셋 스냅샷 + 차단된 이벤트 로그, xlsx(2시트) */
 const generateEvidence5 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const blockedEvents = rows
     .filter((r) => r.actionStatus === "blocked")
     .map((r) => ({
@@ -221,7 +228,8 @@ const generateEvidence5 = async ({ departmentId, targetYear, from, to }) => {
 
 /** ⑥ 우회시도 탐지·차단 — prompt_injection 유형만, xlsx */
 const generateEvidence6 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const filtered = rows
     .filter((r) => r.type === "prompt_injection")
     .map((r) => ({
@@ -258,7 +266,8 @@ const generateEvidence6 = async ({ departmentId, targetYear, from, to }) => {
 
 /** ⑦ PII 탐지·마스킹 — PII 유형만, xlsx */
 const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const filtered = rows
     .filter((r) => PII_TYPES.has(r.type))
     .map((r) => ({
@@ -301,7 +310,8 @@ const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
  *  유사도 유형만 넣고 스펙의 "output_leak_block" 태깅을 제외했었다. 이제 구분이 가능하다.
  */
 const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const filtered = rows
     .filter((r) => r.direction === "output" || r.type === "confidential_similarity")
     .map((r) => ({
@@ -403,8 +413,24 @@ const ROLE_ACCESS_SNAPSHOT = {
   // TODO: 실제 라우트별 authorize("...") 값을 채워야 함 (grep -r "authorize(" backend/src/domains)
 };
 
+/**
+ * ActionHistory.event_id는 usage_log.id를 가리킨다(요청을 올린 사용자 기준).
+ * actor_user_id는 검토를 수행한 담당자라 부서 구분 기준으로 쓸 수 없어서,
+ * 요청 소유자(usage_log.user_id)가 이 부서 소속인지로 걸러야 한다.
+ */
+const getDepartmentUsageLogIds = async (departmentId) => {
+  const userIds = await getDepartmentUserIds(departmentId);
+  if (!userIds.length) return [];
+  const logs = await UsageLog.findAll({ attributes: ["id"], where: { user_id: { [Op.in]: userIds } } });
+  return logs.map((l) => l.id);
+};
+
 const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
-  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
+  const usageLogIds = await getDepartmentUsageLogIds(departmentId);
+  const where = {
+    event_id: { [Op.in]: usageLogIds },
+    ...(from && to ? { action_time: { [Op.between]: [from, to] } } : {}),
+  };
   const actions = await ActionHistory.findAll({ where, order: [["action_time", "DESC"]], limit: 500 });
 
   const recentAccessLogs = actions.map((a) => ({
@@ -440,7 +466,11 @@ const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
  *  전체 actor_user_id 집계로 대체하고, resource/permission_level은 데이터가 없어 컬럼에서 제외했다.
  */
 const generateEvidence24 = async ({ departmentId, targetYear, from, to }) => {
-  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
+  const usageLogIds = await getDepartmentUsageLogIds(departmentId);
+  const where = {
+    event_id: { [Op.in]: usageLogIds },
+    ...(from && to ? { action_time: { [Op.between]: [from, to] } } : {}),
+  };
   const actions = await ActionHistory.findAll({ where });
 
   const byActor = new Map();

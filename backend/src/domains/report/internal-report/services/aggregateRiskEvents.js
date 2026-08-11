@@ -22,10 +22,28 @@ const PII_TYPES = new Set(["resident_number", "phone_number", "account_number", 
  * EventLog + UsageLog + ActionHistory를 조인해서 "유형 1건당 1로우"로 펼친다.
  * detection_type이 콤마로 여러 유형을 담고 있어서 그대로 group-by 하면 안 되기 때문.
  */
-const getExpandedRiskEvents = async ({ from, to } = {}) => {
+/**
+ * userIds를 넘기면 usage_log.user_id가 그 목록에 속한 이벤트만 남긴다
+ * (부서별 증빙자료처럼 "이 부서 소속 사용자의 요청"만 집계해야 할 때 사용).
+ * 넘기지 않으면(undefined) 기존처럼 전사 이벤트를 그대로 반환한다.
+ */
+const getExpandedRiskEvents = async ({ from, to, userIds } = {}) => {
   const where = from && to ? { created_at: { [Op.between]: [from, to] } } : {};
 
-  const events = await EventLog.findAll({ where, order: [["created_at", "DESC"]] });
+  let events = await EventLog.findAll({ where, order: [["created_at", "DESC"]] });
+
+  if (userIds) {
+    const candidateIds = events.map((e) => e.event_id);
+    const scopedUsageLogs = candidateIds.length
+      ? await UsageLog.findAll({
+          attributes: ["id"],
+          where: { id: { [Op.in]: candidateIds }, user_id: { [Op.in]: userIds } },
+        })
+      : [];
+    const scopedIdSet = new Set(scopedUsageLogs.map((u) => u.id));
+    events = events.filter((e) => scopedIdSet.has(e.event_id));
+  }
+
   const usageLogIds = events.map((e) => e.event_id);
 
   const [usageLogs, actions] = await Promise.all([
