@@ -2,6 +2,7 @@ const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
 const AiToolApplication = require("../ai-tools/ai-tool-application.model");
 const { createSolarMessage } = require("./solar.client");
+const { createBedrockMessage } = require("./bedrock.client");
 const {
   createOpenAiCompatibleMessage,
 } = require("./openai-compatible.client");
@@ -204,10 +205,9 @@ const sendMessage = async ({
   if (inspection.blocked) {
     reply = "보안 정책에 의해 요청이 차단되었습니다. 인증정보나 기밀정보를 제거해 주세요.";
   } else if (approvedTool.isDefaultSolar) {
-    const solarResponse = await createSolarMessage([
-      ...previousMessages,
-      providerUserMessage,
-    ]);
+    const solarResponse = process.env.AI_PROVIDER === "bedrock"
+      ? await createBedrockMessage([...previousMessages, providerUserMessage])
+      : await createSolarMessage([...previousMessages, providerUserMessage]);
     reply = solarResponse.content;
     modelName = solarResponse.modelName;
     inputTokens = solarResponse.inputTokens;
