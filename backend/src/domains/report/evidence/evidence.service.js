@@ -4,10 +4,13 @@ const User = require("../../auth/user.model");
 const UsageLog = require("./usageLog.model");
 const ActionHistory = require("./actionHistory.model");
 const { CATEGORY_META, NA_CATEGORIES, CHECKLIST_ITEMS } = require("./checklistItems");
-const { saveEvidenceFile, resolveEvidenceFilePath } = require("./fileStorage");
+const {
+  saveEvidenceFile,
+  getEvidenceFileDownloadUrl,
+  getEvidenceFileStream,
+} = require("./fileStorage");
 const { generateXlsx } = require("./fileGenerators/xlsxGenerator");
 const { generateDocx } = require("./fileGenerators/docxGenerator");
-const fs = require("fs");
 const archiver = require("archiver");
 const QUERY_COUNT_THRESHOLD = 100; // 설정 테이블 생기기 전까지 상수로 관리
 const QUERY_MONITOR_PERIOD_DAYS = 90;
@@ -23,18 +26,18 @@ const getEvidenceChecklist = async ({ departmentId, targetYear }) => {
     where: { department_id: departmentId, target_year: targetYear },
   });
 
-  const items = CHECKLIST_ITEMS.map((item) => {
+  const items = await Promise.all(CHECKLIST_ITEMS.map(async (item) => {
     const match = uploaded.find((f) => f.item_no === item.no);
     return {
       ...item,
       result: match?.item_result ?? "미이행",
       evidence: match?.file_name ? "준비완료" : "미준비",
       file: match?.file_name ?? null,
-      filePath: match?.file_path ?? null,
+      filePath: await getEvidenceFileDownloadUrl(match?.file_path),
       secondaryFile: match?.secondary_file_name ?? null,
-      secondaryFilePath: match?.secondary_file_path ?? null,
+      secondaryFilePath: await getEvidenceFileDownloadUrl(match?.secondary_file_path),
     };
-  });
+  }));
 
   return { categoryMeta: CATEGORY_META, naCategories: NA_CATEGORIES, items };
 };
@@ -115,7 +118,12 @@ const upsertGeneratedEvidence = async ({
   row.source_type = "auto";
   await row.save();
 
-  return { itemNo, fileName, filePath, result: row.item_result ?? "미이행" };
+  return {
+    itemNo,
+    fileName,
+    filePath: await getEvidenceFileDownloadUrl(filePath),
+    result: row.item_result ?? "미이행",
+  };
 };
 
 /** 최근 N개월(이번 달 포함)의 월별 건수를 [{month:"YYYY-MM", count}] 형태로 반환한다. */
@@ -160,9 +168,16 @@ const getLogEntries = async ({ departmentId, targetYear, itemNo }) => {
   return row?.log_entries ?? [];
 };
 
+/** 해당 부서 소속 사용자 id 목록. 위험이벤트/접근이력을 부서 단위로 좁힐 때 공통으로 쓴다. */
+const getDepartmentUserIds = async (departmentId) => {
+  const users = await User.findAll({ attributes: ["id"], where: { department_id: departmentId } });
+  return users.map((u) => u.id);
+};
+
 /** ⑤ 입력 정상범위 사전검토 — 룰셋 스냅샷 + 차단된 이벤트 로그, xlsx(2시트) */
 const generateEvidence5 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const blockedEvents = rows
     .filter((r) => r.actionStatus === "blocked")
     .map((r) => ({
@@ -213,7 +228,8 @@ const generateEvidence5 = async ({ departmentId, targetYear, from, to }) => {
 
 /** ⑥ 우회시도 탐지·차단 — prompt_injection 유형만, xlsx */
 const generateEvidence6 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const filtered = rows
     .filter((r) => r.type === "prompt_injection")
     .map((r) => ({
@@ -250,7 +266,8 @@ const generateEvidence6 = async ({ departmentId, targetYear, from, to }) => {
 
 /** ⑦ PII 탐지·마스킹 — PII 유형만, xlsx */
 const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const filtered = rows
     .filter((r) => PII_TYPES.has(r.type))
     .map((r) => ({
@@ -293,7 +310,8 @@ const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
  *  유사도 유형만 넣고 스펙의 "output_leak_block" 태깅을 제외했었다. 이제 구분이 가능하다.
  */
 const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
-  const rows = await getExpandedRiskEvents({ from, to });
+  const userIds = await getDepartmentUserIds(departmentId);
+  const rows = await getExpandedRiskEvents({ from, to, userIds });
   const filtered = rows
     .filter((r) => r.direction === "output" || r.type === "confidential_similarity")
     .map((r) => ({
@@ -395,8 +413,24 @@ const ROLE_ACCESS_SNAPSHOT = {
   // TODO: 실제 라우트별 authorize("...") 값을 채워야 함 (grep -r "authorize(" backend/src/domains)
 };
 
+/**
+ * ActionHistory.event_id는 usage_log.id를 가리킨다(요청을 올린 사용자 기준).
+ * actor_user_id는 검토를 수행한 담당자라 부서 구분 기준으로 쓸 수 없어서,
+ * 요청 소유자(usage_log.user_id)가 이 부서 소속인지로 걸러야 한다.
+ */
+const getDepartmentUsageLogIds = async (departmentId) => {
+  const userIds = await getDepartmentUserIds(departmentId);
+  if (!userIds.length) return [];
+  const logs = await UsageLog.findAll({ attributes: ["id"], where: { user_id: { [Op.in]: userIds } } });
+  return logs.map((l) => l.id);
+};
+
 const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
-  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
+  const usageLogIds = await getDepartmentUsageLogIds(departmentId);
+  const where = {
+    event_id: { [Op.in]: usageLogIds },
+    ...(from && to ? { action_time: { [Op.between]: [from, to] } } : {}),
+  };
   const actions = await ActionHistory.findAll({ where, order: [["action_time", "DESC"]], limit: 500 });
 
   const recentAccessLogs = actions.map((a) => ({
@@ -432,7 +466,11 @@ const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
  *  전체 actor_user_id 집계로 대체하고, resource/permission_level은 데이터가 없어 컬럼에서 제외했다.
  */
 const generateEvidence24 = async ({ departmentId, targetYear, from, to }) => {
-  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
+  const usageLogIds = await getDepartmentUsageLogIds(departmentId);
+  const where = {
+    event_id: { [Op.in]: usageLogIds },
+    ...(from && to ? { action_time: { [Op.between]: [from, to] } } : {}),
+  };
   const actions = await ActionHistory.findAll({ where });
 
   const byActor = new Map();
@@ -483,7 +521,12 @@ const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, file }) =>
   row.source_type = "manual";
   await row.save();
 
-  return { itemNo, fileName, filePath, result: row.item_result ?? "미이행" };
+  return {
+    itemNo,
+    fileName,
+    filePath: await getEvidenceFileDownloadUrl(filePath),
+    result: row.item_result ?? "미이행",
+  };
 };
 
 /** "전체 자료 다운로드" 탭 — 체크리스트 현황 1시트 xlsx */
@@ -530,14 +573,11 @@ const exportEvidenceZip = async ({ departmentId, targetYear, res }) => {
   const archive = archiver("zip", { zlib: { level: 9 } });
   archive.pipe(res);
 
-  uploaded
-    .filter((f) => f.file_path && f.file_name)
-    .forEach((f) => {
-      const absolutePath = resolveEvidenceFilePath(f.file_path);
-      if (fs.existsSync(absolutePath)) {
-        archive.file(absolutePath, { name: `${f.item_no}_${f.file_name}` });
-      }
-    });
+  const filesToZip = uploaded.filter((f) => f.file_path && f.file_name);
+  for (const f of filesToZip) {
+    const stream = await getEvidenceFileStream(f.file_path);
+    archive.append(stream, { name: `${f.item_no}_${f.file_name}` });
+  }
 
   await archive.finalize();
 };
@@ -741,9 +781,9 @@ const confirmDraft = async ({ departmentId, targetYear, itemNo, draftContent, ed
   return {
     itemNo,
     fileName: xlsxFileName,
-    filePath: xlsxPath,
+    filePath: await getEvidenceFileDownloadUrl(xlsxPath),
     secondaryFileName: docxFileName,
-    secondaryFilePath: docxPath,
+    secondaryFilePath: await getEvidenceFileDownloadUrl(docxPath),
     result: row.item_result ?? "미이행",
   };
 };
