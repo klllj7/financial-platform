@@ -40,6 +40,13 @@ router.post(
   evidenceController.uploadEvidenceItem,
 );
 
+router.delete(
+  "/:itemNo",
+  authenticate,
+  authorize("COMPLIANCE_MANAGER"),
+  evidenceController.deleteEvidenceItem,
+);
+
 router.post(
   "/:itemNo/log-entries",
   authenticate,

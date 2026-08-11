@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const sequelize = require("../../common/config/db");
 const { User, Role, Department, LoginHistory, UserAgreement, } = require("./auth.models");
 const { AGREEMENT_TYPES, AGREEMENT_VERSIONS, } = require("./agreement.constants");
+const { logComplianceEvent } = require("../../common/logger/complianceLogger");
 
 // 비밀번호 규칙 검증
 // 프론트 검증은 우회될 수 있으므로 백엔드에서도 동일하게 검사한다.
@@ -235,6 +236,8 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
   });
 
   if (!user) {
+    logComplianceEvent("LOGIN_FAILURE", { email, ip: ipAddress, reason: "USER_NOT_FOUND" });
+
     const error = new Error("이메일 또는 비밀번호가 올바르지 않습니다.");
     error.statusCode = 401;
     error.code = "AUTH_004";
@@ -253,6 +256,7 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
       userAgent,
       failReason: "INVALID_PASSWORD",
     });
+    logComplianceEvent("LOGIN_FAILURE", { userId: user.id, email, ip: ipAddress, reason: "INVALID_PASSWORD" });
 
     const error = new Error("이메일 또는 비밀번호가 올바르지 않습니다.");
     error.statusCode = 401;
@@ -270,6 +274,7 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
       userAgent,
       failReason: "INACTIVE_ACCOUNT",
     });
+    logComplianceEvent("LOGIN_FAILURE", { userId: user.id, email, ip: ipAddress, reason: "INACTIVE_ACCOUNT" });
 
     const error = new Error("비활성화된 계정입니다. 관리자에게 문의해주세요.");
     error.statusCode = 403;
@@ -285,6 +290,7 @@ const login = async ({ email, password, ipAddress, userAgent }) => {
     ipAddress,
     userAgent,
   });
+  logComplianceEvent("LOGIN_SUCCESS", { userId: user.id, email: user.email, ip: ipAddress });
 
   // JWT 토큰 발급
   const token = jwt.sign(

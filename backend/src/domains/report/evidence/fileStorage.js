@@ -2,6 +2,7 @@ const {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
@@ -42,4 +43,19 @@ const getEvidenceFileStream = async (key) => {
   return response.Body;
 };
 
-module.exports = { saveEvidenceFile, getEvidenceFileDownloadUrl, getEvidenceFileStream };
+/**
+ * 버킷이 Object Lock 활성화 상태라 버전 자체는 남지만(감사 이력 보존),
+ * 최신 버전은 삭제 마커가 붙어 이후 다운로드/조회에서는 더 이상 안 보인다.
+ * key가 없거나 이미 지워진 상태여도 에러 없이 조용히 넘어간다(S3 DeleteObject는 멱등적).
+ */
+const deleteEvidenceFile = async (key) => {
+  if (!key) return;
+  await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
+};
+
+module.exports = {
+  saveEvidenceFile,
+  getEvidenceFileDownloadUrl,
+  getEvidenceFileStream,
+  deleteEvidenceFile,
+};
