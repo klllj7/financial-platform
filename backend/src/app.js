@@ -29,8 +29,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 업로드된 규제 원본 파일을 /uploads/... 경로로 직접 다운로드/조회할 수 있게 정적 서빙
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api/regulations", regulationRoutes);
 app.use("/api/policies", policyRoutes);

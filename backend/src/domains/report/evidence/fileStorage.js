@@ -1,32 +1,45 @@
-const fs = require("fs");
-const path = require("path");
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-// regulationController.js가 uploads/regulations에 저장하는 것과 동일한 패턴으로,
-// 자동생성된 증빙자료는 uploads/evidence 아래에 저장한다.
-// app.js가 "/uploads"를 정적 서빙하고 있어서 별도 다운로드 API 없이
-// 반환된 publicPath로 바로 다운로드할 수 있다.
-//
-// 나중에 S3로 옮길 때는 이 파일의 saveEvidenceFile 내부 구현만 S3 업로드로
-// 바꾸고, publicPath에 S3 URL을 반환하도록 고치면 된다. 호출부(evidence.service.js)는
-// 그대로 둬도 된다.
-const UPLOADS_ROOT = path.join(__dirname, "../../../../uploads/evidence");
+const s3Client = new S3Client({ region: process.env.AWS_REGION || "ap-northeast-2" });
+const BUCKET = process.env.EVIDENCE_BUCKET;
 
 /**
  * relativePath 예: "6/1/2026/탈옥탐지로그_2026.csv"
  * content: string 또는 Buffer
+ *
+ * 반환값은 S3 객체 key(예: "evidence/6/1/2026/...")다. DB(file_path)에는
+ * 이 key를 그대로 저장하고, 실제 다운로드 URL은 요청 시점에
+ * getEvidenceFileDownloadUrl()로 매번 새로 발급한다(버킷이 비공개라
+ * key만으로는 접근 불가).
  */
 const saveEvidenceFile = async (relativePath, content) => {
-  const absolutePath = path.join(UPLOADS_ROOT, relativePath);
-  await fs.promises.mkdir(path.dirname(absolutePath), { recursive: true });
-  await fs.promises.writeFile(absolutePath, content, "utf8");
+  const key = `evidence/${relativePath}`;
 
-  return `/uploads/evidence/${relativePath}`;
+  await s3Client.send(new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    Body: content,
+  }));
+
+  return key;
 };
 
-/** saveEvidenceFile이 반환한 publicPath("/uploads/evidence/...")를 실제 파일 시스템 경로로 되돌린다. */
-const resolveEvidenceFilePath = (publicPath) => {
-  const relativePath = publicPath.replace(/^\/uploads\/evidence\//, "");
-  return path.join(UPLOADS_ROOT, relativePath);
+/** 저장된 key로 5분간 유효한 다운로드용 presigned URL을 발급한다. */
+const getEvidenceFileDownloadUrl = async (key) => {
+  if (!key) return null;
+  const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+  return getSignedUrl(s3Client, command, { expiresIn: 300 });
 };
 
-module.exports = { saveEvidenceFile, resolveEvidenceFilePath };
+/** "전체 자료 다운로드" zip처럼 서버가 직접 파일 내용을 스트리밍해야 할 때 사용한다. */
+const getEvidenceFileStream = async (key) => {
+  const response = await s3Client.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+  return response.Body;
+};
+
+module.exports = { saveEvidenceFile, getEvidenceFileDownloadUrl, getEvidenceFileStream };
