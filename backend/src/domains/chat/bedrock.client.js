@@ -11,7 +11,7 @@ const client = new BedrockRuntimeClient({
 });
 
 const createBedrockMessage = async (messages) => {
-  const modelId = process.env.BEDROCK_MODEL_ID;
+  const modelId = process.env.BEDROCK_MODEL_ID; // 호출용: 전체 ARN 그대로
 
   if (!modelId) {
     throw providerError(
@@ -21,6 +21,7 @@ const createBedrockMessage = async (messages) => {
     );
   }
 
+  const shortModelName = modelId.split("/").pop(); // 저장·표시용
   const maxTokens = Number(process.env.BEDROCK_MAX_TOKENS) || 2048;
 
   let response;
@@ -62,7 +63,7 @@ const createBedrockMessage = async (messages) => {
 
   return {
     content,
-    modelName: modelId,
+    modelName: shortModelName,
     inputTokens: result.usage?.input_tokens || 0,
     outputTokens: result.usage?.output_tokens || 0,
   };
