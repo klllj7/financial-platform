@@ -11,6 +11,7 @@ import {
   Download,
   FileArchive,
   FileCheck2,
+  Trash2,
   BarChart3,
   ListChecks,
   PieChart as PieChartIcon,
@@ -33,6 +34,7 @@ import {
   updateEvidenceItemResult,
   generateEvidenceItem,
   uploadEvidenceItem,
+  deleteEvidenceItem,
   exportEvidenceChecklistXlsx,
   exportEvidenceZip,
   addEvidenceLogEntry,
@@ -153,6 +155,7 @@ function EvidenceChecklistPage() {
   const fileInputRef = useRef(null);
   const [uploadTarget, setUploadTarget] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [deletingItemNo, setDeletingItemNo] = useState(null);
 
   // "평가결과 요약" 탭에서 미제출 항목을 클릭했을 때, 상세 탭으로 이동해 해당 행을 잠깐 강조한다.
   const [highlightItemNo, setHighlightItemNo] = useState(null);
@@ -465,6 +468,43 @@ function EvidenceChecklistPage() {
     } finally {
       setUploading(false);
       setUploadTarget(null);
+    }
+  };
+
+  // 업로드/생성된 증빙파일 삭제. S3 원본까지 같이 지워지므로 되돌릴 수 없다.
+  const handleDeleteEvidence = async (item) => {
+    if (!departmentId) return;
+    if (!window.confirm(`"${item.file}" 파일을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
+
+    setDeletingItemNo(item.no);
+    try {
+      const res = await deleteEvidenceItem({
+        departmentId,
+        targetYear: TARGET_YEAR,
+        itemNo: item.no,
+      });
+      const { result } = res.data;
+
+      setItems((prev) =>
+        prev.map((i) =>
+          i.no === item.no
+            ? {
+                ...i,
+                evidence: "미준비",
+                file: null,
+                filePath: null,
+                secondaryFile: null,
+                secondaryFilePath: null,
+                result,
+              }
+            : i
+        )
+      );
+    } catch (err) {
+      console.error("증빙파일 삭제 실패", err);
+      alert(err.response?.data?.error?.message || "증빙파일 삭제에 실패했습니다.");
+    } finally {
+      setDeletingItemNo(null);
     }
   };
 
@@ -1026,6 +1066,16 @@ function EvidenceChecklistPage() {
                                       </button>
                                     );
                                   })()}
+                                  {item.file && (
+                                    <button
+                                      type="button"
+                                      className="ce-delete-button"
+                                      disabled={deletingItemNo === item.no}
+                                      onClick={() => handleDeleteEvidence(item)}
+                                    >
+                                      <Trash2 size={12} /> 삭제
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>

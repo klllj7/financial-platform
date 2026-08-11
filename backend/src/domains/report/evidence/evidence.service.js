@@ -8,6 +8,7 @@ const {
   saveEvidenceFile,
   getEvidenceFileDownloadUrl,
   getEvidenceFileStream,
+  deleteEvidenceFile,
 } = require("./fileStorage");
 const { generateXlsx } = require("./fileGenerators/xlsxGenerator");
 const { generateDocx } = require("./fileGenerators/docxGenerator");
@@ -529,6 +530,37 @@ const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, file }) =>
   };
 };
 
+/** 업로드/생성된 증빙파일을 삭제한다. S3 객체(주/보조 파일 둘 다)와 DB의 파일 관련 필드를 함께 지운다. */
+const deleteEvidenceItem = async ({ departmentId, targetYear, itemNo }) => {
+  const row = await EvidenceFile.findOne({
+    where: { department_id: departmentId, target_year: targetYear, item_no: itemNo },
+  });
+
+  if (!row || !row.file_path) {
+    throw serviceError("EVIDENCE_FILE_NOT_FOUND", "삭제할 증빙파일이 없습니다.", 404);
+  }
+
+  await Promise.all([
+    deleteEvidenceFile(row.file_path),
+    deleteEvidenceFile(row.secondary_file_path),
+  ]);
+
+  row.file_name = null;
+  row.file_type = null;
+  row.file_path = null;
+  row.secondary_file_name = null;
+  row.secondary_file_type = null;
+  row.secondary_file_path = null;
+  row.source_type = null;
+  row.draft_content = null;
+  row.edited_content = null;
+  row.is_edited = false;
+  row.item_result = null;
+  await row.save();
+
+  return { itemNo, result: "미이행" };
+};
+
 /** "전체 자료 다운로드" 탭 — 체크리스트 현황 1시트 xlsx */
 const exportChecklistXlsx = async ({ departmentId, targetYear }) => {
   const { items } = await getEvidenceChecklist({ departmentId, targetYear });
@@ -575,8 +607,15 @@ const exportEvidenceZip = async ({ departmentId, targetYear, res }) => {
 
   const filesToZip = uploaded.filter((f) => f.file_path && f.file_name);
   for (const f of filesToZip) {
-    const stream = await getEvidenceFileStream(f.file_path);
-    archive.append(stream, { name: `${f.item_no}_${f.file_name}` });
+    // S3 마이그레이션 이전에 만들어진 레코드는 file_path가 옛날 로컬 경로 형식이라
+    // S3에 해당 key가 없을 수 있다. 파일 하나가 없다고 zip 전체를 실패시키지 않고
+    // 그 파일만 건너뛴다.
+    try {
+      const stream = await getEvidenceFileStream(f.file_path);
+      archive.append(stream, { name: `${f.item_no}_${f.file_name}` });
+    } catch (error) {
+      console.error(`증빙파일 zip 포함 실패 (item_no=${f.item_no}, key=${f.file_path}):`, error.message);
+    }
   }
 
   await archive.finalize();
@@ -869,6 +908,7 @@ module.exports = {
   getEvidenceSummary,
   generateEvidenceItem,
   uploadEvidenceItem,
+  deleteEvidenceItem,
   exportChecklistXlsx,
   exportEvidenceZip,
   appendLogEntry,

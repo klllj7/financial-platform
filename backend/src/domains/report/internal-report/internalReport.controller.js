@@ -1,5 +1,6 @@
 const internalReportService = require("./internalReport.service");
 const { success, fail } = require("../../../common/utils/response");
+const { logComplianceEvent } = require("../../../common/logger/complianceLogger");
 
 const generateReport = async (req, res) => {
   try {
@@ -22,6 +23,8 @@ const generateReport = async (req, res) => {
       reportType,
       userId: req.user?.userId ?? null,
     });
+
+    logComplianceEvent("REPORT_GENERATE", { userId: req.user?.userId, reportId: data.id });
 
     return success(res, data, 201);
   } catch (error) {
@@ -56,6 +59,8 @@ const getReportById = async (req, res) => {
     if (!data) {
       return fail(res, "INTERNAL_REPORT_NOT_FOUND", "해당 보고서를 찾을 수 없습니다.", 404);
     }
+
+    logComplianceEvent("REPORT_DOWNLOAD", { userId: req.user?.userId, reportId: Number(id) });
 
     return success(res, data, 200);
   } catch (error) {

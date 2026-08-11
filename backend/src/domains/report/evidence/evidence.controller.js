@@ -1,5 +1,6 @@
 const evidenceService = require("./evidence.service");
 const { success, fail } = require("../../../common/utils/response");
+const { logComplianceEvent } = require("../../../common/logger/complianceLogger");
 
 const getEvidenceChecklist = async (req, res) => {
   try {
@@ -18,6 +19,19 @@ const getEvidenceChecklist = async (req, res) => {
       departmentId: Number(departmentId),
       targetYear: Number(targetYear),
     });
+
+    // presigned URL 발급 = 이 파일에 대한 다운로드 접근권을 내준 시점.
+    // 실제로 그 URL을 눌러서 S3에서 받았는지는 서버가 볼 수 없어서(S3로 직접 요청),
+    // 우리가 관측 가능한 유일한 지점인 여기서 기록한다.
+    data.items
+      .filter((item) => item.filePath)
+      .forEach((item) => {
+        logComplianceEvent("EVIDENCE_DOWNLOAD", {
+          userId: req.user?.userId,
+          itemNo: item.no,
+          fileName: item.file,
+        });
+      });
 
     return success(res, data, 200);
   } catch (error) {
@@ -114,9 +128,41 @@ const uploadEvidenceItem = async (req, res) => {
       file: req.file,
     });
 
+    logComplianceEvent("EVIDENCE_UPLOAD", {
+      userId: req.user?.userId,
+      itemNo,
+      fileName: data.fileName,
+    });
+
     return success(res, data, 200);
   } catch (error) {
     return fail(res, error.code || "EVIDENCE_UPLOAD_FAILED", error.message || "증빙파일 업로드에 실패했습니다", error.statusCode || 500);
+  }
+};
+
+const deleteEvidenceItem = async (req, res) => {
+  try {
+    const { itemNo } = req.params;
+    const { departmentId, targetYear } = req.query;
+
+    if (!departmentId || !targetYear) {
+      return fail(res, "EVIDENCE_DELETE_PARAMS_REQUIRED", "departmentId와 targetYear는 필수입니다.", 400);
+    }
+
+    const data = await evidenceService.deleteEvidenceItem({
+      departmentId: Number(departmentId),
+      targetYear: Number(targetYear),
+      itemNo,
+    });
+
+    return success(res, data, 200);
+  } catch (error) {
+    return fail(
+      res,
+      error.code || "EVIDENCE_DELETE_FAILED",
+      error.message || "증빙파일 삭제에 실패했습니다",
+      error.statusCode || 500,
+    );
   }
 };
 
@@ -242,6 +288,7 @@ module.exports = {
   getEvidenceSummary,
   generateEvidenceItem,
   uploadEvidenceItem,
+  deleteEvidenceItem,
   exportChecklistXlsx,
   exportEvidenceZip,
   addLogEntry,

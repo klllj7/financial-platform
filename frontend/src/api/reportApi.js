@@ -91,3 +91,10 @@ export const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, fil
   });
   return response.data;
 };
+
+export const deleteEvidenceItem = async ({ departmentId, targetYear, itemNo }) => {
+  const response = await axiosInstance.delete(`/report/evidence/${itemNo}`, {
+    params: { departmentId, targetYear },
+  });
+  return response.data;
+};
