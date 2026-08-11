@@ -113,8 +113,12 @@ function RegulationMappingPage() {
   const handleAddClause = async (event) => {
     event.preventDefault();
 
-    if (!newClauseNo.trim() || !newClauseTitle.trim()) {
-      alert("조항 번호와 제목을 입력해주세요.");
+    if (
+      !newClauseNo.trim() ||
+      !newClauseTitle.trim() ||
+      !newClauseDescription.trim()
+    ) {
+      alert("조항 번호, 제목, 내용을 모두 입력해주세요.");
       return;
     }
 
@@ -323,29 +327,32 @@ function RegulationMappingPage() {
               className="regulation-modal-body"
               onSubmit={handleAddClause}
             >
-              <label>조항 번호</label>
+              <label>조항 번호 *</label>
               <input
                 type="text"
                 placeholder="예: 제23조"
                 value={newClauseNo}
                 onChange={(event) => setNewClauseNo(event.target.value)}
+                required
               />
 
-              <label>조항 제목</label>
+              <label>조항 제목 *</label>
               <input
                 type="text"
                 placeholder="예: 민감정보의 처리 제한"
                 value={newClauseTitle}
                 onChange={(event) => setNewClauseTitle(event.target.value)}
+                required
               />
 
-              <label>내용</label>
+              <label>내용 *</label>
               <textarea
                 placeholder="조항 내용을 입력하세요"
                 value={newClauseDescription}
                 onChange={(event) =>
                   setNewClauseDescription(event.target.value)
                 }
+                required
               />
 
               <label>원본 파일 (선택)</label>

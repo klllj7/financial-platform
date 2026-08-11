@@ -54,6 +54,14 @@ exports.createClause = async (req, res) => {
     try {
         const { clause_no, title, description } = req.body;
 
+        if (!clause_no?.trim() || !title?.trim() || !description?.trim()) {
+            return res.status(400).json({
+                success: false,
+                data: null,
+                error: "조항 번호, 제목, 내용을 모두 입력해주세요."
+            });
+        }
+
         const clause = await RegulationClause.create({
             doc_id: req.params.id,
             clause_no,
