@@ -4,10 +4,13 @@ const User = require("../../auth/user.model");
 const UsageLog = require("./usageLog.model");
 const ActionHistory = require("./actionHistory.model");
 const { CATEGORY_META, NA_CATEGORIES, CHECKLIST_ITEMS } = require("./checklistItems");
-const { saveEvidenceFile, resolveEvidenceFilePath } = require("./fileStorage");
+const {
+  saveEvidenceFile,
+  getEvidenceFileDownloadUrl,
+  getEvidenceFileStream,
+} = require("./fileStorage");
 const { generateXlsx } = require("./fileGenerators/xlsxGenerator");
 const { generateDocx } = require("./fileGenerators/docxGenerator");
-const fs = require("fs");
 const archiver = require("archiver");
 const QUERY_COUNT_THRESHOLD = 100; // 설정 테이블 생기기 전까지 상수로 관리
 const QUERY_MONITOR_PERIOD_DAYS = 90;
@@ -23,18 +26,18 @@ const getEvidenceChecklist = async ({ departmentId, targetYear }) => {
     where: { department_id: departmentId, target_year: targetYear },
   });
 
-  const items = CHECKLIST_ITEMS.map((item) => {
+  const items = await Promise.all(CHECKLIST_ITEMS.map(async (item) => {
     const match = uploaded.find((f) => f.item_no === item.no);
     return {
       ...item,
       result: match?.item_result ?? "미이행",
       evidence: match?.file_name ? "준비완료" : "미준비",
       file: match?.file_name ?? null,
-      filePath: match?.file_path ?? null,
+      filePath: await getEvidenceFileDownloadUrl(match?.file_path),
       secondaryFile: match?.secondary_file_name ?? null,
-      secondaryFilePath: match?.secondary_file_path ?? null,
+      secondaryFilePath: await getEvidenceFileDownloadUrl(match?.secondary_file_path),
     };
-  });
+  }));
 
   return { categoryMeta: CATEGORY_META, naCategories: NA_CATEGORIES, items };
 };
@@ -115,7 +118,12 @@ const upsertGeneratedEvidence = async ({
   row.source_type = "auto";
   await row.save();
 
-  return { itemNo, fileName, filePath, result: row.item_result ?? "미이행" };
+  return {
+    itemNo,
+    fileName,
+    filePath: await getEvidenceFileDownloadUrl(filePath),
+    result: row.item_result ?? "미이행",
+  };
 };
 
 /** 최근 N개월(이번 달 포함)의 월별 건수를 [{month:"YYYY-MM", count}] 형태로 반환한다. */
@@ -483,7 +491,12 @@ const uploadEvidenceItem = async ({ departmentId, targetYear, itemNo, file }) =>
   row.source_type = "manual";
   await row.save();
 
-  return { itemNo, fileName, filePath, result: row.item_result ?? "미이행" };
+  return {
+    itemNo,
+    fileName,
+    filePath: await getEvidenceFileDownloadUrl(filePath),
+    result: row.item_result ?? "미이행",
+  };
 };
 
 /** "전체 자료 다운로드" 탭 — 체크리스트 현황 1시트 xlsx */
@@ -530,14 +543,11 @@ const exportEvidenceZip = async ({ departmentId, targetYear, res }) => {
   const archive = archiver("zip", { zlib: { level: 9 } });
   archive.pipe(res);
 
-  uploaded
-    .filter((f) => f.file_path && f.file_name)
-    .forEach((f) => {
-      const absolutePath = resolveEvidenceFilePath(f.file_path);
-      if (fs.existsSync(absolutePath)) {
-        archive.file(absolutePath, { name: `${f.item_no}_${f.file_name}` });
-      }
-    });
+  const filesToZip = uploaded.filter((f) => f.file_path && f.file_name);
+  for (const f of filesToZip) {
+    const stream = await getEvidenceFileStream(f.file_path);
+    archive.append(stream, { name: `${f.item_no}_${f.file_name}` });
+  }
 
   await archive.finalize();
 };
@@ -741,9 +751,9 @@ const confirmDraft = async ({ departmentId, targetYear, itemNo, draftContent, ed
   return {
     itemNo,
     fileName: xlsxFileName,
-    filePath: xlsxPath,
+    filePath: await getEvidenceFileDownloadUrl(xlsxPath),
     secondaryFileName: docxFileName,
-    secondaryFilePath: docxPath,
+    secondaryFilePath: await getEvidenceFileDownloadUrl(docxPath),
     result: row.item_result ?? "미이행",
   };
 };
