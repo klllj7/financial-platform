@@ -36,10 +36,18 @@ const ROLE_LABELS = {
   ADMIN: "관리자",
 };
 
+/*
+  내부 id/toolKey("default-solar"/"DEFAULT_SOLAR")는 백엔드 chat.service.js의
+  DEFAULT_SOLAR_TOOL_KEY와 맞물려 있어 그대로 두되, 화면에 보이는 이름은
+  실제로 연결된 모델과 맞춰야 한다. 현재 이 슬롯은 AI_PROVIDER=bedrock 설정에
+  따라 Bedrock(Claude)을 호출하므로 "Solar Pro 3"라고 표시하면 안 된다.
+  백엔드의 기본 모델이 바뀌면(backend/src/domains/chat/allowed-models.config.js
+  ALLOWED_MODELS[0]) 이 라벨도 같이 맞춰줘야 한다 — 자동 동기화되지 않는다.
+*/
 const DEFAULT_SOLAR_TOOL = {
   id: "default-solar",
-  toolName: "Solar Pro 3",
-  provider: "Upstage",
+  toolName: "Claude Haiku 4.5",
+  provider: "Anthropic",
   toolKey: "DEFAULT_SOLAR",
   isDefault: true,
 };
