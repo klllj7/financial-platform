@@ -32,16 +32,25 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
+      # 이 서비스는 빌드 시점에 fastembed로 임베딩 모델(intfloat/multilingual-e5-large,
+      # 1GB+)을 미리 내려받아 이미지에 굽는다(Dockerfile 참고 — 런타임 다운로드는 15분
+      # 걸려서 빌드 단계로 옮겨둔 것). 레이어 캐시가 없으면 코드 한 줄만 바뀌어도 이
+      # 다운로드까지 매번 처음부터 다시 하게 되어 배포가 오래 걸린다. GitHub Actions
+      # 캐시(type=gha)로 소스 코드 이전 레이어(pip install + 모델 다운로드)를 재사용한다.
       - name: 이미지 빌드·태그·푸시
-        working-directory: ./backend/src/domains/dlp
-        env:
-          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/src/domains/dlp
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: ECS 서비스 강제 재배포
         run: |

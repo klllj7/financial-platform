@@ -14,6 +14,11 @@ class UsageLog(Base):
     description = Column(String)
     # 화면에 기본으로 보여줄 마스킹본. 탐지된 게 없으면 원문과 동일하다.
     masked_description = Column(String, nullable=True)
+    # 이 요청에 실제로 쓰인 AI 모델의 표시 이름(예: "Claude Haiku 4.5").
+    # 입력 검사 시점에는 아직 AI를 호출하기 전이라 비어있고, 출력 검사 호출 때
+    # Node가 실제 호출 결과를 같이 보내주면 그때 채워진다. AI 호출 자체가 없었던
+    # 경우(예: 입력이 차단됨)는 계속 NULL로 남는다.
+    model_name = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

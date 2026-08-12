@@ -173,7 +173,21 @@ function EvidenceChecklistPage() {
     getEvidenceChecklist({ departmentId, targetYear: TARGET_YEAR })
       .then((res) => {
         const sortedCategoryMeta = sortByCircledNumber(res.data.categoryMeta);
-        setItems(res.data.items);
+        /*
+          대분류 카드는 원문자 순서(②③⑥⑦⑧...)로 정렬해서 보여주는데, items는
+          백엔드가 준 원래 순서(관리적→기술적→처리위탁→수집→제공)를 그대로 갖고
+          있어서 "표시 순번"이 실제 화면에 보이는 카드 순서와 어긋났다. items도
+          같은 대분류 순서로 재정렬해서 표시 순번이 화면 순서와 일치하게 한다.
+          Array.sort는 안정 정렬이라 같은 대분류 안에서는 원래 순서(이미 원문번호
+          오름차순)가 그대로 유지된다.
+        */
+        const categoryOrder = new Map(sortedCategoryMeta.map((c, idx) => [c.key, idx]));
+        const sortedItems = [...res.data.items].sort(
+          (a, b) =>
+            (categoryOrder.get(a.category) ?? Number.MAX_SAFE_INTEGER) -
+            (categoryOrder.get(b.category) ?? Number.MAX_SAFE_INTEGER),
+        );
+        setItems(sortedItems);
         setCategoryMeta(sortedCategoryMeta);
         setNaCategories(sortByCircledNumber(res.data.naCategories));
         setExpanded(Object.fromEntries(sortedCategoryMeta.map((c) => [c.key, true])));

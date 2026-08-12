@@ -80,7 +80,7 @@ const softDeleteSessions = async ({ userId, sessionIds }) => {
   "탐지 없이 통과"보다 사용자 경험은 나쁘지만, 이 프로젝트에서는 가용성보다
   데이터 유출 방지가 우선이라는 원칙에 따른 의도적 선택이다.
 */
-const inspectPrompt = async (message, userId, { direction = "input", usageLogId = null } = {}) => {
+const inspectPrompt = async (message, userId, { direction = "input", usageLogId = null, modelName = null } = {}) => {
   try {
     const response = await fetch(`${DLP_SERVICE_URL}/gateway/chat`, {
       method: "POST",
@@ -90,6 +90,9 @@ const inspectPrompt = async (message, userId, { direction = "input", usageLogId 
         user_id: userId,
         direction,
         usage_log_id: usageLogId,
+        // 입력 검사 시점엔 아직 AI를 안 불렀으니 모른다. output 검사 때만 실려서,
+        // "위험 이벤트 관리" 화면의 사용 모델 컬럼이 실제 호출 결과를 보여주게 된다.
+        model_name: modelName,
       }),
     });
 
@@ -302,6 +305,7 @@ const sendMessage = async ({
     outputInspection = await inspectPrompt(reply, userId, {
       direction: "output",
       usageLogId: inspection.usageLogId,
+      modelName,
     });
     if (outputInspection.blocked) {
       reply = outputInspection.serviceUnavailable
