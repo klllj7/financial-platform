@@ -4,13 +4,44 @@ import { signup, getDepartments } from "../../api/authApi";
 import { Eye, EyeOff } from "lucide-react";
 import "./SignupPage.css";
 
+// 자주 쓰는 이메일 도메인. "직접 입력"을 고르면 도메인 칸을 비워서 직접 타이핑할 수 있다.
+const EMAIL_DOMAIN_OPTIONS = [
+  "naver.com",
+  "daum.net",
+  "gmail.com",
+  "nate.com",
+  "hanmail.net",
+  "kakao.com",
+  "outlook.com",
+];
+const CUSTOM_DOMAIN_VALUE = "__custom__";
+
+const EMAIL_ID_PATTERN = /^[A-Za-z0-9._%+-]+$/;
+const EMAIL_DOMAIN_PATTERN = /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
+
+// 아이디/도메인을 각각 검증해야 "naver" 처럼 점(.) 없는 도메인 오타를 잡아낼 수 있다.
+const validateEmail = (emailId, emailDomain) => {
+  if (!emailId || !emailDomain) {
+    return "이메일을 입력해주세요.";
+  }
+
+  if (!EMAIL_ID_PATTERN.test(emailId)) {
+    return "이메일 아이디에는 영문, 숫자, . _ % + - 만 사용할 수 있습니다.";
+  }
+
+  if (!EMAIL_DOMAIN_PATTERN.test(emailDomain)) {
+    return "올바른 이메일 도메인 형식이 아닙니다. (예: naver.com)";
+  }
+
+  return "";
+};
+
 function SignupPage() {
   const navigate = useNavigate();
 
   // 회원가입 입력값을 관리하는 state
   const [signupForm, setSignupForm] = useState({
     name: "",
-    email: "",
     password: "",
     passwordConfirm: "",
     department: "",
@@ -19,6 +50,11 @@ function SignupPage() {
     termsAgreed: false,
     privacyAgreed: false,
   });
+
+  // 이메일은 아이디 + 도메인으로 나눠 입력받는다 (도메인은 선택 또는 직접입력).
+  const [emailId, setEmailId] = useState("");
+  const [emailDomain, setEmailDomain] = useState("");
+  const composedEmail = emailId && emailDomain ? `${emailId}@${emailDomain}` : "";
 
   // 비밀번호 입력값 표시 여부
   const [showPassword, setShowPassword] = useState(false);
@@ -75,12 +111,20 @@ function SignupPage() {
     // 간단한 필수값 검증
     if (
       !signupForm.name ||
-      !signupForm.email ||
+      !composedEmail ||
       !signupForm.password ||
       !signupForm.passwordConfirm ||
       !signupForm.department
     ) {
       setErrorMessage("필수 항목을 모두 입력해주세요.");
+      return;
+    }
+
+    // 이메일 아이디/도메인 형식 검사
+    const emailErrorMessage = validateEmail(emailId, emailDomain);
+
+    if (emailErrorMessage) {
+      setErrorMessage(emailErrorMessage);
       return;
     }
 
@@ -110,7 +154,7 @@ function SignupPage() {
       // 백엔드 회원가입 API에 보낼 데이터
       const payload = {
         name: signupForm.name,
-        email: signupForm.email,
+        email: composedEmail,
         password: signupForm.password,
         department: signupForm.department,
 
@@ -229,17 +273,56 @@ function SignupPage() {
               />
             </div>
 
-            {/* 아이디 또는 이메일 */}
-            <div className="form-group">
-              <label htmlFor="email">아이디 또는 이메일</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={signupForm.email}
-                onChange={handleInputChange}
-                placeholder="example@company.com"
-              />
+            {/* 이메일 */}
+            <div className="form-group signup-email-group">
+              <label htmlFor="emailId">이메일</label>
+              <div className="signup-email-input-wrap">
+                <input
+                  id="emailId"
+                  name="emailId"
+                  type="text"
+                  value={emailId}
+                  onChange={(e) => setEmailId(e.target.value)}
+                  placeholder="example"
+                  autoComplete="username"
+                />
+
+                <span className="signup-email-at">@</span>
+
+                <input
+                  id="emailDomain"
+                  name="emailDomain"
+                  type="text"
+                  value={emailDomain}
+                  onChange={(e) => setEmailDomain(e.target.value)}
+                  placeholder="domain.com"
+                />
+
+                {/* 자주 쓰는 도메인을 고르면 위 도메인 입력칸에 채워준다. */}
+                <select
+                  className="signup-email-domain-select"
+                  aria-label="이메일 도메인 선택"
+                  value={
+                    EMAIL_DOMAIN_OPTIONS.includes(emailDomain)
+                      ? emailDomain
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const { value } = e.target;
+                    setEmailDomain(
+                      !value || value === CUSTOM_DOMAIN_VALUE ? "" : value,
+                    );
+                  }}
+                >
+                  <option value="">도메인 선택</option>
+                  {EMAIL_DOMAIN_OPTIONS.map((domain) => (
+                    <option key={domain} value={domain}>
+                      {domain}
+                    </option>
+                  ))}
+                  <option value={CUSTOM_DOMAIN_VALUE}>직접 입력</option>
+                </select>
+              </div>
             </div>
 
             {/* 비밀번호 */}
