@@ -171,7 +171,7 @@ const getComplianceTrend = async ({ month }) => {
   return { items: [...buckets.values()] };
 };
 
-/* 이번 달 전사 AI 사용 횟수와 Solar 실제 토큰 사용량을 집계한다. */
+/* 이번 달 전사 AI 사용 횟수와 Bedrock(Anthropic) 응답 기준 실제 토큰 사용량을 집계한다. */
 const getComplianceSummary = async ({ month }) => {
   const { start, end, previousStart } = getMonthRange(month);
   const [messages, previousUsageCount] = await Promise.all([
@@ -198,17 +198,25 @@ const getComplianceSummary = async ({ month }) => {
     (sum, message) => sum + Number(message.outputTokens || 0),
     0,
   );
-  const inputRate = Number(
-    process.env.ANTHROPIC_INPUT_COST_USD_PER_MILLION || 0,
-  );
-  const outputRate = Number(
-    process.env.ANTHROPIC_OUTPUT_COST_USD_PER_MILLION || 0,
-  );
-  const usdToKrw = Number(process.env.USD_TO_KRW_RATE || 0);
-  const estimatedCostKrw = Math.round(
-    ((inputTokens * inputRate + outputTokens * outputRate) / 1_000_000) *
-      usdToKrw,
-  );
+  /*
+    단가 환경변수가 비어있는 것과 "계산 결과가 실제로 0원"인 것은 다른
+    상황이라 구분해야 한다. 비어있으면 0으로 채워 계산하지 말고, 프론트에
+    "단가 미설정"이라고 알릴 수 있도록 costRatesConfigured 플래그를 같이 준다.
+  */
+  const inputRateRaw = process.env.ANTHROPIC_INPUT_COST_USD_PER_MILLION;
+  const outputRateRaw = process.env.ANTHROPIC_OUTPUT_COST_USD_PER_MILLION;
+  const usdToKrwRaw = process.env.USD_TO_KRW_RATE;
+  const costRatesConfigured = Boolean(inputRateRaw) && Boolean(outputRateRaw) && Boolean(usdToKrwRaw);
+
+  const inputRate = Number(inputRateRaw || 0);
+  const outputRate = Number(outputRateRaw || 0);
+  const usdToKrw = Number(usdToKrwRaw || 0);
+  const estimatedCostKrw = costRatesConfigured
+    ? Math.round(
+      ((inputTokens * inputRate + outputTokens * outputRate) / 1_000_000) *
+        usdToKrw,
+    )
+    : null;
 
   return {
     usageCount: messages.length,
@@ -217,6 +225,7 @@ const getComplianceSummary = async ({ month }) => {
     outputTokens,
     totalTokens: inputTokens + outputTokens,
     estimatedCostKrw,
+    costRatesConfigured,
   };
 };
 

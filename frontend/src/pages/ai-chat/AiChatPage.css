@@ -83,6 +83,9 @@
 .ai-chat-blocked-message strong { display: block; font-size: 11px; }
 .ai-chat-blocked-message p { margin: 5px 0 0; color: #8f4c54; font-size: 10px; line-height: 1.55; }
 .ai-chat-model-name { display: block; margin-top: 6px; color: #909daf; font-size: 8px; }
+.ai-chat-message-pending { display: block; margin-top: 6px; color: #909daf; font-size: 8px; font-style: italic; }
+.ai-chat-message-retry { display: inline-flex; align-items: center; margin-top: 6px; padding: 4px 8px; color: #ce3441; background: #fff1f2; border: 1px solid #ffc5ca; border-radius: 6px; font-family: inherit; font-size: 8px; font-weight: 800; cursor: pointer; }
+.ai-chat-message-retry:hover { background: #ffe4e6; }
 .ai-chat-loading { display: flex; align-items: center; gap: 5px; color: #71809a; font-size: 10px; }
 .ai-chat-loading span { width: 6px; height: 6px; background: #6b8dc8; border-radius: 50%; animation: ai-chat-pulse 1s infinite alternate; }
 .ai-chat-loading span:nth-child(2) { animation-delay: .2s; }
