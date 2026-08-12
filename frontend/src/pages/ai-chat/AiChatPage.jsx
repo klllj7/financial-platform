@@ -91,6 +91,24 @@ function AiChatPage() {
   const [selectedToolId, setSelectedToolId] =
     useState(DEFAULT_SOLAR_TOOL.id);
 
+  /*
+    이미 시작된 대화는 백엔드가 처음 고정된 모델만 계속 쓰고, 드롭다운에서
+    다른 모델을 골라도 조용히 무시한다(같은 대화 안에서 모델이 안 바뀌게
+    하려는 의도적 동작). 그걸 화면에서도 정직하게 보여주기 위해, 진행 중인
+    대화를 열면 그 대화에 고정된 모델로 드롭다운을 잠근다. null이면 아직
+    고정되지 않은 대화(새 채팅, 또는 이 기능이 생기기 전의 예전 대화)라
+    자유롭게 선택할 수 있다.
+  */
+  const [lockedToolId, setLockedToolId] = useState(null);
+
+  /* 세션(또는 채팅 이력 항목)에 고정된 모델을 드롭다운 값 형태로 변환한다. */
+  const getPinnedToolId = (chat) => {
+    if (!chat) return null;
+    if (chat.toolKey === DEFAULT_SOLAR_TOOL.toolKey) return DEFAULT_SOLAR_TOOL.id;
+    if (chat.aiToolApplicationId) return String(chat.aiToolApplicationId);
+    return null;
+  };
+
   /* Sequelize 날짜와 역할 코드를 화면 메시지 형식으로 변환한다. */
   const formatMessage = (message) => ({
     id: message.id,
@@ -216,6 +234,14 @@ function AiChatPage() {
         formatMessage(assistantMessage),
       ]);
       setActiveChatId(session.id);
+      // 이번 메시지로 대화가 처음 고정됐거나(신규 대화), 이미 고정된 값과
+      // 이번 선택이 달라서 백엔드가 조용히 기존 모델을 썼다면, 드롭다운을
+      // 실제로 쓰인 모델로 바로잡는다.
+      const pinnedToolId = getPinnedToolId(session);
+      if (pinnedToolId) {
+        setSelectedToolId(pinnedToolId);
+        setLockedToolId(pinnedToolId);
+      }
       setChatHistory((currentHistory) => {
         const withoutCurrent = currentHistory.filter((chat) => chat.id !== session.id);
         return [session, ...withoutCurrent];
@@ -279,14 +305,18 @@ function AiChatPage() {
     setPrompt("");
     removeAttachment();
     setError("");
+    setLockedToolId(null);
   };
 
 
-  /* 이전 채팅을 선택하면 DB에 저장된 전체 메시지를 불러온다. */
+  /* 이전 채팅을 선택하면 DB에 저장된 전체 메시지를 불러오고, 그 대화에 고정된 모델로 드롭다운을 맞춘다. */
   const handleHistorySelect = async (chat) => {
     try {
       setActiveChatId(chat.id);
       setError("");
+      const pinnedToolId = getPinnedToolId(chat);
+      setLockedToolId(pinnedToolId);
+      if (pinnedToolId) setSelectedToolId(pinnedToolId);
       const response = await getChatMessages(chat.id);
       setMessages(
         Array.isArray(response.data)
@@ -530,20 +560,28 @@ function AiChatPage() {
             </label>
 
             {approvedTools.length > 0 ? (
-              <select
-                id="ai-chat-model-select"
-                value={selectedToolId}
-                onChange={(event) => setSelectedToolId(event.target.value)}
-              >
-                {approvedTools.map((tool) => (
-                  <option
-                    key={tool.id}
-                    value={String(tool.id)}
-                  >
-                    {tool.toolName} · {tool.provider}
-                  </option>
-                ))}
-              </select>
+              <>
+                <select
+                  id="ai-chat-model-select"
+                  value={selectedToolId}
+                  disabled={Boolean(lockedToolId)}
+                  onChange={(event) => setSelectedToolId(event.target.value)}
+                >
+                  {approvedTools.map((tool) => (
+                    <option
+                      key={tool.id}
+                      value={String(tool.id)}
+                    >
+                      {tool.toolName} · {tool.provider}
+                    </option>
+                  ))}
+                </select>
+                {lockedToolId && (
+                  <small className="ai-chat-model-locked-notice">
+                    이 대화는 시작할 때 선택한 모델로 고정됩니다. 다른 모델을 쓰려면 새 채팅을 시작해 주세요.
+                  </small>
+                )}
+              </>
             ) : (
               <p>
                 승인된 AI Tool이 없습니다. 먼저 AI Tool 사용을 신청해 주세요.
