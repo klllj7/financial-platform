@@ -12,7 +12,7 @@ const ALLOWED_MODELS = [
   },
   {
     // 이미 호출 테스트를 마친 모델(APAC 크로스 리전 추론 프로파일)로 교체함.
-    modelId: "apac.anthropic.claude-3-5-sonnet-20240620-v1:0",
+    modelId: "anthropic.claude-3-5-sonnet-20240620-v1:0",
     displayName: "Claude 3.5 Sonnet",
   },
 ];
