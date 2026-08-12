@@ -14,18 +14,6 @@ const client = new BedrockRuntimeClient({
 
 /* 임직원이 신청·승인받은 임의의 Bedrock 서버리스 모델을 호출한다. */
 const invokeBedrockModel = async ({ modelId, messages, maxTokens }) => {
-  // TODO(디버그용, 원인 확인되면 제거): 기본 슬롯이 라벨과 다른 모델을 호출하는
-  // 문제 추적 중. 실제로 어떤 modelId가 들어오는지, 화이트리스트 조회 결과가
-  // 뭔지 CloudWatch Logs로 확인하기 위한 임시 로그.
-  console.log("[bedrock-debug] invokeBedrockModel called", {
-    modelId,
-    getDisplayNameResult: getDisplayName(modelId),
-    envBedrockModelId: process.env.BEDROCK_MODEL_ID,
-    envRestrictToDemoModels: process.env.RESTRICT_TO_DEMO_MODELS,
-    envAiProvider: process.env.AI_PROVIDER,
-    allowedModelIds: ALLOWED_MODELS.map((m) => m.modelId),
-  });
-
   if (!modelId) {
     throw providerError(
       "BEDROCK_MODEL_ID_REQUIRED",
