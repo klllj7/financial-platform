@@ -2,7 +2,7 @@ const AiToolApplication = require("./ai-tool-application.model");
 const { User, Department } = require("../auth/auth.models");
 const { isModelAvailable } = require("./bedrock-catalog.service");
 const { isVendorSupported } = require("../chat/bedrock-adapters");
-const { isAllowedModel } = require("../chat/allowed-models.config");
+const { isAllowedModel, getDisplayName } = require("../chat/allowed-models.config");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -131,15 +131,26 @@ const createApplication = async ({ userId, payload }) => {
     );
   }
 
+  /*
+    헤더 드롭다운(이 값)과 채팅 하단 라벨(bedrock.client.js가 ALLOWED_MODELS
+    기준으로 만드는 값)이 같은 모델을 서로 다르게 부르는 걸 막기 위해,
+    화이트리스트에 있는 모델이면 그 displayName을 저장의 기준으로 삼는다.
+    화이트리스트 밖 모델(RESTRICT_TO_DEMO_MODELS=false일 때 허용되는 나머지
+    Anthropic 모델)은 ALLOWED_MODELS에 없으니 카탈로그가 내려준 원본 표시명을
+    그대로 쓴다. 신청 시점에 한 번만 저장되는 값이라, 이후 ALLOWED_MODELS의
+    displayName을 바꿔도 이미 저장된 기존 신청 건에는 소급 반영되지 않는다.
+  */
+  const resolvedModelName = getDisplayName(bedrockModelId) || bedrockModelName;
+
   return AiToolApplication.create({
     userId,
     applicantName: user.name,
     departmentName: user.department?.name || null,
-    toolName: bedrockModelName,
+    toolName: resolvedModelName,
     provider,
     purpose,
     bedrockModelId,
-    bedrockModelName,
+    bedrockModelName: resolvedModelName,
     modelSource: "BEDROCK",
   });
 };
