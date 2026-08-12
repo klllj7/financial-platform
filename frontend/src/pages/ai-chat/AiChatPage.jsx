@@ -148,6 +148,13 @@ function AiChatPage() {
         const applications = Array.isArray(response.data)
           ? response.data
           : [];
+        /*
+          기본 슬롯(DEFAULT_SOLAR_TOOL)과 실제 승인된 AiToolApplication이
+          같은 모델을 가리키면(표시 이름·공급사가 같으면) 드롭다운에 똑같은
+          문구가 두 번 뜬다. 그래서 기본 슬롯도 이 중복 제거 대상에 포함시켜,
+          겹치는 경우 실제 신청·승인 이력이 있는 쪽(감사 추적이 되는 쪽)을
+          우선하고 기본 슬롯은 뺀다. 겹치지 않을 때만 기본 슬롯이 항상 뜬다.
+        */
         const uniqueTools = [];
         const seenToolKeys = new Set();
 
@@ -158,15 +165,19 @@ function AiChatPage() {
             uniqueTools.push(application);
           });
 
-        const selectableTools = [DEFAULT_SOLAR_TOOL, ...uniqueTools];
+        const defaultKey = `${DEFAULT_SOLAR_TOOL.provider}:${DEFAULT_SOLAR_TOOL.toolName}`;
+        const selectableTools = seenToolKeys.has(defaultKey)
+          ? uniqueTools
+          : [DEFAULT_SOLAR_TOOL, ...uniqueTools];
         setApprovedTools(selectableTools);
         setSelectedToolId((currentId) =>
           selectableTools.some(
             (tool) => String(tool.id) === String(currentId),
           )
             ? currentId
-            // 최초 진입이나 기존 선택 모델이 비활성화된 경우 Solar Pro 3을 기본 선택한다.
-            : DEFAULT_SOLAR_TOOL.id,
+            // 최초 진입이나 기존 선택 모델이 비활성화된 경우 목록의 첫 항목을 기본
+            // 선택한다. (기본 슬롯이 중복 제거로 빠졌을 수 있어 하드코딩하지 않는다.)
+            : String(selectableTools[0]?.id ?? DEFAULT_SOLAR_TOOL.id),
         );
       } catch (requestError) {
         console.error("승인 AI Tool 목록 조회 실패", requestError);
@@ -204,7 +215,7 @@ function AiChatPage() {
   const handleSend = async () => {
     const trimmedPrompt = prompt.trim();
 
-    if ((!trimmedPrompt && !attachment) || isLoading || !selectedToolId) {
+    if ((!trimmedPrompt && !attachment) || isLoading || !selectedTool) {
       return;
     }
 
@@ -213,17 +224,17 @@ function AiChatPage() {
     setIsLoading(true);
 
     try {
+      /*
+        화면 헤더("사용 모델 · ...")가 표시하는 것과 정확히 같은 객체
+        (selectedTool)에서 바로 뽑아 보낸다. selectedToolId 문자열을 여기서
+        다시 비교해 재계산하면, 화면에 보이는 값과 실제 전송값이 서로 다른
+        코드 경로를 타다가 어긋날 여지가 생긴다 — 그런 여지 자체를 없앤다.
+      */
       const response = await sendChatMessage({
         message: trimmedPrompt,
         sessionId: activeChatId,
-        toolKey:
-          selectedToolId === DEFAULT_SOLAR_TOOL.id
-            ? DEFAULT_SOLAR_TOOL.toolKey
-            : undefined,
-        aiToolApplicationId:
-          selectedToolId === DEFAULT_SOLAR_TOOL.id
-            ? undefined
-            : selectedToolId,
+        toolKey: selectedTool.isDefault ? selectedTool.toolKey : undefined,
+        aiToolApplicationId: selectedTool.isDefault ? undefined : selectedTool.id,
         attachment,
       });
       const { session, userMessage, assistantMessage } = response.data;
