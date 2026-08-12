@@ -32,16 +32,23 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
+      # DLP 서비스와 같은 이유. 레이어 캐시가 없으면 backend/ 안 코드 한 줄만
+      # 바뀌어도 npm ci(node_modules 설치)부터 매번 처음부터 다시 한다.
+      # GitHub Actions 캐시(type=gha)로 소스 코드 이전 레이어(npm ci)를 재사용한다.
       - name: 이미지 빌드·태그·푸시
-        working-directory: ./backend
-        env:
-          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: ECS 서비스 강제 재배포
         run: |

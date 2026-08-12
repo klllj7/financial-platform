@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* 전사 대시보드에 표시할 아이콘 */
@@ -426,6 +426,29 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         (first.high + first.medium + first.low),
     );
   }, [departmentDate, departmentPeriod, riskEvents]);
+
+  /*
+    부서별 위험 이벤트 그래프 너비 계산용. 부서 수가 적어서 고정 슬롯 폭으로도
+    패널을 다 못 채우면 실제 컨테이너 너비만큼 늘려서 꽉 채우고(지금처럼 2개
+    부서면 화면 전체 너비를 씀), 부서가 늘어 고정 폭 합이 컨테이너보다 커지면
+    그때부터는 컨테이너 너비에 맞추지 않고 고정 폭을 유지해 가로 스크롤이
+    생기게 한다. 컨테이너의 실제 렌더링 너비는 리사이즈에 따라 바뀌므로
+    ResizeObserver로 측정한다.
+  */
+  const departmentChartWrapRef = useRef(null);
+  const [departmentChartContainerWidth, setDepartmentChartContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = departmentChartWrapRef.current;
+    if (!el) return undefined;
+
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect?.width;
+      if (width) setDepartmentChartContainerWidth(width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (isAdminView) return;
@@ -1223,7 +1246,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           </div>
         </div>
 
-        <div className="compliance-department-chart">
+        <div className="compliance-department-chart" ref={departmentChartWrapRef}>
           {departmentData.length === 0 ? (
             <div className="compliance-department-chart-empty">
               조회된 데이터가 없습니다.
@@ -1232,7 +1255,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
             <BarChart
               width={Math.max(
                 departmentData.length * DEPARTMENT_CHART_SLOT_WIDTH,
-                DEPARTMENT_CHART_MIN_WIDTH,
+                departmentChartContainerWidth || DEPARTMENT_CHART_MIN_WIDTH,
               )}
               height={245}
               data={departmentData}
