@@ -34,6 +34,15 @@ const invokeBedrockModel = async ({ modelId, messages, maxTokens }) => {
     });
     response = await client.send(command);
   } catch (error) {
+    // 일부 모델은 IAM 권한과 별개로 AWS Marketplace 구독이 있어야 호출된다.
+    // 이 경우 AccessDeniedException 메시지에 aws-marketplace:Subscribe가 포함된다.
+    if (typeof error.message === "string" && error.message.includes("aws-marketplace:Subscribe")) {
+      throw providerError(
+        "BEDROCK_MARKETPLACE_SUBSCRIPTION_REQUIRED",
+        "이 모델은 AWS Marketplace 구독이 필요합니다. 관리자에게 문의해주세요.",
+        403,
+      );
+    }
     throw providerError(
       "BEDROCK_CONNECTION_FAILED",
       error.name === "TimeoutError"

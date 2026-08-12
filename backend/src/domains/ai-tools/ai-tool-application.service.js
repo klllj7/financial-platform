@@ -1,6 +1,7 @@
 const AiToolApplication = require("./ai-tool-application.model");
 const { User, Department } = require("../auth/auth.models");
 const { isModelAvailable } = require("./bedrock-catalog.service");
+const { isVendorSupported } = require("../chat/bedrock-adapters");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -41,6 +42,20 @@ const createApplication = async ({ userId, payload }) => {
   if (!user) throw serviceError("AI_TOOL_USER_NOT_FOUND", "신청자 정보를 찾을 수 없습니다.", 404);
 
   const { bedrockModelId, bedrockModelName, provider, purpose } = payload;
+
+  /*
+    카탈로그가 이미 지원 벤더만 내려주지만, 캐시가 갱신되기 전 잠깐의 시차나
+    클라이언트가 임의로 만든 요청까지 막기 위해 한 번 더 명시적으로 검증한다.
+    지원 벤더를 넓히려면 bedrock-adapters.js의 SUPPORTED_VENDORS만 고치면
+    이 검증도 자동으로 같이 넓어진다.
+  */
+  if (!isVendorSupported(bedrockModelId)) {
+    throw serviceError(
+      "AI_TOOL_VENDOR_NOT_SUPPORTED",
+      "현재는 지원하는 공급사의 모델만 신청할 수 있습니다.",
+      400,
+    );
+  }
 
   /* 신청 시점 카탈로그에 실제로 존재하는 서버리스 모델인지 검증한다. */
   const available = await isModelAvailable(bedrockModelId);

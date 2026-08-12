@@ -107,18 +107,28 @@ const cohereAdapter = {
   그래서 문자열 어디에 있든 찾도록 includes로 검사한다.
 */
 const ADAPTERS = [
-  { match: (id) => id.includes("anthropic."), adapter: anthropicAdapter },
-  { match: (id) => id.includes("amazon.titan"), adapter: titanAdapter },
-  { match: (id) => id.includes("meta.llama"), adapter: llamaAdapter },
-  { match: (id) => id.includes("mistral."), adapter: mistralAdapter },
-  { match: (id) => id.includes("cohere."), adapter: cohereAdapter },
+  { vendor: "anthropic", match: (id) => id.includes("anthropic."), adapter: anthropicAdapter },
+  { vendor: "amazon", match: (id) => id.includes("amazon.titan"), adapter: titanAdapter },
+  { vendor: "meta", match: (id) => id.includes("meta.llama"), adapter: llamaAdapter },
+  { vendor: "mistral", match: (id) => id.includes("mistral."), adapter: mistralAdapter },
+  { vendor: "cohere", match: (id) => id.includes("cohere."), adapter: cohereAdapter },
 ];
 
+/*
+  실제로 카탈로그에 노출하고 호출을 허용할 벤더는 이 배열 하나로만 제어한다.
+  어댑터 자체(위 ADAPTERS)는 5개 벤더 모두 구현되어 있으니, 나중에 범위를
+  넓히려면 이 배열에 벤더 이름만 추가하면 된다. (예: ["anthropic", "amazon", "meta", "mistral", "cohere"])
+*/
+const SUPPORTED_VENDORS = ["anthropic"];
+
 /* 카탈로그 필터링과 실제 호출이 항상 같은 기준을 쓰도록 이 목록을 공유한다. */
-const isVendorSupported = (modelId) => ADAPTERS.some(({ match }) => match(modelId));
+const isVendorSupported = (modelId) =>
+  ADAPTERS.some(({ vendor, match }) => SUPPORTED_VENDORS.includes(vendor) && match(modelId));
 
 const getAdapter = (modelId) => {
-  const found = ADAPTERS.find(({ match }) => match(modelId));
+  const found = ADAPTERS.find(
+    ({ vendor, match }) => SUPPORTED_VENDORS.includes(vendor) && match(modelId),
+  );
   if (!found) {
     throw Object.assign(
       new Error(`지원하지 않는 Bedrock 모델입니다: ${modelId}`),
@@ -128,4 +138,4 @@ const getAdapter = (modelId) => {
   return found.adapter;
 };
 
-module.exports = { getAdapter, isVendorSupported };
+module.exports = { getAdapter, isVendorSupported, SUPPORTED_VENDORS };
