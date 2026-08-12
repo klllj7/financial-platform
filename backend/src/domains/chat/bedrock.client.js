@@ -2,6 +2,7 @@ const {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } = require("@aws-sdk/client-bedrock-runtime");
+const { getAdapter } = require("./bedrock-adapters");
 
 const providerError = (code, message, statusCode) =>
   Object.assign(new Error(message), { code, statusCode });
@@ -10,9 +11,8 @@ const client = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || "ap-northeast-2",
 });
 
-const createBedrockMessage = async (messages) => {
-  const modelId = process.env.BEDROCK_MODEL_ID; // 호출용: 전체 ARN 그대로
-
+/* 임직원이 신청·승인받은 임의의 Bedrock 서버리스 모델을 호출한다. */
+const invokeBedrockModel = async ({ modelId, messages, maxTokens }) => {
   if (!modelId) {
     throw providerError(
       "BEDROCK_MODEL_ID_REQUIRED",
@@ -21,8 +21,8 @@ const createBedrockMessage = async (messages) => {
     );
   }
 
-  const shortModelName = modelId.split("/").pop(); // 저장·표시용
-  const maxTokens = Number(process.env.BEDROCK_MAX_TOKENS) || 2048;
+  const adapter = getAdapter(modelId);
+  const resolvedMaxTokens = maxTokens || Number(process.env.BEDROCK_MAX_TOKENS) || 2048;
 
   let response;
   try {
@@ -30,14 +30,7 @@ const createBedrockMessage = async (messages) => {
       modelId,
       contentType: "application/json",
       accept: "application/json",
-      body: JSON.stringify({
-        anthropic_version: "bedrock-2023-05-31",
-        max_tokens: maxTokens,
-        messages: messages.map((message) => ({
-          role: message.role === "ASSISTANT" ? "assistant" : "user",
-          content: message.content,
-        })),
-      }),
+      body: JSON.stringify(adapter.buildBody(messages, resolvedMaxTokens)),
     });
     response = await client.send(command);
   } catch (error) {
@@ -50,8 +43,8 @@ const createBedrockMessage = async (messages) => {
     );
   }
 
-  const result = JSON.parse(new TextDecoder().decode(response.body));
-  const content = result.content?.[0]?.text || "";
+  const raw = JSON.parse(new TextDecoder().decode(response.body));
+  const { content, inputTokens, outputTokens } = adapter.parseResponse(raw);
 
   if (!content) {
     throw providerError(
@@ -63,12 +56,17 @@ const createBedrockMessage = async (messages) => {
 
   return {
     content,
-    modelName: shortModelName,
-    inputTokens: result.usage?.input_tokens || 0,
-    outputTokens: result.usage?.output_tokens || 0,
+    modelName: modelId.split("/").pop(),
+    inputTokens,
+    outputTokens,
   };
 };
 
+/* 기본 제공 AI(Solar 슬롯)를 Bedrock으로 전환했을 때 쓰는 고정 모델 호출 경로다. */
+const createBedrockMessage = (messages) =>
+  invokeBedrockModel({ modelId: process.env.BEDROCK_MODEL_ID, messages });
+
 module.exports = {
   createBedrockMessage,
+  invokeBedrockModel,
 };

@@ -12,6 +12,12 @@ export const getAvailableAiTools = async () => {
   return response.data;
 };
 
+/* 신청 가능한 Bedrock 서버리스 모델 카탈로그를 조회한다. */
+export const getBedrockModelCatalog = async () => {
+  const response = await axiosInstance.get("/ai-tool/bedrock-models");
+  return response.data;
+};
+
 /* 로그인한 모든 역할이 전체 AI Tool 신청 목록을 조회한다. */
 export const getAllAiToolApplications = async () => {
   const response = await axiosInstance.get("/ai-tool/all");

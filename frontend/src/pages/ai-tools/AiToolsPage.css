@@ -750,6 +750,11 @@
   font-size: 9px;
 }
 
+.ai-tool-model-error {
+  color: #d64545;
+  font-size: 9px;
+}
+
 .ai-tool-modal-footer {
   display: flex;
   justify-content: flex-end;

@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get("/", authenticate, controller.getApplications);
 router.get("/available", authenticate, controller.getAvailableTools);
+router.get("/bedrock-models", authenticate, controller.getBedrockModelCatalog);
 router.get(
   "/all",
   authenticate,

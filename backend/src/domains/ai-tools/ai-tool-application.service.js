@@ -1,9 +1,6 @@
 const AiToolApplication = require("./ai-tool-application.model");
 const { User, Department } = require("../auth/auth.models");
-const { encryptCredential } = require("../../common/utils/credentialCrypto");
-const {
-  testOpenAiCompatibleConnection,
-} = require("../chat/openai-compatible.client");
+const { isModelAvailable } = require("./bedrock-catalog.service");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -43,16 +40,23 @@ const createApplication = async ({ userId, payload }) => {
   });
   if (!user) throw serviceError("AI_TOOL_USER_NOT_FOUND", "신청자 정보를 찾을 수 없습니다.", 404);
 
+  const { bedrockModelId, bedrockModelName, provider, purpose } = payload;
+
+  /* 신청 시점 카탈로그에 실제로 존재하는 서버리스 모델인지 검증한다. */
+  const available = await isModelAvailable(bedrockModelId);
+  if (!available) {
+    throw serviceError(
+      "AI_TOOL_MODEL_NOT_AVAILABLE",
+      "선택한 모델은 더 이상 신청할 수 없습니다. 목록을 새로고침해 주세요.",
+      409,
+    );
+  }
+
   const previousApplications = await AiToolApplication.findAll({
+    where: { bedrockModelId },
     order: [["createdAt", "DESC"]],
   });
-  const normalizedToolName = payload.toolName.toLocaleLowerCase();
-  const normalizedProvider = payload.provider.toLocaleLowerCase();
-  const duplicate = previousApplications.find(
-    (application) =>
-      application.toolName.trim().toLocaleLowerCase() === normalizedToolName &&
-      application.provider.trim().toLocaleLowerCase() === normalizedProvider,
-  );
+  const duplicate = previousApplications[0];
 
   if (duplicate?.status === "REJECTED") {
     const reason =
@@ -82,7 +86,12 @@ const createApplication = async ({ userId, payload }) => {
     userId,
     applicantName: user.name,
     departmentName: user.department?.name || null,
-    ...payload,
+    toolName: bedrockModelName,
+    provider,
+    purpose,
+    bedrockModelId,
+    bedrockModelName,
+    modelSource: "BEDROCK",
   });
 };
 
@@ -113,6 +122,7 @@ const createManagedTool = async ({ adminId, payload }) => {
     applicantName: admin.name,
     departmentName: admin.department?.name || null,
     ...payload,
+    modelSource: "CUSTOM",
     status: "APPROVED",
     isActive: true,
     reviewerId: adminId,
@@ -121,13 +131,13 @@ const createManagedTool = async ({ adminId, payload }) => {
   });
 };
 
-/* 승인과 반려 결과 및 검토 담당자를 함께 기록한다. */
+/* 승인과 반려 결과 및 검토 담당자를 함께 기록한다. Bedrock 모델은 IAM 태스크 롤로
+   인증되므로 승인 시점에 별도 자격증명 입력·연결 테스트가 필요 없다. */
 const reviewApplication = async ({
   applicationId,
   reviewerId,
   status,
   reviewComment,
-  connection,
 }) => {
   const application = await AiToolApplication.findByPk(applicationId);
   if (!application) throw serviceError("AI_TOOL_APPLICATION_NOT_FOUND", "신청 내역을 찾을 수 없습니다.", 404);
@@ -140,48 +150,17 @@ const reviewApplication = async ({
   };
 
   if (status === "APPROVED") {
-    const { apiKey, apiBaseUrl, apiModelId } = connection || {};
-    if (!apiKey || !apiBaseUrl || !apiModelId) {
-      throw serviceError(
-        "AI_TOOL_CONNECTION_REQUIRED",
-        "승인하려면 API Key, Base URL, 모델 ID가 필요합니다.",
-        400,
-      );
+    if (application.modelSource === "BEDROCK") {
+      const available = await isModelAvailable(application.bedrockModelId);
+      if (!available) {
+        throw serviceError(
+          "AI_TOOL_MODEL_NOT_AVAILABLE",
+          "신청 당시의 모델을 더 이상 카탈로그에서 찾을 수 없습니다. 신청자에게 재신청을 안내해 주세요.",
+          409,
+        );
+      }
     }
-
-    let parsedUrl;
-    try {
-      parsedUrl = new URL(apiBaseUrl);
-    } catch {
-      throw serviceError(
-        "AI_TOOL_BASE_URL_INVALID",
-        "유효한 API Base URL을 입력해 주세요.",
-        400,
-      );
-    }
-    if (parsedUrl.protocol !== "https:") {
-      throw serviceError(
-        "AI_TOOL_BASE_URL_HTTPS_REQUIRED",
-        "API Base URL은 HTTPS 주소만 사용할 수 있습니다.",
-        400,
-      );
-    }
-
-    await testOpenAiCompatibleConnection({
-      apiKey,
-      baseUrl: parsedUrl.toString().replace(/\/$/, ""),
-      modelId: apiModelId,
-    });
-    const encrypted = encryptCredential(apiKey);
-    Object.assign(updateValues, {
-      apiBaseUrl: parsedUrl.toString().replace(/\/$/, ""),
-      apiModelId,
-      apiKeyEncrypted: encrypted.encrypted,
-      apiKeyIv: encrypted.iv,
-      apiKeyAuthTag: encrypted.authTag,
-      credentialConfigured: true,
-      isActive: true,
-    });
+    updateValues.isActive = true;
   }
 
   await application.update(updateValues);

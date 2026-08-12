@@ -21,6 +21,9 @@ const AiToolApplication = sequelize.define("AiToolApplication", {
   apiKeyIv: { type: DataTypes.STRING(100), allowNull: true },
   apiKeyAuthTag: { type: DataTypes.STRING(100), allowNull: true },
   credentialConfigured: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+  bedrockModelId: { type: DataTypes.STRING(200), allowNull: true },
+  bedrockModelName: { type: DataTypes.STRING(200), allowNull: true },
+  modelSource: { type: DataTypes.ENUM("BEDROCK", "CUSTOM"), allowNull: false, defaultValue: "BEDROCK" },
 }, {
   tableName: "ai_tool_applications",
   underscored: true,
