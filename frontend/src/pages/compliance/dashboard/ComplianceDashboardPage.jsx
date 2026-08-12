@@ -183,7 +183,9 @@ function ComplianceDashboardPage({ isAdminView = false }) {
   const [notices, setNotices] = useState([]);
   const [actionItems, setActionItems] = useState([]);
   const [riskEvents, setRiskEvents] = useState([]);
-  const [departmentPeriod, setDepartmentPeriod] = useState("date");
+  // 부서별 위험 이벤트 조회 기간(일수). 1이면 departmentDate 하루만, 7/30이면
+  // departmentDate를 종료일로 하는 최근 N일 범위를 본다.
+  const [departmentPeriod, setDepartmentPeriod] = useState(1);
   const [departmentDate, setDepartmentDate] =
     useState(TODAY_DATE_INPUT);
   const [usageTrendMonth, setUsageTrendMonth] =
@@ -380,18 +382,11 @@ function ComplianceDashboardPage({ isAdminView = false }) {
   }, [isAdminView, usageTrendMonth]);
 
   const departmentData = useMemo(() => {
-    let periodStart;
-    let periodEnd;
-
-    if (departmentPeriod === "date") {
-      const [year, month, day] = departmentDate.split("-").map(Number);
-      periodStart = new Date(year, month - 1, day);
-      periodEnd = new Date(year, month - 1, day + 1);
-    } else {
-      periodStart = new Date();
-      periodStart.setHours(0, 0, 0, 0);
-      periodStart.setDate(periodStart.getDate() - (departmentPeriod - 1));
-    }
+    // departmentDate를 항상 기간의 종료일(포함)로 두고, 거기서 departmentPeriod일만큼
+    // 거슬러 올라간 날짜를 시작일로 잡는다. 1일 모드는 종료일=시작일인 특수 케이스다.
+    const [year, month, day] = departmentDate.split("-").map(Number);
+    const periodEnd = new Date(year, month - 1, day + 1);
+    const periodStart = new Date(year, month - 1, day - (departmentPeriod - 1));
     const departmentBuckets = new Map();
 
     riskEvents.forEach((event) => {
@@ -399,7 +394,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
       if (
         Number.isNaN(occurredAt.getTime()) ||
         occurredAt < periodStart ||
-        (periodEnd && occurredAt >= periodEnd)
+        occurredAt >= periodEnd
       ) {
         return;
       }
@@ -1167,7 +1162,12 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                   className={
                     departmentPeriod === period.value ? "active" : ""
                   }
-                  onClick={() => setDepartmentPeriod(period.value)}
+                  onClick={() =>
+                    // 이미 선택된 기간 버튼을 다시 누르면 하루 단위 보기로 돌아간다.
+                    setDepartmentPeriod((current) =>
+                      current === period.value ? 1 : period.value,
+                    )
+                  }
                 >
                   {period.label}
                 </button>
@@ -1175,7 +1175,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
             </div>
             <label
               className={`compliance-department-date-filter ${
-                departmentPeriod === "date" ? "active" : ""
+                departmentPeriod === 1 ? "active" : ""
               }`}
             >
               <span>날짜</span>
@@ -1185,8 +1185,9 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 max={TODAY_DATE_INPUT}
                 onChange={(event) => {
                   if (!event.target.value) return;
+                  // 기간(7일/30일)이 선택된 상태에서 날짜를 바꾸면 그 기간은 유지한 채
+                  // 선택한 날짜를 종료일로 다시 계산한다.
                   setDepartmentDate(event.target.value);
-                  setDepartmentPeriod("date");
                 }}
               />
             </label>
@@ -1212,6 +1213,11 @@ function ComplianceDashboardPage({ isAdminView = false }) {
         </div>
 
         <div className="compliance-department-chart">
+          {departmentData.length === 0 ? (
+            <div className="compliance-department-chart-empty">
+              조회된 데이터가 없습니다.
+            </div>
+          ) : (
           <ResponsiveContainer
             width="100%"
             height="100%"
@@ -1294,6 +1300,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
       </section>
 
