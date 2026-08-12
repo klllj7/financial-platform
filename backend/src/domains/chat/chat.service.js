@@ -102,7 +102,13 @@ const inspectPrompt = async (message, userId, { direction = "input", usageLogId 
       usageLogId: data.usage_log_id ?? null,
     };
   } catch (error) {
-    console.error("DLP 서비스 호출 실패, 탐지 없이 통과시킵니다:", error.message);
+    // fetch 실패는 error.message만으로는 원인(DNS 실패/연결 거부/타임아웃 등)이 안 보이고
+    // 실제 원인은 error.cause에 담기므로 같이 남긴다.
+    console.error(
+      "DLP 서비스 호출 실패, 탐지 없이 통과시킵니다:",
+      error.message,
+      error.cause ? `(cause: ${error.cause})` : "",
+    );
     return { blocked: false, maskApplied: false, safePrompt: message, usageLogId: null };
   }
 };
