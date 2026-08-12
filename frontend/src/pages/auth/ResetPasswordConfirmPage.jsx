@@ -91,7 +91,7 @@ function ResetPasswordConfirmPage() {
           <p>Password Reset</p>
           <h1>새 비밀번호 설정</h1>
           <span>
-            8자 이상, 영문/숫자/특수문자(!@#$%^)를 포함해주세요.
+            8자 이상, 영문/숫자/특수문자(!@#$%^*+=-)를 포함해주세요.
             <br />
             연속 숫자, 생년월일, 전화번호는 사용할 수 없습니다.
           </span>
