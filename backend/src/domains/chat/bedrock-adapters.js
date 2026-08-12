@@ -100,23 +100,32 @@ const cohereAdapter = {
   }),
 };
 
+/*
+  modelId 형태가 두 가지라 접두사(startsWith)만으로는 못 잡는다.
+  - 파운데이션 모델 ID: "anthropic.claude-3-sonnet-..." (벤더가 맨 앞)
+  - 추론 프로파일 ID:   "global.anthropic.claude-haiku-4-5-..." (리전/스코프가 맨 앞, 벤더는 중간)
+  그래서 문자열 어디에 있든 찾도록 includes로 검사한다.
+*/
 const ADAPTERS = [
-  { prefix: "anthropic.", adapter: anthropicAdapter },
-  { prefix: "amazon.titan", adapter: titanAdapter },
-  { prefix: "meta.llama", adapter: llamaAdapter },
-  { prefix: "mistral.", adapter: mistralAdapter },
-  { prefix: "cohere.", adapter: cohereAdapter },
+  { match: (id) => id.includes("anthropic."), adapter: anthropicAdapter },
+  { match: (id) => id.includes("amazon.titan"), adapter: titanAdapter },
+  { match: (id) => id.includes("meta.llama"), adapter: llamaAdapter },
+  { match: (id) => id.includes("mistral."), adapter: mistralAdapter },
+  { match: (id) => id.includes("cohere."), adapter: cohereAdapter },
 ];
 
+/* 카탈로그 필터링과 실제 호출이 항상 같은 기준을 쓰도록 이 목록을 공유한다. */
+const isVendorSupported = (modelId) => ADAPTERS.some(({ match }) => match(modelId));
+
 const getAdapter = (modelId) => {
-  const match = ADAPTERS.find(({ prefix }) => modelId.startsWith(prefix));
-  if (!match) {
+  const found = ADAPTERS.find(({ match }) => match(modelId));
+  if (!found) {
     throw Object.assign(
       new Error(`지원하지 않는 Bedrock 모델입니다: ${modelId}`),
       { code: "BEDROCK_MODEL_UNSUPPORTED", statusCode: 502 },
     );
   }
-  return match.adapter;
+  return found.adapter;
 };
 
-module.exports = { getAdapter };
+module.exports = { getAdapter, isVendorSupported };
