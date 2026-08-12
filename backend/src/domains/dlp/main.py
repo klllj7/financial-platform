@@ -164,7 +164,12 @@ def gateway_chat(request: ChatRequest):
     response["prompt"] = response_prompt
     return response
 
+# 프론트는 CloudFront의 /dlp-api/* 경로로 이 두 엔드포인트를 호출하는데, ALB 리스너
+# 규칙은 경로를 벗기지 않고 그대로 넘기므로 /dlp-api 접두사가 붙은 경로도 같이 열어둔다.
+# (Node -> DLP 서버 간 내부 호출(chat.service.js의 /gateway/chat 등)은 접두사 없이
+#  DLP_SERVICE_URL로 직접 붙으므로 원래 경로는 그대로 유지한다)
 @app.post("/events/{event_id}/action")
+@app.post("/dlp-api/events/{event_id}/action")
 def create_action(event_id: int, request: ActionRequest):
     db = SessionLocal()
     try:
@@ -222,6 +227,7 @@ def create_action(event_id: int, request: ActionRequest):
         db.close()
 
 @app.get("/events")
+@app.get("/dlp-api/events")
 def list_events():
     db = SessionLocal()
     try:
