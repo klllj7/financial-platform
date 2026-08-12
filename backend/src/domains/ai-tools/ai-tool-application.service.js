@@ -25,15 +25,36 @@ const getAllApplications = () => AiToolApplication.findAll({
   order: [["createdAt", "DESC"]],
 });
 
-/* 승인·활성화된 AI Tool의 공개 가능한 정보만 모든 로그인 사용자에게 제공한다. */
-const getAvailableTools = () => AiToolApplication.findAll({
-  attributes: ["id", "toolName", "provider"],
-  where: {
-    status: "APPROVED",
-    isActive: true,
-  },
-  order: [["toolName", "ASC"], ["createdAt", "ASC"]],
-});
+/*
+  승인·활성화된 AI Tool의 공개 가능한 정보만 모든 로그인 사용자에게 제공한다.
+  채팅 화면의 모델 드롭다운이 이 목록을 그대로 쓰기 때문에, 신청 카탈로그와
+  마찬가지로 RESTRICT_TO_DEMO_MODELS=true일 때는 화이트리스트 밖 모델(과거에
+  승인된 것 포함)이 드롭다운에 뜨지 않도록 여기서도 걸러야 한다.
+*/
+const getAvailableTools = async () => {
+  const applications = await AiToolApplication.findAll({
+    attributes: ["id", "toolName", "provider", "modelSource", "bedrockModelId"],
+    where: {
+      status: "APPROVED",
+      isActive: true,
+    },
+    order: [["toolName", "ASC"], ["createdAt", "ASC"]],
+  });
+
+  const visible = process.env.RESTRICT_TO_DEMO_MODELS === "true"
+    ? applications.filter(
+      (application) =>
+        application.modelSource !== "BEDROCK" || isAllowedModel(application.bedrockModelId),
+    )
+    : applications;
+
+  // modelSource/bedrockModelId는 필터링에만 쓰고, 응답 형태는 기존과 동일하게 유지한다.
+  return visible.map((application) => ({
+    id: application.id,
+    toolName: application.toolName,
+    provider: application.provider,
+  }));
+};
 
 /* 신청자 정보는 요청값을 신뢰하지 않고 로그인 사용자 테이블에서 가져온다. */
 const createApplication = async ({ userId, payload }) => {
