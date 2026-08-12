@@ -2,6 +2,7 @@ const AiToolApplication = require("./ai-tool-application.model");
 const { User, Department } = require("../auth/auth.models");
 const { isModelAvailable } = require("./bedrock-catalog.service");
 const { isVendorSupported } = require("../chat/bedrock-adapters");
+const { isAllowedModel } = require("../chat/allowed-models.config");
 
 const serviceError = (code, message, statusCode) => Object.assign(new Error(message), { code, statusCode });
 
@@ -53,6 +54,18 @@ const createApplication = async ({ userId, payload }) => {
     throw serviceError(
       "AI_TOOL_VENDOR_NOT_SUPPORTED",
       "현재는 지원하는 공급사의 모델만 신청할 수 있습니다.",
+      400,
+    );
+  }
+
+  /*
+    시연 기간 동안은 드롭다운에 없는 모델을 API로 직접 찔러 신청하는 우회도
+    막는다. RESTRICT_TO_DEMO_MODELS=false(또는 미설정)면 이 검사는 건너뛴다.
+  */
+  if (process.env.RESTRICT_TO_DEMO_MODELS === "true" && !isAllowedModel(bedrockModelId)) {
+    throw serviceError(
+      "AI_TOOL_MODEL_NOT_IN_DEMO_WHITELIST",
+      "현재는 시연용으로 지정된 모델만 신청할 수 있습니다.",
       400,
     );
   }

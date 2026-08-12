@@ -4,6 +4,15 @@ const {
   ListInferenceProfilesCommand,
 } = require("@aws-sdk/client-bedrock");
 const { isVendorSupported } = require("../chat/bedrock-adapters");
+const { isAllowedModel, getDisplayName } = require("../chat/allowed-models.config");
+
+/*
+  시연 촬영 중에만 켜는 스위치다. true면 Anthropic 벤더 전체가 아니라
+  allowed-models.config.js의 ALLOWED_MODELS 딱 그만큼만 카탈로그에 노출된다.
+  시연이 끝나면 이 환경변수만 지우거나 false로 바꾸면 원래 범위(Anthropic
+  벤더 전체)로 바로 돌아간다 — 코드 수정 불필요.
+*/
+const isRestrictedToDemoModels = () => process.env.RESTRICT_TO_DEMO_MODELS === "true";
 
 const client = new BedrockClient({
   region: process.env.AWS_REGION || "ap-northeast-2",
@@ -76,7 +85,16 @@ const listAvailableBedrockModels = async () => {
     listInferenceProfileModels(),
   ]);
 
-  const models = [...onDemandModels, ...inferenceProfileModels].sort(
+  let merged = [...onDemandModels, ...inferenceProfileModels];
+
+  if (isRestrictedToDemoModels()) {
+    merged = merged
+      .filter((model) => isAllowedModel(model.modelId))
+      // 시연용으로는 AWS가 주는 원래 이름 대신 화이트리스트의 깔끔한 표시 이름을 쓴다.
+      .map((model) => ({ ...model, modelName: getDisplayName(model.modelId) || model.modelName }));
+  }
+
+  const models = merged.sort(
     (a, b) =>
       a.providerName.localeCompare(b.providerName) ||
       a.modelName.localeCompare(b.modelName),
