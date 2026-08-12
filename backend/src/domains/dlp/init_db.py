@@ -14,6 +14,8 @@ MIGRATIONS = [
     "ALTER TABLE action_history ADD COLUMN IF NOT EXISTS direction VARCHAR",
     # 기존 데이터는 전부 입력 검사에서 생긴 것이다.
     "UPDATE event_log SET direction = 'input' WHERE direction IS NULL",
+    # 위험 이벤트 화면에 실제 사용 모델을 표시하기 위해 추가.
+    "ALTER TABLE usage_log ADD COLUMN IF NOT EXISTS model_name VARCHAR",
 ]
 
 if __name__ == "__main__":

@@ -1931,6 +1931,10 @@
   height: 245px;
   margin-top: 5px;
   padding: 0 12px;
+  /* 부서 수가 늘어 그래프 너비(고정 슬롯 폭 기준)가 컨테이너보다 커지면
+     막대를 찌그러뜨리는 대신 가로 스크롤로 대응한다. */
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .compliance-department-chart-empty {
@@ -2250,9 +2254,11 @@
     min-height: 29px;
   }
 
-  .compliance-department-chart {
-    height: 225px;
-  }
+  /*
+    차트 높이는 이제 recharts BarChart의 height={245} prop이 기준이라
+    (가로 스크롤 도입으로 ResponsiveContainer를 뺐음) 여기서 다른 값으로
+    덮으면 세로로 잘린다. 모바일에서도 245px 컨테이너를 그대로 쓴다.
+  */
 
   .compliance-usage-chart {
     height: 235px;

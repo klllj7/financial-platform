@@ -155,34 +155,67 @@ const createApplication = async ({ userId, payload }) => {
   });
 };
 
-/* 관리자가 신청 절차 없이 승인·활성 상태의 AI Tool을 직접 등록한다. */
+/*
+  관리자가 신청 절차 없이 Bedrock 카탈로그의 모델을 승인·활성 상태로 바로
+  등록한다. 임직원이 신청할 때와 선택지(카탈로그·검증 기준)가 완전히 같아야
+  하므로, createApplication과 같은 검증을 그대로 거친다 — API Key 등을 직접
+  입력받던 예전 방식(CUSTOM)은 더 이상 이 경로에서 만들지 않는다.
+*/
 const createManagedTool = async ({ adminId, payload }) => {
   const admin = await User.findByPk(adminId, {
     include: [{ model: Department, as: "department", attributes: ["name"] }],
   });
   if (!admin) throw serviceError("AI_TOOL_ADMIN_NOT_FOUND", "관리자 정보를 찾을 수 없습니다.", 404);
 
+  const { bedrockModelId, bedrockModelName, provider, purpose } = payload;
+
+  if (!isVendorSupported(bedrockModelId)) {
+    throw serviceError(
+      "AI_TOOL_VENDOR_NOT_SUPPORTED",
+      "현재는 지원하는 공급사의 모델만 등록할 수 있습니다.",
+      400,
+    );
+  }
+  if (process.env.RESTRICT_TO_DEMO_MODELS === "true" && !isAllowedModel(bedrockModelId)) {
+    throw serviceError(
+      "AI_TOOL_MODEL_NOT_IN_DEMO_WHITELIST",
+      "현재는 시연용으로 지정된 모델만 등록할 수 있습니다.",
+      400,
+    );
+  }
+
+  const available = await isModelAvailable(bedrockModelId);
+  if (!available) {
+    throw serviceError(
+      "AI_TOOL_MODEL_NOT_AVAILABLE",
+      "선택한 모델은 더 이상 등록할 수 없습니다. 목록을 새로고침해 주세요.",
+      409,
+    );
+  }
+
   const duplicate = await AiToolApplication.findOne({
-    where: {
-      toolName: payload.toolName,
-      provider: payload.provider,
-      status: "APPROVED",
-    },
+    where: { bedrockModelId, status: "APPROVED" },
   });
   if (duplicate) {
     throw serviceError(
       "AI_TOOL_ALREADY_EXISTS",
-      "동일한 이름과 공급사의 승인 모델이 이미 존재합니다.",
+      "동일한 모델이 이미 승인되어 있습니다.",
       409,
     );
   }
+
+  const resolvedModelName = getDisplayName(bedrockModelId) || bedrockModelName;
 
   return AiToolApplication.create({
     userId: adminId,
     applicantName: admin.name,
     departmentName: admin.department?.name || null,
-    ...payload,
-    modelSource: "CUSTOM",
+    toolName: resolvedModelName,
+    provider,
+    purpose,
+    bedrockModelId,
+    bedrockModelName: resolvedModelName,
+    modelSource: "BEDROCK",
     status: "APPROVED",
     isActive: true,
     reviewerId: adminId,

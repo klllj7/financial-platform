@@ -24,6 +24,9 @@ class ChatRequest(BaseModel):
     direction: Literal["input", "output"] = "input"
     # direction="output"일 때 입력 검사에서 받은 usage_log_id를 그대로 넘겨준다.
     usage_log_id: Optional[int] = None
+    # 실제로 호출된 AI 모델의 표시 이름. 입력 검사 시점엔 아직 모르므로 보통 output
+    # 호출 때만 채워져서 온다.
+    model_name: Optional[str] = None
 
 class ActionType(str, Enum):
     reviewed = "reviewed"
@@ -127,11 +130,19 @@ def gateway_chat(request: ChatRequest):
                 user_id=request.user_id,
                 description=request.prompt[:200],
                 masked_description=masked_description[:200],
+                model_name=request.model_name,
             )
             db.add(usage_log)
             db.commit()
             db.refresh(usage_log)
             usage_log_id = usage_log.id
+        elif request.model_name and usage_log_id is not None:
+            # output 검사 시점엔 실제로 어떤 모델이 응답했는지 확정돼 있으므로,
+            # 입력 검사 때 만들어둔 usage_log에 지금 채워 넣는다.
+            existing_log = db.query(UsageLog).filter(UsageLog.id == usage_log_id).first()
+            if existing_log is not None:
+                existing_log.model_name = request.model_name
+                db.commit()
 
         # direction="output"인데 usage_log_id가 없으면(입력 검사 단계에서 DLP가
         # 죽어 있었던 경우 등) 붙일 곳이 없다. 이때는 기록만 건너뛰고 차단·마스킹
@@ -306,6 +317,7 @@ def list_events():
                 "masked_description": masked_description,
                 "user_name": user.name if user else None,
                 "department_name": department.name if department else None,
+                "model_name": usage_log.model_name if usage_log else None,
                 "detection_type": event.detection_type,
                 "grade": event.grade,
                 "masked_yn": event.masked_yn,

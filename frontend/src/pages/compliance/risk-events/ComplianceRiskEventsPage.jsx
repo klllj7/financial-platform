@@ -98,7 +98,9 @@ function ComplianceRiskEventsPage() {
             userName: event.user_name ?? "-",
             department: event.department_name ?? "-",
             eventType: event.detection_type,
-            modelName: "-", // TODO: ai_tool_info 연동되면 실제 값으로 교체 (B 담당자)
+            // AI가 실제로 호출된 경우에만 채워진다. 입력 단계에서 차단된 요청처럼
+            // 애초에 AI를 부르지 않은 이벤트는 백엔드도 값을 안 주므로 "-"로 남는다.
+            modelName: event.model_name ?? "-",
             // 목록/기본 노출은 마스킹본으로 하고, 원문은 상세보기에서 토글로만 연다.
             maskedPromptSummary: event.masked_description ?? event.description,
             // AI 응답에서 탐지된 이벤트는 원문을 저장하지 않으므로 마스킹본으로 대체한다.
@@ -289,8 +291,18 @@ function ComplianceRiskEventsPage() {
           <div className="risk-events-table-wrap">
             <table className="risk-events-table">
               <thead><tr><th>발생 시각</th><th>위험 등급</th><th>사용자 / 부서</th><th>탐지 유형</th><th>사용 모델</th><th>조치 상태</th><th /></tr></thead>
-              <tbody>{filteredEvents.map((event) => {
+              {/*
+                filteredEvents는 최신순으로 정렬되어 있어서, 같은 사용자의
+                행 중 맨 처음 만나는 것이 그 사용자의 가장 최근 이벤트다.
+                배지를 매 행마다 반복해서 붙이면 같은 사람이 여러 번 뱃지를
+                달고 나와 지저분해 보이므로, 그 최신 행 하나에만 표시한다.
+              */}
+              <tbody>{(() => {
+                const seenUserNames = new Set();
+                return filteredEvents.map((event) => {
                 const recentEventCount = getRecentUserEventCount(event);
+                const isLatestForUser = !seenUserNames.has(event.userName);
+                seenUserNames.add(event.userName);
                 return (
                 <tr key={event.id}>
                   <td>{event.occurredAt}</td>
@@ -298,7 +310,7 @@ function ComplianceRiskEventsPage() {
                   <td>
                     <strong>{event.userName}</strong>
                     <small>{event.department}</small>
-                    {recentEventCount > 2 && (
+                    {recentEventCount > 2 && isLatestForUser && (
                       <span 
                         className="risk-repeat-badge" 
                         title={`해당 이벤트 발생일 기준 최근 ${REPEAT_RISK_PERIOD_DAYS}일 동안 동일 사용자에게 탐지된 위험 이벤트 건수`}
@@ -321,7 +333,8 @@ function ComplianceRiskEventsPage() {
                   </td>
                 </tr>
                 );
-              })}</tbody>
+              });
+              })()}</tbody>
             </table>
             {filteredEvents.length === 0 && <div className="risk-events-empty">조건에 맞는 위험 이벤트가 없습니다.</div>}
           </div>

@@ -11,6 +11,7 @@ import {
   createManagedAiTool,
   deleteAiToolApplication,
   getAiToolApplications,
+  getBedrockModelCatalog,
   reviewAiToolApplication,
   updateAiToolActiveStatus,
 } from "../../api/aiToolApi";
@@ -39,10 +40,15 @@ function AdminModelPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addForm, setAddForm] = useState({
-    toolName: "",
+    bedrockModelId: "",
+    bedrockModelName: "",
     provider: "",
     purpose: "",
   });
+  // 임직원 신청 화면과 같은 Bedrock 모델 카탈로그를 그대로 쓴다 — 관리자가
+  // 직접 등록할 때도 선택지가 똑같아야 한다.
+  const [bedrockModels, setBedrockModels] = useState([]);
+  const [isBedrockModelsLoading, setIsBedrockModelsLoading] = useState(false);
 
   // 반려 사유를 입력받을 팝업 상태다.
   const [rejectTarget, setRejectTarget] = useState(null);
@@ -175,7 +181,19 @@ function AdminModelPage() {
 
   const closeAddModal = () => {
     setIsAddModalOpen(false);
-    setAddForm({ toolName: "", provider: "", purpose: "" });
+    setAddForm({ bedrockModelId: "", bedrockModelName: "", provider: "", purpose: "" });
+  };
+
+  /* 드롭다운에서 모델을 선택하면 모델ID/이름/공급사를 한 번에 채운다. */
+  const handleAddModelSelectChange = (event) => {
+    const selectedModelId = event.target.value;
+    const selectedModel = bedrockModels.find((model) => model.modelId === selectedModelId);
+    setAddForm((current) => ({
+      ...current,
+      bedrockModelId: selectedModel?.modelId || "",
+      bedrockModelName: selectedModel?.modelName || "",
+      provider: selectedModel?.providerName || "",
+    }));
   };
 
   const handleAddSubmit = async (event) => {
@@ -238,6 +256,19 @@ function AdminModelPage() {
           onClick={() => {
             setErrorMessage("");
             setIsAddModalOpen(true);
+            setIsBedrockModelsLoading(true);
+            getBedrockModelCatalog()
+              .then((response) => {
+                setBedrockModels(Array.isArray(response.data) ? response.data : []);
+              })
+              .catch((error) => {
+                console.error("Bedrock 모델 카탈로그 조회 실패", error);
+                setErrorMessage(
+                  error.response?.data?.error?.message ||
+                    "등록 가능한 모델 목록을 불러오지 못했습니다.",
+                );
+              })
+              .finally(() => setIsBedrockModelsLoading(false));
           }}
         >
           <Plus size={16} />
@@ -475,34 +506,25 @@ function AdminModelPage() {
             <form onSubmit={handleAddSubmit}>
               <div className="admin-model-modal-body">
                 <div className="admin-model-form-group">
-                  <label htmlFor="managedToolName">모델 이름</label>
-                  <input
-                    id="managedToolName"
-                    value={addForm.toolName}
-                    onChange={(event) =>
-                      setAddForm((current) => ({
-                        ...current,
-                        toolName: event.target.value,
-                      }))
-                    }
-                    placeholder="예: GPT-5"
+                  <label htmlFor="managedModelSelect">등록할 모델 (Bedrock 서버리스)</label>
+                  <select
+                    id="managedModelSelect"
+                    value={addForm.bedrockModelId}
+                    onChange={handleAddModelSelectChange}
                     required
-                  />
-                </div>
-                <div className="admin-model-form-group">
-                  <label htmlFor="managedProvider">공급사</label>
-                  <input
-                    id="managedProvider"
-                    value={addForm.provider}
-                    onChange={(event) =>
-                      setAddForm((current) => ({
-                        ...current,
-                        provider: event.target.value,
-                      }))
-                    }
-                    placeholder="예: OpenAI"
-                    required
-                  />
+                    disabled={isBedrockModelsLoading || bedrockModels.length === 0}
+                  >
+                    <option value="" disabled>
+                      {isBedrockModelsLoading
+                        ? "모델 목록을 불러오는 중..."
+                        : "모델을 선택해 주세요"}
+                    </option>
+                    {bedrockModels.map((model) => (
+                      <option key={model.modelId} value={model.modelId}>
+                        {model.providerName} · {model.modelName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="admin-model-form-group">
                   <label htmlFor="managedPurpose">모델 설명</label>
@@ -531,7 +553,7 @@ function AdminModelPage() {
                 <button
                   type="submit"
                   className="admin-model-save-button"
-                  disabled={isAdding}
+                  disabled={isAdding || !addForm.bedrockModelId}
                 >
                   {isAdding ? "추가 중..." : "추가하기"}
                 </button>

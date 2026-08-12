@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const ChatSession = require("../chat/chat-session.model");
 const ChatMessage = require("../chat/chat-message.model");
+const { ALLOWED_MODELS } = require("../chat/allowed-models.config");
 
 /* 조회 월의 시작일·종료일을 계산한다. month 형식은 YYYY-MM이다. */
 const getMonthRange = (month) => {
@@ -229,15 +230,21 @@ const getComplianceSummary = async ({ month }) => {
   };
 };
 
-/* 조회 월의 모델별 사용 횟수와 비율을 계산한다. */
+/*
+  조회 월의 모델별 사용 횟수와 비율을 계산한다. 예전 라벨(Bedrock 전환 전
+  "Solar Pro 3"였거나, 표시 이름을 통일하기 전의 원본 카탈로그 이름 등)이
+  섞여 있으면 같은 모델인데 화면에는 여러 조각으로 쪼개져 보이므로,
+  지금 실제로 신청·승인 가능한 모델(ALLOWED_MODELS) 기준으로만 집계한다.
+*/
 const getModels = async ({ userId, month }) => {
   const { start, end } = getMonthRange(month);
   const messages = await getAssistantMessages({ userId, start, end });
+  const allowedModelNames = new Set(ALLOWED_MODELS.map((model) => model.displayName));
+  const currentMessages = messages.filter((message) => allowedModelNames.has(message.modelName));
   const counts = new Map();
 
-  messages.forEach((message) => {
-    const modelName = message.modelName || "미지정 모델";
-    counts.set(modelName, (counts.get(modelName) || 0) + 1);
+  currentMessages.forEach((message) => {
+    counts.set(message.modelName, (counts.get(message.modelName) || 0) + 1);
   });
 
   return {
@@ -245,8 +252,8 @@ const getModels = async ({ userId, month }) => {
       .map(([modelName, usageCount]) => ({
         modelName,
         usageCount,
-        ratio: messages.length
-          ? Number(((usageCount / messages.length) * 100).toFixed(1))
+        ratio: currentMessages.length
+          ? Number(((usageCount / currentMessages.length) * 100).toFixed(1))
           : 0,
       }))
       .sort((a, b) => b.usageCount - a.usageCount),

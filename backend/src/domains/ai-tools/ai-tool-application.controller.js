@@ -55,22 +55,23 @@ const createApplication = async (req, res) => {
 
 const createManagedTool = async (req, res) => {
   try {
-    const toolName = typeof req.body.toolName === "string" ? req.body.toolName.trim() : "";
+    const bedrockModelId = typeof req.body.bedrockModelId === "string" ? req.body.bedrockModelId.trim() : "";
+    const bedrockModelName = typeof req.body.bedrockModelName === "string" ? req.body.bedrockModelName.trim() : "";
     const provider = typeof req.body.provider === "string" ? req.body.provider.trim() : "";
     const purpose = typeof req.body.purpose === "string" ? req.body.purpose.trim() : "";
 
-    if (!toolName || !provider || !purpose) {
+    if (!bedrockModelId || !bedrockModelName || !provider || !purpose) {
       return fail(
         res,
         "AI_TOOL_INVALID_INPUT",
-        "모델 이름, 공급사, 설명을 모두 입력해 주세요.",
+        "등록할 모델과 설명을 모두 입력해 주세요.",
         400,
       );
     }
 
     return success(res, await service.createManagedTool({
       adminId: req.user.userId,
-      payload: { toolName, provider, purpose },
+      payload: { bedrockModelId, bedrockModelName, provider, purpose },
     }), 201);
   } catch (error) {
     return fail(

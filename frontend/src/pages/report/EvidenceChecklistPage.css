@@ -623,14 +623,31 @@
 
 .ce-select {
   height: 36px;
-  padding: 0 12px;
+  padding: 0 30px 0 12px;
 
   color: var(--color-text);
-  background: #ffffff;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237184a1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  appearance: none;
   border: 1px solid var(--color-border);
   border-radius: 8px;
+  outline: none;
+  cursor: pointer;
 
+  font-family: inherit;
   font-size: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ce-select:hover {
+  border-color: var(--color-primary);
+}
+
+.ce-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
 }
 
 

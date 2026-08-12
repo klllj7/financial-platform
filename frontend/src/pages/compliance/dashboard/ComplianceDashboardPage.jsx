@@ -159,6 +159,10 @@ const formatDateInputValue = (date) => [
 ].join("-");
 
 const TODAY_DATE_INPUT = formatDateInputValue(new Date());
+// 부서별 위험 이벤트 그래프: 부서 하나당 차지하는 너비를 고정해서, 부서가
+// 늘어나도 막대가 찌그러지지 않고 가로 스크롤로 대응하게 한다.
+const DEPARTMENT_CHART_SLOT_WIDTH = 96;
+const DEPARTMENT_CHART_MIN_WIDTH = 480;
 const USAGE_MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => {
   const today = new Date();
   const date = new Date(today.getFullYear(), today.getMonth() - index, 1);
@@ -760,11 +764,11 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               {formatNumber(dashboardSummary.totalTokens)} 토큰
             </strong>
 
-            <small>
-              {dashboardSummary.costRatesConfigured
-                ? `₩${formatNumber(dashboardSummary.estimatedCostKrw)} / 이번 달`
-                : "단가 미설정"}
-            </small>
+            {dashboardSummary.costRatesConfigured && (
+              <small>
+                ₩{formatNumber(dashboardSummary.estimatedCostKrw)} / 이번 달
+              </small>
+            )}
 
             <small className="compliance-budget-description">
               Bedrock(Anthropic) 응답 기준 토큰 합계
@@ -1225,11 +1229,12 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               조회된 데이터가 없습니다.
             </div>
           ) : (
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-          >
             <BarChart
+              width={Math.max(
+                departmentData.length * DEPARTMENT_CHART_SLOT_WIDTH,
+                DEPARTMENT_CHART_MIN_WIDTH,
+              )}
+              height={245}
               data={departmentData}
               margin={{
                 top: 10,
@@ -1306,7 +1311,6 @@ function ComplianceDashboardPage({ isAdminView = false }) {
                 radius={[5, 5, 0, 0]}
               />
             </BarChart>
-          </ResponsiveContainer>
           )}
         </div>
       </section>
