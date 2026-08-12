@@ -154,18 +154,42 @@ const sendMessage = async ({
   message,
   attachment,
 }) => {
-  const approvedTool = await findApprovedTool({
-    aiToolApplicationId,
-    toolKey,
-  });
-
-  const session = sessionId
+  const existingSession = sessionId
     ? await findOwnedSession(userId, sessionId)
+    : null;
+
+  /*
+    이어지는 대화(기존 세션)는 이번 요청이 들고 온 도구 선택을 무시하고,
+    세션이 처음 만들어질 때 고정해 둔 모델을 그대로 쓴다. 그래야 사용자가
+    대화 도중 드롭다운에서 다른 모델로 바꿔도 같은 세션 안에서는 모델이
+    바뀌지 않는다. (이 컬럼이 생기기 전 만들어진 세션은 고정값이 없으니
+    예전처럼 요청값을 신뢰하고, 이번 기회에 세션에 값을 채워 넣는다.)
+  */
+  const hasPinnedTool = Boolean(
+    existingSession?.aiToolApplicationId || existingSession?.toolKey,
+  );
+  const resolvedSelection = hasPinnedTool
+    ? {
+      aiToolApplicationId: existingSession.aiToolApplicationId,
+      toolKey: existingSession.toolKey,
+    }
+    : { aiToolApplicationId, toolKey };
+
+  const approvedTool = await findApprovedTool(resolvedSelection);
+
+  const pinnedFields = {
+    aiToolApplicationId: approvedTool.isDefaultSolar ? null : approvedTool.id,
+    toolKey: approvedTool.isDefaultSolar ? DEFAULT_SOLAR_TOOL_KEY : null,
+  };
+
+  const session = existingSession
+    ? (!hasPinnedTool ? await existingSession.update(pinnedFields) : existingSession)
     : await ChatSession.create({
       userId,
       title: message
         ? message.length > 30 ? `${message.slice(0, 30)}…` : message
         : attachment.fileName,
+      ...pinnedFields,
     });
 
   const attachmentPrompt = attachment
