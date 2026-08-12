@@ -2,7 +2,7 @@ const ChatSession = require("./chat-session.model");
 const ChatMessage = require("./chat-message.model");
 const AiToolApplication = require("../ai-tools/ai-tool-application.model");
 const { createSolarMessage } = require("./solar.client");
-const { createBedrockMessage } = require("./bedrock.client");
+const { createBedrockMessage, invokeBedrockModel } = require("./bedrock.client");
 const {
   createOpenAiCompatibleMessage,
 } = require("./openai-compatible.client");
@@ -212,6 +212,15 @@ const sendMessage = async ({
     modelName = solarResponse.modelName;
     inputTokens = solarResponse.inputTokens;
     outputTokens = solarResponse.outputTokens;
+  } else if (approvedTool.modelSource === "BEDROCK" && approvedTool.bedrockModelId) {
+    const providerResponse = await invokeBedrockModel({
+      modelId: approvedTool.bedrockModelId,
+      messages: [...previousMessages, providerUserMessage],
+    });
+    reply = providerResponse.content;
+    modelName = providerResponse.modelName;
+    inputTokens = providerResponse.inputTokens;
+    outputTokens = providerResponse.outputTokens;
   } else if (
     approvedTool.credentialConfigured &&
     approvedTool.apiKeyEncrypted &&

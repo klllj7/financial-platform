@@ -14,6 +14,7 @@ import {
   createAiToolApplication,
   getAllAiToolApplications,
   getAiToolApplications,
+  getBedrockModelCatalog,
 } from "../../api/aiToolApi";
 
 // AI Tool 신청 페이지 전용 CSS
@@ -54,13 +55,19 @@ function AiToolsPage() {
   const [isApplyModalOpen, setIsApplyModalOpen] =
     useState(false);
 
+  // 신청 가능한 Bedrock 서버리스 모델 카탈로그다.
+  const [bedrockModels, setBedrockModels] = useState([]);
+  const [isBedrockModelsLoading, setIsBedrockModelsLoading] = useState(false);
+  const [bedrockModelsError, setBedrockModelsError] = useState("");
+
   // 반려 카드를 클릭했을 때 상세 팝업에 표시할 신청 건이다.
   const [selectedRejectedApplication, setSelectedRejectedApplication] =
     useState(null);
 
   const [applicationForm, setApplicationForm] =
     useState({
-      toolName: "",
+      bedrockModelId: "",
+      bedrockModelName: "",
       provider: "",
       purpose: "",
     });
@@ -160,25 +167,54 @@ function AiToolsPage() {
     allApplicationsStatus,
   ]);
 
-  /* AI Tool 신청 팝업을 연다. */
+  /* AI Tool 신청 팝업을 열고, Bedrock 서버리스 모델 카탈로그를 불러온다. */
   const handleApplyButtonClick = () => {
     setIsApplyModalOpen(true);
+    setIsBedrockModelsLoading(true);
+    setBedrockModelsError("");
+    getBedrockModelCatalog()
+      .then((response) => {
+        setBedrockModels(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch((error) => {
+        console.error("Bedrock 모델 카탈로그 조회 실패", error);
+        setBedrockModelsError(
+          error.response?.data?.error?.message ||
+            "신청 가능한 모델 목록을 불러오지 못했습니다.",
+        );
+      })
+      .finally(() => setIsBedrockModelsLoading(false));
   };
 
   const handleApplyModalClose = () => {
     setIsApplyModalOpen(false);
     setApplicationForm({
-      toolName: "",
+      bedrockModelId: "",
+      bedrockModelName: "",
       provider: "",
       purpose: "",
     });
   };
 
-  const handleApplicationFormChange = (event) => {
-    const { name, value } = event.target;
+  /* 드롭다운에서 모델을 선택하면 모델ID/이름/공급사를 한 번에 채운다. */
+  const handleModelSelectChange = (event) => {
+    const selectedModelId = event.target.value;
+    const selectedModel = bedrockModels.find(
+      (model) => model.modelId === selectedModelId,
+    );
     setApplicationForm((currentForm) => ({
       ...currentForm,
-      [name]: value,
+      bedrockModelId: selectedModel?.modelId || "",
+      bedrockModelName: selectedModel?.modelName || "",
+      provider: selectedModel?.providerName || "",
+    }));
+  };
+
+  const handlePurposeChange = (event) => {
+    const { value } = event.target;
+    setApplicationForm((currentForm) => ({
+      ...currentForm,
+      purpose: value,
     }));
   };
 
@@ -590,25 +626,30 @@ function AiToolsPage() {
               onSubmit={handleApplicationSubmit}
             >
               <label>
-                <span>AI Tool 이름</span>
-                <input
-                  name="toolName"
-                  value={applicationForm.toolName}
-                  onChange={handleApplicationFormChange}
-                  placeholder="예: ChatGPT Enterprise"
+                <span>신청할 모델 (Bedrock 서버리스)</span>
+                <select
+                  name="bedrockModelId"
+                  value={applicationForm.bedrockModelId}
+                  onChange={handleModelSelectChange}
                   required
-                />
-              </label>
-
-              <label>
-                <span>공급사</span>
-                <input
-                  name="provider"
-                  value={applicationForm.provider}
-                  onChange={handleApplicationFormChange}
-                  placeholder="예: OpenAI"
-                  required
-                />
+                  disabled={isBedrockModelsLoading || bedrockModels.length === 0}
+                >
+                  <option value="" disabled>
+                    {isBedrockModelsLoading
+                      ? "모델 목록을 불러오는 중..."
+                      : "모델을 선택해 주세요"}
+                  </option>
+                  {bedrockModels.map((model) => (
+                    <option key={model.modelId} value={model.modelId}>
+                      {model.providerName} · {model.modelName}
+                    </option>
+                  ))}
+                </select>
+                {bedrockModelsError && (
+                  <small className="ai-tool-model-error">
+                    {bedrockModelsError}
+                  </small>
+                )}
               </label>
 
               <label className="ai-tool-purpose-field">
@@ -616,7 +657,7 @@ function AiToolsPage() {
                 <textarea
                   name="purpose"
                   value={applicationForm.purpose}
-                  onChange={handleApplicationFormChange}
+                  onChange={handlePurposeChange}
                   placeholder="사용할 업무와 필요한 이유를 구체적으로 작성해 주세요."
                   rows={5}
                   required
@@ -638,6 +679,7 @@ function AiToolsPage() {
                 <button
                   type="submit"
                   className="ai-tool-modal-submit"
+                  disabled={!applicationForm.bedrockModelId}
                 >
                   신청하기
                 </button>

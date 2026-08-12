@@ -513,6 +513,31 @@
   padding: 22px;
 }
 
+/* 승인 모달의 신청 정보 요약 */
+.admin-model-approve-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-model-approve-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-model-approve-summary dt {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-model-approve-summary dd {
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* 입력 항목 그룹 */
 .admin-model-form-group {
   display: flex;

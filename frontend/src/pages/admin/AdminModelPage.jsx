@@ -48,11 +48,6 @@ function AdminModelPage() {
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
   const [approveTarget, setApproveTarget] = useState(null);
-  const [connectionForm, setConnectionForm] = useState({
-    apiBaseUrl: "",
-    apiModelId: "",
-    apiKey: "",
-  });
 
   // 관리자 페이지 진입 시 전체 AI Tool 신청 내역을 조회한다.
   useEffect(() => {
@@ -101,12 +96,7 @@ function AdminModelPage() {
   ).length;
 
   // 승인·반려 API 처리 결과를 목록에도 즉시 반영한다.
-  const submitReview = async (
-    application,
-    status,
-    reviewComment,
-    connection,
-  ) => {
+  const submitReview = async (application, status, reviewComment) => {
     if (reviewingId) return;
 
     setReviewingId(application.id);
@@ -116,7 +106,6 @@ function AdminModelPage() {
       const response = await reviewAiToolApplication(application.id, {
         status,
         reviewComment,
-        ...connection,
       });
 
       setApplications((current) =>
@@ -127,7 +116,6 @@ function AdminModelPage() {
       setRejectTarget(null);
       setRejectReason("");
       setApproveTarget(null);
-      setConnectionForm({ apiBaseUrl: "", apiModelId: "", apiKey: "" });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.error?.message ||
@@ -139,43 +127,13 @@ function AdminModelPage() {
   };
 
   const openApproveModal = (application) => {
-    const normalizedProvider = application.provider.toLowerCase();
-    const defaultBaseUrl = normalizedProvider.includes("upstage")
-      ? "https://api.upstage.ai/v1"
-      : normalizedProvider.includes("openai")
-        ? "https://api.openai.com/v1"
-        : "";
-
     setErrorMessage("");
     setApproveTarget(application);
-    setConnectionForm({
-      apiBaseUrl: defaultBaseUrl,
-      apiModelId: "",
-      apiKey: "",
-    });
   };
 
   const handleApprove = (event) => {
     event.preventDefault();
-    if (
-      !connectionForm.apiBaseUrl.trim() ||
-      !connectionForm.apiModelId.trim() ||
-      !connectionForm.apiKey.trim()
-    ) {
-      setErrorMessage("API Base URL, 모델 ID, API Key를 모두 입력해 주세요.");
-      return;
-    }
-
-    submitReview(
-      approveTarget,
-      "APPROVED",
-      "API 연결 확인 후 승인 처리",
-      {
-        apiBaseUrl: connectionForm.apiBaseUrl.trim(),
-        apiModelId: connectionForm.apiModelId.trim(),
-        apiKey: connectionForm.apiKey.trim(),
-      },
-    );
+    submitReview(approveTarget, "APPROVED", "검토 후 승인 처리");
   };
 
   const handleReject = (event) => {
@@ -707,7 +665,7 @@ function AdminModelPage() {
           >
             <div className="admin-model-modal-header">
               <div>
-                <p>API 연결 후 승인</p>
+                <p>AI Tool 신청 승인</p>
                 <h3 id="admin-model-approve-title">
                   {approveTarget.toolName}
                 </h3>
@@ -732,56 +690,29 @@ function AdminModelPage() {
                     {errorMessage}
                   </p>
                 )}
+                <dl className="admin-model-approve-summary">
+                  <div>
+                    <dt>공급사</dt>
+                    <dd>{approveTarget.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>신청자</dt>
+                    <dd>
+                      {approveTarget.applicantName}
+                      {approveTarget.departmentName
+                        ? ` (${approveTarget.departmentName})`
+                        : ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>사용 목적</dt>
+                    <dd>{approveTarget.purpose}</dd>
+                  </div>
+                </dl>
                 <p className="admin-model-credential-notice">
-                  연결 테스트에 성공한 경우에만 승인됩니다. API Key는
-                  서버에서 암호화되어 저장되며 다시 화면에 표시되지 않습니다.
+                  Bedrock 서버리스 모델은 별도 API Key 없이 승인 즉시
+                  사용할 수 있습니다.
                 </p>
-                <div className="admin-model-form-group">
-                  <label htmlFor="approveApiBaseUrl">API Base URL</label>
-                  <input
-                    id="approveApiBaseUrl"
-                    type="url"
-                    value={connectionForm.apiBaseUrl}
-                    placeholder="https://api.example.com/v1"
-                    onChange={(event) =>
-                      setConnectionForm((current) => ({
-                        ...current,
-                        apiBaseUrl: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="admin-model-form-group">
-                  <label htmlFor="approveApiModelId">모델 ID</label>
-                  <input
-                    id="approveApiModelId"
-                    type="text"
-                    value={connectionForm.apiModelId}
-                    placeholder="예: solar-pro3"
-                    onChange={(event) =>
-                      setConnectionForm((current) => ({
-                        ...current,
-                        apiModelId: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="admin-model-form-group">
-                  <label htmlFor="approveApiKey">API Key</label>
-                  <input
-                    id="approveApiKey"
-                    type="password"
-                    value={connectionForm.apiKey}
-                    autoComplete="new-password"
-                    placeholder="API Key를 입력해 주세요."
-                    onChange={(event) =>
-                      setConnectionForm((current) => ({
-                        ...current,
-                        apiKey: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
               </div>
               <div className="admin-model-modal-footer">
                 <button
@@ -801,8 +732,8 @@ function AdminModelPage() {
                   disabled={reviewingId === approveTarget.id}
                 >
                   {reviewingId === approveTarget.id
-                    ? "연결 확인 중..."
-                    : "연결 확인 후 승인"}
+                    ? "승인 처리 중..."
+                    : "승인하기"}
                 </button>
               </div>
             </form>
