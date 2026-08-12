@@ -197,8 +197,8 @@ function SignupPage() {
     }
 
     // 허용된 특수문자 포함
-    if (!/[!@#$%^]/.test(password)) {
-      return "비밀번호에는 특수문자 !@#$%^ 중 1자 이상이 포함되어야 합니다.";
+    if (!/[!@#$%^*+=-]/.test(password)) {
+      return "비밀번호에는 특수문자 !@#$%^*+=- 중 1자 이상이 포함되어야 합니다.";
     }
 
     // 연속된 숫자 3자리 이상 금지
@@ -261,7 +261,7 @@ function SignupPage() {
 
           <form className="signup-form" onSubmit={handleSignupSubmit}>
             {/* 이름 */}
-            <div className="form-group">
+            <div className="form-group signup-full-width-group">
               <label htmlFor="name">이름</label>
               <input
                 id="name"
@@ -274,7 +274,7 @@ function SignupPage() {
             </div>
 
             {/* 이메일 */}
-            <div className="form-group signup-email-group">
+            <div className="form-group signup-full-width-group">
               <label htmlFor="emailId">이메일</label>
               <div className="signup-email-input-wrap">
                 <input
@@ -330,7 +330,7 @@ function SignupPage() {
               <label htmlFor="password">비밀번호</label>
 
               <p className="signup-password-rule">
-                8자 이상, 영문/숫자/특수문자(!@#$%^)를 포함해주세요.
+                8자 이상, 영문/숫자/특수문자(!@#$%^*+=-)를 포함해주세요.
                 <br />
                 연속 숫자, 생년월일, 전화번호는 사용할 수 없습니다.
               </p>

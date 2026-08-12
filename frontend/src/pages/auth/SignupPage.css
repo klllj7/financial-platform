@@ -1,3 +1,9 @@
+/*
+  8pt 그리드: 모든 여백/간격은 8px의 배수로 맞춘다.
+  전역 좌우 여백(GLOBAL_MARGIN=40px)은 .signup-header와 .signup-card가
+  동일하게 가져서, 헤더 텍스트와 폼 내용의 왼쪽 끝이 항상 같은 x좌표에 맞도록 한다.
+*/
+
 /* 회원가입 전체 페이지 */
 .signup-page {
   min-height: 100vh;
@@ -19,9 +25,11 @@
   flex: 1;
 }
 
-/* 상단 브랜드 영역 */
+/* 상단 브랜드 영역. 좌우 padding을 .signup-card와 동일하게 맞춰서
+   h1/부제목의 왼쪽 끝이 카드 내부 콘텐츠의 왼쪽 끝과 정렬되게 한다. */
 .signup-header {
-  margin-bottom: 28px;
+  padding: 0 40px;
+  margin-bottom: 32px;
 }
 
 /* NAVER 로고처럼 강하게 보이는 서비스명 */
@@ -33,9 +41,10 @@
   letter-spacing: -1.5px;
 }
 
-/* 서비스 설명 */
+/* 서비스 설명. 제목보다 폭이 과도하게 넓어지지 않도록 제한한다. */
 .signup-header p {
-  margin: 10px 0 0;
+  max-width: 420px;
+  margin: 8px 0 0;
   color: #66748a;
   font-size: 15px;
   font-weight: 500;
@@ -44,7 +53,7 @@
 /* 회원가입 카드 */
 .signup-card {
   width: 100%;
-  padding: 42px;
+  padding: 40px;
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 24px 70px rgba(20, 35, 70, 0.14);
@@ -74,17 +83,25 @@
 
 /* 안내 문구 */
 .signup-title-area p:last-child {
-  margin: 12px 0 0;
+  max-width: 420px;
+  margin: 16px 0 0;
   color: #6f7c91;
   font-size: 14px;
   line-height: 1.6;
 }
 
-/* 회원가입 form */
+/*
+  회원가입 form: 2열 그리드.
+  이름/이메일은 각각 grid-column:1/-1(전체 폭)로 별도 행을 차지하고,
+  그 다음부터는 DOM 순서(비밀번호, 비밀번호 확인, 부서, 직무)가 그대로
+  1열/2열에 자동 배치되어 "비밀번호-비밀번호 확인"이 한 행, "부서-직무"가
+  다음 행에 나란히 놓인다. 이름/이메일도 auto-flow에 맡기면 뒤 항목들이
+  절반 폭만 차지한 채로 밀려 빈 칸이 생기므로, 반드시 전체 폭으로 분리한다.
+*/
 .signup-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px 16px;
+  gap: 24px 16px;
 }
 
 /* label + input/select 묶음 */
@@ -92,6 +109,11 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* 이름 / 이메일처럼 2열을 모두 차지해야 하는 블록 */
+.signup-full-width-group {
+  grid-column: 1 / -1;
 }
 
 /* label */
@@ -104,9 +126,9 @@
 /* input, select 공통 스타일 */
 .form-group input,
 .form-group select {
-  height: 50px;
+  height: 48px;
   border: 1px solid #d9e1ef;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 0 16px;
   outline: none;
   color: #1d2738;
@@ -136,8 +158,8 @@
 .signup-agreement-section {
   grid-column: 1 / -1;
 
-  padding: 18px;
-  margin-top: 4px;
+  padding: 24px;
+  margin-top: 8px;
 
   background: #f8faff;
   border: 1px solid #dce5f3;
@@ -148,7 +170,7 @@
 .signup-agreement-all {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
   color: #1d2a40;
   font-size: 15px;
@@ -160,9 +182,9 @@
 .signup-agreement-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
-  margin-top: 12px;
+  margin-top: 16px;
 
   color: #536176;
   font-size: 14px;
@@ -181,8 +203,8 @@
 .signup-agreement-item input {
   flex-shrink: 0;
 
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   margin: 0;
 
   accent-color: #2f6fed;
@@ -196,7 +218,7 @@
   justify-content: space-between;
   gap: 16px;
 
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 /* row에서 간격을 관리하므로 기존 item의 위쪽 여백 제거 */
@@ -226,7 +248,7 @@
 /* 전체 동의와 개별 동의 사이 구분선 */
 .signup-agreement-divider {
   height: 1px;
-  margin: 14px 0 2px;
+  margin: 16px 0 0;
 
   background: #dce5f3;
 }
@@ -244,10 +266,10 @@
 .signup-button {
   grid-column: 1 / -1;
   width: 100%;
-  height: 54px;
-  margin-top: 8px;
+  height: 48px;
+  margin-top: 16px;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #2f6fed;
   color: #ffffff;
   font-size: 16px;
@@ -277,14 +299,14 @@
 
 /* 로그인 이동 영역 */
 .login-link-area {
-  margin-top: 28px;
-  padding: 18px;
+  margin-top: 24px;
+  padding: 16px;
   border-radius: 16px;
   background: #f6f8fc;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   color: #66748a;
   font-size: 14px;
 }
@@ -304,23 +326,34 @@
   text-decoration: underline;
 }
 
-/* 회원가입 기본 권한 안내 문구 */
+/* 회원가입 기본 권한 안내 문구. 비밀번호 규칙 안내와 높이를 맞춰서
+   옆 칸(2열)의 입력창과 같은 y좌표에서 시작하게 한다. */
 .signup-role-notice {
-  margin: 4px 0 0;
-
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-/* 비밀번호 규칙 안내 문구 */
-.signup-password-rule {
-  min-height: 36px;
+  height: 36px;
   margin: 0;
 
   color: #64748b;
   font-size: 12px;
   line-height: 1.5;
+  word-break: keep-all;
+}
+
+/*
+  비밀번호 규칙 안내 문구.
+  "비밀번호"/"비밀번호 확인" 라벨은 같은 행에서 시작하지만, 두 안내 문구의
+  글자 수가 달라 줄바꿈 지점이 다르면 그 아래 input이 서로 다른 높이에서
+  시작해 행이 삐뚤어져 보인다. min-height 대신 고정 height(2줄 분량)로
+  박스 크기를 못박고, word-break:keep-all로 단어 중간이 아니라 의도한
+  지점(<br/>)에서만 줄바꿈되게 한다.
+*/
+.signup-password-rule {
+  height: 36px;
+  margin: 0;
+
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: keep-all;
 }
 
 /* 비밀번호 확인 칸도 비밀번호 칸과 높이를 맞추기 위한 안내 문구 */
@@ -328,12 +361,12 @@
   color: #64748b;
 }
 
-/* 이메일 입력은 아이디+도메인 조합이라 폭이 넓게 필요해 두 칸을 모두 차지한다. */
-.signup-email-group {
-  grid-column: 1 / -1;
-}
+/* 이메일 입력은 아이디+도메인 조합이라 폭이 넓게 필요해 두 칸을 모두 차지한다.
+   grid-column은 공용 클래스 .signup-full-width-group이 담당한다. */
 
-/* 아이디 input, @, 도메인 input, 도메인 select를 한 줄에 배치 */
+/* 아이디 input, @, 도메인 input, 도메인 select를 한 줄에 배치.
+   flex + align-items:center로 네 요소의 높이가 달라도 항상 수직 중앙에
+   맞춰지고, gap 하나로 네 요소 사이 간격이 전부 동일해진다. */
 .signup-email-input-wrap {
   display: flex;
   align-items: center;
@@ -343,9 +376,9 @@
 .signup-email-input-wrap input {
   flex: 1;
   min-width: 0;
-  height: 50px;
+  height: 48px;
   border: 1px solid #d9e1ef;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 0 16px;
   outline: none;
   color: #1d2738;
@@ -371,10 +404,10 @@
 
 .signup-email-domain-select {
   flex-shrink: 0;
-  width: 132px;
-  height: 50px;
+  width: 128px;
+  height: 48px;
   border: 1px solid #d9e1ef;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 0 12px;
   outline: none;
   color: #1d2738;
@@ -419,14 +452,14 @@
 /* 비밀번호 input도 다른 회원가입 input과 동일한 UI로 맞춤 */
 .signup-password-input-wrap input {
   width: 100%;
-  height: 50px;
+  height: 48px;
   padding: 0 48px 0 16px;
 
   color: #1d2738;
   background: #ffffff;
 
   border: 1px solid #d9e1ef;
-  border-radius: 14px;
+  border-radius: 12px;
 
   font-size: 15px;
   outline: none;
@@ -465,10 +498,14 @@
   background: #eff6ff;
 }
 
-/* 태블릿 이하 */
+/* 태블릿 이하: 좌우 여백이 24px로 줄어드므로 헤더도 같은 값으로 맞춘다. */
 @media (max-width: 760px) {
   .signup-container {
     max-width: 520px;
+  }
+
+  .signup-header {
+    padding: 0 24px;
   }
 
   .signup-header h1 {
@@ -476,7 +513,7 @@
   }
 
   .signup-card {
-    padding: 34px 28px;
+    padding: 32px 24px;
   }
 
   .signup-form {
@@ -484,7 +521,7 @@
   }
 }
 
-/* 모바일 */
+/* 모바일: 좌우 여백이 16px로 줄어드므로 헤더도 같은 값으로 맞춘다. */
 @media (max-width: 480px) {
   .signup-page {
     padding: 0;
@@ -496,8 +533,8 @@
   }
 
   .signup-header {
-    padding: 34px 22px 0;
-    margin-bottom: 22px;
+    padding: 32px 16px 0;
+    margin-bottom: 24px;
   }
 
   .signup-header h1 {
@@ -511,13 +548,13 @@
   .signup-card {
     min-height: calc(100vh - 120px);
     border-radius: 28px 28px 0 0;
-    padding: 34px 22px;
+    padding: 32px 16px;
     box-shadow: none;
   }
 
   /* 모바일에서는 약관 문구와 전문보기 간격을 줄인다. */
   .signup-agreement-row {
-    gap: 10px;
+    gap: 8px;
   }
 
   .signup-agreement-item {
@@ -527,7 +564,7 @@
   .signup-agreement-link {
     font-size: 12px;
   }
-  
+
   .login-link-area {
     flex-direction: column;
   }
