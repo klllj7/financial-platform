@@ -14,10 +14,11 @@ const proxy = {
     target: "http://localhost:8080",
     changeOrigin: true,
   },
+  // DLP 서버가 /dlp-api 접두사 붙은 경로(/dlp-api/events 등)를 직접 처리하므로
+  // (운영 ALB가 경로를 벗기지 않고 그대로 넘기는 것과 동일하게) 여기서도 벗기지 않는다.
   "/dlp-api": {
     target: "http://localhost:8000",
     changeOrigin: true,
-    rewrite: (path) => path.replace(/^\/dlp-api/, "")
   },
 };
 
