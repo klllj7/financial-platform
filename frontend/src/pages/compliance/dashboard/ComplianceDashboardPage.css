@@ -1587,6 +1587,16 @@
   line-height: 1.4;
 }
 
+/* 추정 비용 안내 문구 */
+.compliance-cost-disclaimer {
+  display: block;
+  margin-top: 2px;
+  color: #9aa5b5;
+  font-size: 8px;
+  line-height: 1.4;
+  cursor: help;
+}
+
 
 /* ==================================================
    최근 공지사항

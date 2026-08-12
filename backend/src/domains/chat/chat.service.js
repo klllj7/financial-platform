@@ -74,8 +74,11 @@ const softDeleteSessions = async ({ userId, sessionIds }) => {
                입력 검사에서 받은 usageLogId에 이벤트만 덧붙인다.
                이 값을 안 넘기면 한 번의 대화가 사용 이력 2건으로 집계된다.
 
-  DLP 서비스가 응답하지 않으면(로컬에서 안 켜져 있는 등) 채팅 자체가 막히지 않도록
-  탐지 없이 통과시키고 에러만 로그로 남긴다.
+  DLP 서비스가 응답하지 않으면(장애, 네트워크 문제 등) "마스킹된 데이터만
+  외부로 나간다"는 원칙이 깨지므로, 절대 원본을 그대로 통과시키지 않는다.
+  검사를 못 했으면 못 한 대로 요청 자체를 막는다(fail-closed). 이게
+  "탐지 없이 통과"보다 사용자 경험은 나쁘지만, 이 프로젝트에서는 가용성보다
+  데이터 유출 방지가 우선이라는 원칙에 따른 의도적 선택이다.
 */
 const inspectPrompt = async (message, userId, { direction = "input", usageLogId = null } = {}) => {
   try {
@@ -100,16 +103,23 @@ const inspectPrompt = async (message, userId, { direction = "input", usageLogId 
       maskApplied: data.action_status === "masked",
       safePrompt: data.prompt ?? message,
       usageLogId: data.usage_log_id ?? null,
+      serviceUnavailable: false,
     };
   } catch (error) {
     // fetch 실패는 error.message만으로는 원인(DNS 실패/연결 거부/타임아웃 등)이 안 보이고
     // 실제 원인은 error.cause에 담기므로 같이 남긴다.
     console.error(
-      "DLP 서비스 호출 실패, 탐지 없이 통과시킵니다:",
+      "DLP 서비스 호출 실패, 검사를 못 했으므로 요청을 차단합니다:",
       error.message,
       error.cause ? `(cause: ${error.cause})` : "",
     );
-    return { blocked: false, maskApplied: false, safePrompt: message, usageLogId: null };
+    return {
+      blocked: true,
+      maskApplied: false,
+      safePrompt: message,
+      usageLogId: null,
+      serviceUnavailable: true,
+    };
   }
 };
 
@@ -233,7 +243,9 @@ const sendMessage = async ({
   let outputTokens = 0;
 
   if (inspection.blocked) {
-    reply = "보안 정책에 의해 요청이 차단되었습니다. 인증정보나 기밀정보를 제거해 주세요.";
+    reply = inspection.serviceUnavailable
+      ? "보안 검사 서비스에 일시적으로 연결할 수 없어 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."
+      : "보안 정책에 의해 요청이 차단되었습니다. 인증정보나 기밀정보를 제거해 주세요.";
   } else if (approvedTool.isDefaultSolar) {
     const solarResponse = process.env.AI_PROVIDER === "bedrock"
       ? await createBedrockMessage([...previousMessages, providerUserMessage])
@@ -292,7 +304,9 @@ const sendMessage = async ({
       usageLogId: inspection.usageLogId,
     });
     if (outputInspection.blocked) {
-      reply = "AI가 생성한 답변에 민감한 내용이 포함되어 있어 표시할 수 없습니다. 다른 방식으로 다시 질문해 주세요.";
+      reply = outputInspection.serviceUnavailable
+        ? "보안 검사 서비스에 일시적으로 연결할 수 없어 답변을 표시하지 못했습니다. 잠시 후 다시 시도해 주세요."
+        : "AI가 생성한 답변에 민감한 내용이 포함되어 있어 표시할 수 없습니다. 다른 방식으로 다시 질문해 주세요.";
     } else if (outputInspection.maskApplied) {
       reply = outputInspection.safePrompt;
     }

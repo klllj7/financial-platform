@@ -761,16 +761,23 @@ function ComplianceDashboardPage({ isAdminView = false }) {
             </strong>
 
             <small>
-              ₩
-              {formatNumber(
-                dashboardSummary.estimatedCostKrw,
-              )}{" "}
-              / 이번 달
+              {dashboardSummary.costRatesConfigured
+                ? `₩${formatNumber(dashboardSummary.estimatedCostKrw)} / 이번 달`
+                : "단가 미설정"}
             </small>
 
             <small className="compliance-budget-description">
-              Solar API 응답의 실제 입·출력 토큰 합계
+              Bedrock(Anthropic) 응답 기준 토큰 합계
             </small>
+
+            {dashboardSummary.costRatesConfigured && (
+              <small
+                className="compliance-cost-disclaimer"
+                title="크로스 리전 추론 프로파일 사용 시 부과되는 약 10% 할증은 이 추정치에 반영되어 있지 않습니다."
+              >
+                추정치(참고용) · 실제 청구액과 다를 수 있음
+              </small>
+            )}
           </div>
         </article>
 

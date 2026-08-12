@@ -211,16 +211,13 @@ function AiChatPage() {
   );
 
 
-  /* 질문을 백엔드에 저장하고 서버에서 생성한 AI 답변을 추가한다. */
-  const handleSend = async () => {
-    const trimmedPrompt = prompt.trim();
-
-    if ((!trimmedPrompt && !attachment) || isLoading || !selectedTool) {
-      return;
-    }
-
-    setPrompt("");
-    setError("");
+  /*
+    사용자 메시지를 서버 응답을 기다리지 않고 즉시 화면에 그린다(낙관적
+    업데이트). 실패하면 그 메시지를 지우지 않고 "전송 실패" 상태로 바꿔서
+    다시 보낼 수 있게 한다 — 방금 겪은 DLP 타임아웃처럼 응답이 늦거나
+    실패해도, 사용자가 자기가 보낸 말이 사라졌다고 오해하지 않게 하기 위함.
+  */
+  const submitMessage = async ({ text, attachmentFile, tempId }) => {
     setIsLoading(true);
 
     try {
@@ -231,16 +228,16 @@ function AiChatPage() {
         코드 경로를 타다가 어긋날 여지가 생긴다 — 그런 여지 자체를 없앤다.
       */
       const response = await sendChatMessage({
-        message: trimmedPrompt,
+        message: text,
         sessionId: activeChatId,
         toolKey: selectedTool.isDefault ? selectedTool.toolKey : undefined,
         aiToolApplicationId: selectedTool.isDefault ? undefined : selectedTool.id,
-        attachment,
+        attachment: attachmentFile,
       });
       const { session, userMessage, assistantMessage } = response.data;
 
       setMessages((currentMessages) => [
-        ...currentMessages,
+        ...currentMessages.filter((message) => message.id !== tempId),
         formatMessage(userMessage),
         formatMessage(assistantMessage),
       ]);
@@ -257,19 +254,78 @@ function AiChatPage() {
         const withoutCurrent = currentHistory.filter((chat) => chat.id !== session.id);
         return [session, ...withoutCurrent];
       });
-      setAttachment(null);
-      if (attachmentInputRef.current) {
-        attachmentInputRef.current.value = "";
-      }
     } catch (requestError) {
       console.error("AI 답변 요청 실패", requestError);
       setError(
         requestError.response?.data?.error?.message ||
           "AI 답변을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
+      setMessages((currentMessages) =>
+        currentMessages.map((message) =>
+          message.id === tempId
+            ? { ...message, pending: false, failed: true }
+            : message,
+        ),
+      );
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /* 질문을 화면에 즉시 표시하고, 백그라운드로 백엔드에 저장·AI 답변을 요청한다. */
+  const handleSend = async () => {
+    const trimmedPrompt = prompt.trim();
+
+    if ((!trimmedPrompt && !attachment) || isLoading || !selectedTool) {
+      return;
+    }
+
+    const pendingAttachment = attachment;
+    const tempId = `pending-${Date.now()}`;
+
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: tempId,
+        role: "user",
+        content: [
+          trimmedPrompt,
+          pendingAttachment ? `[첨부파일: ${pendingAttachment.name}]` : "",
+        ].filter(Boolean).join("\n"),
+        createdAt: new Date().toLocaleTimeString("ko-KR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        pending: true,
+        retryText: trimmedPrompt,
+        retryAttachment: pendingAttachment,
+      },
+    ]);
+    setPrompt("");
+    setError("");
+    removeAttachment();
+
+    await submitMessage({ text: trimmedPrompt, attachmentFile: pendingAttachment, tempId });
+  };
+
+  /* 전송 실패한 메시지를 같은 내용으로 다시 시도한다. */
+  const handleRetryMessage = async (failedMessage) => {
+    if (isLoading) return;
+
+    setMessages((currentMessages) =>
+      currentMessages.map((message) =>
+        message.id === failedMessage.id
+          ? { ...message, pending: true, failed: false }
+          : message,
+      ),
+    );
+    setError("");
+
+    await submitMessage({
+      text: failedMessage.retryText,
+      attachmentFile: failedMessage.retryAttachment,
+      tempId: failedMessage.id,
+    });
   };
 
   const handleAttachmentChange = (event) => {
@@ -642,6 +698,20 @@ function AiChatPage() {
                       <div className="ai-chat-message-content">
                         {message.content}
                       </div>
+                    )}
+
+                    {message.pending && (
+                      <small className="ai-chat-message-pending">전송 중...</small>
+                    )}
+
+                    {message.failed && (
+                      <button
+                        type="button"
+                        className="ai-chat-message-retry"
+                        onClick={() => handleRetryMessage(message)}
+                      >
+                        전송 실패 · 다시 시도
+                      </button>
                     )}
 
                     {message.maskApplied && (
