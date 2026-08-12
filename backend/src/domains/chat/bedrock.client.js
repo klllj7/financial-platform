@@ -3,6 +3,7 @@ const {
   InvokeModelCommand,
 } = require("@aws-sdk/client-bedrock-runtime");
 const { getAdapter } = require("./bedrock-adapters");
+const { getDisplayName } = require("./allowed-models.config");
 
 const providerError = (code, message, statusCode) =>
   Object.assign(new Error(message), { code, statusCode });
@@ -63,9 +64,11 @@ const invokeBedrockModel = async ({ modelId, messages, maxTokens }) => {
     );
   }
 
+  // 채팅 화면에는 원본 모델ID/ARN 대신 사람이 읽을 수 있는 이름을 보여준다.
+  // 화이트리스트에 없는 모델(범위를 넓혔을 때)은 원본 ID로 대체 표시한다.
   return {
     content,
-    modelName: modelId.split("/").pop(),
+    modelName: getDisplayName(modelId) || modelId.split("/").pop(),
     inputTokens,
     outputTokens,
   };
