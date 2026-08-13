@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Clock3, Search, ShieldAlert } from "lucide
 
 import { getEvents, postEventAction } from "../../../api/dlpApi";
 import { formatDetectionType } from "../../../utils/detectionType";
+import { maskName } from "../../../utils/maskName";
 import "./ComplianceRiskEventsPage.css";
 
 const RISK_FILTERS = ["전체", "HIGH", "MEDIUM", "LOW"];
@@ -95,7 +96,11 @@ function ComplianceRiskEventsPage() {
             eventId: event.event_id,
             direction: event.direction ?? "input",
             riskLevel: event.grade,
+            // 원본 이름. 반복 위험 판별(getRecentUserEventCount)·최신행 판별(seenUserNames)·
+            // 검색에서 동일인 비교 키로만 쓰고, 화면에는 절대 렌더링하지 않는다.
+            // (마스킹된 값끼리는 서로 다른 사람이 같은 문자열로 겹칠 수 있어 비교 키로 쓰면 안 됨)
             userName: event.user_name ?? "-",
+            userNameMasked: maskName(event.user_name),
             department: event.department_name ?? "-",
             eventType: event.detection_type,
             // AI가 실제로 호출된 경우에만 채워진다. 입력 단계에서 차단된 요청처럼
@@ -117,7 +122,9 @@ function ComplianceRiskEventsPage() {
               id: action.id,
               label: ACTION_HISTORY_LABELS[action.action_type] ?? action.action_type,
               reason: action.action_reason,
-              actorName: action.actor_name,
+              // actorName은 비교/검색 용도가 없어 매핑 단계에서 바로 마스킹한다.
+              // 담당자 이름이 아예 없는 자동 조치는 기존처럼 "담당자"로 표시.
+              actorName: action.actor_name ? maskName(action.actor_name) : "담당자",
               // 담당자 수동 조치는 direction이 null로 내려온다.
               isAuto: action.direction != null,
               actedAt: formatOccurredAt(action.action_time),
@@ -308,7 +315,7 @@ function ComplianceRiskEventsPage() {
                   <td>{event.occurredAt}</td>
                   <td><span className={`risk-level ${event.riskLevel.toLowerCase()}`}>{event.riskLevel}</span></td>
                   <td>
-                    <strong>{event.userName}</strong>
+                    <strong>{event.userNameMasked}</strong>
                     <small>{event.department}</small>
                     {recentEventCount > 2 && isLatestForUser && (
                       <span 
@@ -346,7 +353,7 @@ function ComplianceRiskEventsPage() {
           <section className="risk-event-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
             <header><div><span className={`risk-level ${selectedEvent.riskLevel.toLowerCase()}`}>{selectedEvent.riskLevel}</span><h3>{formatDetectionType(selectedEvent.eventType)}</h3></div><button type="button" onClick={() => setSelectedEventId(null)}>닫기</button></header>
             <dl>
-              <div><dt>사용자</dt><dd>{selectedEvent.userName} · {selectedEvent.department}</dd></div>
+              <div><dt>사용자</dt><dd>{selectedEvent.userNameMasked} · {selectedEvent.department}</dd></div>
               <div><dt>발생 시각</dt><dd>{selectedEvent.occurredAt}</dd></div>
               <div><dt>탐지 위치</dt><dd>{selectedEvent.direction === "output" ? "AI 응답" : "사용자 입력"}</dd></div>
               <div><dt>사용 모델</dt><dd>{selectedEvent.modelName}</dd></div>
@@ -403,7 +410,7 @@ function ComplianceRiskEventsPage() {
                           <div>
                             <span className="risk-action-history-label">{action.label}</span>
                             <time>{action.actedAt}</time>
-                            {!action.isAuto && <span>{action.actorName ?? "담당자"}</span>}
+                            {!action.isAuto && <span>{action.actorName}</span>}
                           </div>
                           <p>{action.reason}</p>
                         </li>
