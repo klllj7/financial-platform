@@ -250,7 +250,7 @@ function RegulationMappingPage() {
               {clause.file_name && (
                 <a
                   className="regulation-clause-file-link"
-                  href={`http://localhost:8080${clause.file_path}`}
+                  href={clause.file_path}
                   target="_blank"
                   rel="noreferrer"
                   onClick={(event) => event.stopPropagation()}
@@ -401,7 +401,7 @@ function RegulationMappingPage() {
               {selectedClause.file_name && (
                 <div className="regulation-detail-file">
                   <a
-                    href={`http://localhost:8080${selectedClause.file_path}`}
+                    href={selectedClause.file_path}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -413,7 +413,7 @@ function RegulationMappingPage() {
                     <iframe
                       className="regulation-detail-file-preview"
                       title="원본 파일 미리보기"
-                      src={`http://localhost:8080${selectedClause.file_path}`}
+                      src={selectedClause.file_path}
                     />
                   )}
                   {selectedClause.file_type &&
@@ -421,7 +421,7 @@ function RegulationMappingPage() {
                       <img
                         className="regulation-detail-file-preview"
                         alt="원본 파일 미리보기"
-                        src={`http://localhost:8080${selectedClause.file_path}`}
+                        src={selectedClause.file_path}
                       />
                     )}
                 </div>

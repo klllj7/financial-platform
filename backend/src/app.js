@@ -29,6 +29,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 규제 조항 첨부파일(uploadMiddleware.js가 backend/uploads에 저장)을 정적으로 서빙한다.
+// 이게 없으면 업로드는 되는데 다운로드/미리보기 요청이 전부 404가 난다.
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api/regulations", regulationRoutes);
 app.use("/api/policies", policyRoutes);
