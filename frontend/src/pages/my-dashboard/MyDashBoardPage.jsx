@@ -303,7 +303,7 @@ function MyDashboardPage() {
         <article className="dashboard-summary-card model-summary-card">
           <div className="model-card-content">
             <span className="summary-label">
-              모델 배정 현황
+              모델 사용 현황
             </span>
 
             <div className="model-allocation">

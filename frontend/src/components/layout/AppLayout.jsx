@@ -42,7 +42,7 @@ function AppLayout() {
     등록되지 않은 주소이면 서비스명을 표시한다.
   */
   const pageTitle =
-    PAGE_TITLES[location.pathname] ?? "ComplianceAI";
+    PAGE_TITLES[location.pathname] ?? "ReguPilot";
 
   return (
     <div className="app-layout">

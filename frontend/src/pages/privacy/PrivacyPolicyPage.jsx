@@ -31,10 +31,10 @@ function PrivacyPolicyPage() {
         
         {/* 개인정보처리방침 상단 제목 영역 */}
         <header className="privacy-header">
-          <p className="privacy-eyebrow">ComplianceAI Privacy Policy</p>
+          <p className="privacy-eyebrow">ReguPilot Privacy Policy</p>
           <h1>개인정보처리방침</h1>
           <p className="privacy-description">
-            ComplianceAI는 생성형 AI 사용 승인, 민감정보 탐지 및 비식별 처리,
+            ReguPilot는 생성형 AI 사용 승인, 민감정보 탐지 및 비식별 처리,
             사용 이력 관리, 감사 리포트 생성을 지원하는 보안·컴플라이언스
             플랫폼입니다. 본 개인정보처리방침은 서비스 이용 과정에서 처리되는
             개인정보의 항목, 목적, 보유기간 및 보호조치를 안내하기 위해
@@ -98,7 +98,7 @@ function PrivacyPolicyPage() {
         <section id="article-1" className="privacy-section">
           <h2>제1조 총칙</h2>
           <p>
-            ComplianceAI(이하 “회사” 또는 “서비스”)는 정보주체의 자유와 권리
+            ReguPilot(이하 “회사” 또는 “서비스”)는 정보주체의 자유와 권리
             보호를 위해 「개인정보 보호법」 및 관계 법령이 정한 바를 준수하며,
             개인정보를 적법하고 안전하게 처리·관리하고 있습니다.
           </p>
@@ -636,11 +636,11 @@ function PrivacyPolicyPage() {
                 </tr>
                 <tr>
                   <td>담당 부서</td>
-                  <td>ComplianceAI 운영팀</td>
+                  <td>ReguPilot 운영팀</td>
                 </tr>
                 <tr>
                   <td>이메일</td>
-                  <td>privacy@complianceai.example</td>
+                  <td>privacy@regupilot.example</td>
                 </tr>
                 <tr>
                   <td>연락처</td>

@@ -211,7 +211,7 @@ function Sidebar() {
         </div>
  
         <div className="sidebar-logo-text">
-          <strong>ComplianceAI</strong>
+          <strong>ReguPilot</strong>
           <span>AI 거버넌스 플랫폼</span>
         </div>
       </div>
