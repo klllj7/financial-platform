@@ -73,14 +73,16 @@
   letter-spacing: 0.3px;
 }
 
-/* 왼쪽 큰 제목. word-break: keep-all로 화면 폭이 줄어도 단어 중간이 아니라
-   띄어쓰기 단위로만 줄바꿈되게 해서, <br/>로 지정한 2줄 구성이 깨지지 않는다. */
+/* 왼쪽 큰 제목. white-space: nowrap으로 <br/>로 나눠둔 각 줄이 화면 폭과
+   무관하게 그 자체로는 절대 다시 줄바꿈되지 않게 한다 — keep-all만으로는
+   줄 하나가 폭보다 길어지면 여전히 어절 단위로 한 번 더 꺾일 수 있어서,
+   줄 구성 자체(몇 줄인지, 어디서 나뉘는지)를 완전히 고정하려면 이게 필요하다. */
 .login-left-title {
   margin: 0 0 20px;
   font-size: 40px;
   line-height: 1.28;
   letter-spacing: -1.2px;
-  word-break: keep-all;
+  white-space: nowrap;
 }
 
 /* 왼쪽 설명 문구 */
