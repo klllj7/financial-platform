@@ -10,7 +10,7 @@ function AppFooter() {
     <footer className="app-footer">
       <div className="app-footer-inner">
         <p className="app-footer-copy">
-          © 2026 ComplianceAI. All rights reserved.
+          © 2026 ReguPilot. All rights reserved.
         </p>
 
         <div className="app-footer-links">

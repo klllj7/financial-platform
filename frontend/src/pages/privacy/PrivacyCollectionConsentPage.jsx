@@ -32,13 +32,13 @@ function PrivacyCollectionConsentPage() {
         {/* 상단 제목 */}
         <header className="privacy-header">
           <p className="privacy-eyebrow">
-            ComplianceAI Privacy Collection Consent
+            ReguPilot Privacy Collection Consent
           </p>
 
           <h1>개인정보 수집·이용 동의 안내</h1>
 
           <p className="privacy-description">
-            ComplianceAI 회원가입과 계정 관리를 위해 아래와 같이 개인정보를
+            ReguPilot 회원가입과 계정 관리를 위해 아래와 같이 개인정보를
             수집·이용합니다. 내용을 확인한 후 동의 여부를 선택해주세요.
           </p>
 
@@ -145,7 +145,7 @@ function PrivacyCollectionConsentPage() {
 
           <p>
             다만, 위 정보는 회원가입과 계정 생성에 필요한 필수 정보이므로
-            동의하지 않을 경우 ComplianceAI 회원가입 및 서비스 이용이
+            동의하지 않을 경우 ReguPilot 회원가입 및 서비스 이용이
             제한됩니다.
           </p>
         </section>
@@ -156,7 +156,7 @@ function PrivacyCollectionConsentPage() {
 
           <p>
             개인정보의 파기 절차, 정보주체의 권리, 개인정보 보호책임자,
-            제3자 제공 및 처리 위탁 등에 관한 자세한 사항은 ComplianceAI
+            제3자 제공 및 처리 위탁 등에 관한 자세한 사항은 ReguPilot
             개인정보처리방침에서 확인할 수 있습니다.
           </p>
         </section>

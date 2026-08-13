@@ -606,7 +606,7 @@ function AiChatPage() {
           <header className="ai-chat-conversation-header">
             <div className="ai-chat-bot-icon"><Bot size={20} /></div>
             <div className="ai-chat-conversation-title">
-              <h3>ComplianceAI</h3>
+              <h3>ReguPilot</h3>
               <p>사용 가능한 AI를 선택해 안전하게 대화를 시작하세요.</p>
             </div>
             <div className="ai-chat-conversation-status">
@@ -681,7 +681,7 @@ function AiChatPage() {
                   <div className="ai-chat-message-body">
                     <div className="ai-chat-message-meta">
                       <strong>
-                        {message.role === "user" ? "나" : "ComplianceAI"}
+                        {message.role === "user" ? "나" : "ReguPilot"}
                       </strong>
                       <span>{message.createdAt}</span>
                     </div>

@@ -31,10 +31,10 @@ function TermsOfServicePage() {
 
         {/* 상단 제목 영역 */}
         <header className="terms-header">
-          <p className="terms-eyebrow">ComplianceAI Terms of Service</p>
+          <p className="terms-eyebrow">ReguPilot Terms of Service</p>
           <h1>서비스 이용약관</h1>
           <p className="terms-description">
-            본 약관은 ComplianceAI가 제공하는 생성형 AI 사용 승인, 민감정보
+            본 약관은 ReguPilot가 제공하는 생성형 AI 사용 승인, 민감정보
             탐지·비식별 처리, 사용 이력 관리, 감사 리포트 생성 서비스의 이용과
             관련하여 회사와 회원의 권리, 의무, 책임사항 및 서비스 이용조건을
             규정합니다.
@@ -112,7 +112,7 @@ function TermsOfServicePage() {
         <section id="terms-1" className="terms-section">
           <h2>제1조 목적</h2>
           <p>
-            본 약관은 ComplianceAI(이하 “회사”)가 제공하는 생성형 AI 사용
+            본 약관은 ReguPilot(이하 “회사”)가 제공하는 생성형 AI 사용
             승인·비식별·감사대장 자동화 플랫폼 및 관련 서비스(이하 “서비스”)의
             이용과 관련하여 회사와 회원 사이의 권리, 의무, 책임사항, 서비스
             이용조건 및 절차를 규정함을 목적으로 합니다.
@@ -499,7 +499,7 @@ function TermsOfServicePage() {
                 </tr>
                 <tr>
                   <td>주요 내용</td>
-                  <td>ComplianceAI 서비스 이용약관 최초 수립</td>
+                  <td>ReguPilot 서비스 이용약관 최초 수립</td>
                 </tr>
               </tbody>
             </table>
