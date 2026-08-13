@@ -1,6 +1,5 @@
 const EvidenceFile = require("./evidenceFile.model");
 const { Op } = require("sequelize");
-const User = require("../../auth/user.model");
 const UsageLog = require("./usageLog.model");
 const ActionHistory = require("./actionHistory.model");
 const { CATEGORY_META, NA_CATEGORIES, CHECKLIST_ITEMS } = require("./checklistItems");
@@ -169,16 +168,18 @@ const getLogEntries = async ({ departmentId, targetYear, itemNo }) => {
   return row?.log_entries ?? [];
 };
 
-/** 해당 부서 소속 사용자 id 목록. 위험이벤트/접근이력을 부서 단위로 좁힐 때 공통으로 쓴다. */
-const getDepartmentUserIds = async (departmentId) => {
-  const users = await User.findAll({ attributes: ["id"], where: { department_id: departmentId } });
-  return users.map((u) => u.id);
-};
+/*
+ * 컴플라이언스 담당자는 전사 단위로 상시평가 증빙자료를 준비하는 입장이라, 이 아래
+ * ⑤⑥⑦⑧ 자동생성 항목들은 위험이벤트를 특정 부서로 좁히지 않고 회사 전체를 대상으로
+ * getExpandedRiskEvents({ from, to })를 그대로 호출한다(userIds 미전달 = 전체 조회).
+ * (예전에는 getDepartmentUserIds(departmentId)로 담당자 본인 부서에만 좁혔으나,
+ * 그러면 담당자 본인 부서 밖에서 발생한 이벤트가 증빙자료에서 통째로 누락됐다.)
+ * departmentId는 여전히 EvidenceFile 저장 위치(department_id 컬럼, S3 key)에는 쓰인다.
+ */
 
 /** ⑤ 입력 정상범위 사전검토 — 룰셋 스냅샷 + 차단된 이벤트 로그, xlsx(2시트) */
 const generateEvidence5 = async ({ departmentId, targetYear, from, to }) => {
-  const userIds = await getDepartmentUserIds(departmentId);
-  const rows = await getExpandedRiskEvents({ from, to, userIds });
+  const rows = await getExpandedRiskEvents({ from, to });
   const blockedEvents = rows
     .filter((r) => r.actionStatus === "blocked")
     .map((r) => ({
@@ -229,8 +230,7 @@ const generateEvidence5 = async ({ departmentId, targetYear, from, to }) => {
 
 /** ⑥ 우회시도 탐지·차단 — prompt_injection 유형만, xlsx */
 const generateEvidence6 = async ({ departmentId, targetYear, from, to }) => {
-  const userIds = await getDepartmentUserIds(departmentId);
-  const rows = await getExpandedRiskEvents({ from, to, userIds });
+  const rows = await getExpandedRiskEvents({ from, to });
   const filtered = rows
     .filter((r) => r.type === "prompt_injection")
     .map((r) => ({
@@ -267,8 +267,7 @@ const generateEvidence6 = async ({ departmentId, targetYear, from, to }) => {
 
 /** ⑦ PII 탐지·마스킹 — PII 유형만, xlsx */
 const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
-  const userIds = await getDepartmentUserIds(departmentId);
-  const rows = await getExpandedRiskEvents({ from, to, userIds });
+  const rows = await getExpandedRiskEvents({ from, to });
   const filtered = rows
     .filter((r) => PII_TYPES.has(r.type))
     .map((r) => ({
@@ -311,8 +310,7 @@ const generateEvidence7 = async ({ departmentId, targetYear, from, to }) => {
  *  유사도 유형만 넣고 스펙의 "output_leak_block" 태깅을 제외했었다. 이제 구분이 가능하다.
  */
 const generateEvidence8 = async ({ departmentId, targetYear, from, to }) => {
-  const userIds = await getDepartmentUserIds(departmentId);
-  const rows = await getExpandedRiskEvents({ from, to, userIds });
+  const rows = await getExpandedRiskEvents({ from, to });
   const filtered = rows
     .filter((r) => r.direction === "output" || r.type === "confidential_similarity")
     .map((r) => ({
@@ -354,15 +352,11 @@ const generateEvidence12 = async ({ departmentId, targetYear, from, to }) => {
   const rangeTo = to ?? new Date();
   const rangeFrom = from ?? new Date(rangeTo.getTime() - QUERY_MONITOR_PERIOD_DAYS * 24 * 60 * 60 * 1000);
 
-  const deptUsers = await User.findAll({ attributes: ["id"], where: { department_id: departmentId } });
-  const userIds = deptUsers.map((u) => u.id);
-
-  const logs = userIds.length
-    ? await UsageLog.findAll({
-        attributes: ["user_id", "created_at"],
-        where: { user_id: { [Op.in]: userIds }, created_at: { [Op.between]: [rangeFrom, rangeTo] } },
-      })
-    : [];
+  // ⑤⑥⑦⑧/23/24와 같은 이유로 부서로 좁히지 않고 전사 사용자를 대상으로 한다.
+  const logs = await UsageLog.findAll({
+    attributes: ["user_id", "created_at"],
+    where: { created_at: { [Op.between]: [rangeFrom, rangeTo] } },
+  });
 
   const countByUser = new Map();
   logs.forEach((l) => countByUser.set(l.user_id, (countByUser.get(l.user_id) || 0) + 1));
@@ -414,24 +408,13 @@ const ROLE_ACCESS_SNAPSHOT = {
   // TODO: 실제 라우트별 authorize("...") 값을 채워야 함 (grep -r "authorize(" backend/src/domains)
 };
 
-/**
- * ActionHistory.event_id는 usage_log.id를 가리킨다(요청을 올린 사용자 기준).
- * actor_user_id는 검토를 수행한 담당자라 부서 구분 기준으로 쓸 수 없어서,
- * 요청 소유자(usage_log.user_id)가 이 부서 소속인지로 걸러야 한다.
+/*
+ * 23/24번도 ⑤⑥⑦⑧과 같은 이유로 부서로 좁히지 않고 전사 ActionHistory를 그대로 쓴다.
+ * (예전엔 getDepartmentUsageLogIds(departmentId)로 요청 소유자의 부서 소속 여부를 거쳐
+ * event_id를 좁혔으나, 컴플라이언스 담당자 본인 부서 밖 조치 이력이 누락됐다.)
  */
-const getDepartmentUsageLogIds = async (departmentId) => {
-  const userIds = await getDepartmentUserIds(departmentId);
-  if (!userIds.length) return [];
-  const logs = await UsageLog.findAll({ attributes: ["id"], where: { user_id: { [Op.in]: userIds } } });
-  return logs.map((l) => l.id);
-};
-
 const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
-  const usageLogIds = await getDepartmentUsageLogIds(departmentId);
-  const where = {
-    event_id: { [Op.in]: usageLogIds },
-    ...(from && to ? { action_time: { [Op.between]: [from, to] } } : {}),
-  };
+  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
   const actions = await ActionHistory.findAll({ where, order: [["action_time", "DESC"]], limit: 500 });
 
   const recentAccessLogs = actions.map((a) => ({
@@ -467,11 +450,7 @@ const generateEvidence23 = async ({ departmentId, targetYear, from, to }) => {
  *  전체 actor_user_id 집계로 대체하고, resource/permission_level은 데이터가 없어 컬럼에서 제외했다.
  */
 const generateEvidence24 = async ({ departmentId, targetYear, from, to }) => {
-  const usageLogIds = await getDepartmentUsageLogIds(departmentId);
-  const where = {
-    event_id: { [Op.in]: usageLogIds },
-    ...(from && to ? { action_time: { [Op.between]: [from, to] } } : {}),
-  };
+  const where = from && to ? { action_time: { [Op.between]: [from, to] } } : {};
   const actions = await ActionHistory.findAll({ where });
 
   const byActor = new Map();
