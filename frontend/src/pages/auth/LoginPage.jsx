@@ -111,7 +111,9 @@ function LoginPage() {
             <h1 className="login-left-title">
               ReguPilot
               <br />
-              금융권 생성형 AI 활용 모니터링 및 규제 증빙 자동화 플랫폼
+              금융권 생성형 AI 활용 모니터링 및 
+              <br/>
+              규제 증빙 자동화 플랫폼
             </h1>
 
             <p className="login-left-description">
