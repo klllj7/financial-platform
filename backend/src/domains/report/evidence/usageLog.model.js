@@ -12,6 +12,7 @@ const UsageLog = sequelize.define("UsageLog", {
   description: { type: DataTypes.STRING },
   // 화면·리포트에 노출할 마스킹본. 탐지 없으면 원문과 동일.
   masked_description: { type: DataTypes.STRING, allowNull: true },
+  model_name: { type: DataTypes.STRING, allowNull: true },
 }, {
   tableName: "usage_log",
   underscored: true,

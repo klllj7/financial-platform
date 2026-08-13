@@ -17,6 +17,8 @@ const InternalReport = sequelize.define("InternalReport", {
 }, {
   tableName: "internal_report",
   underscored: true,
+  createdAt: "created_at",
+  updatedAt: "updated_at",
 });
 
 module.exports = InternalReport;
