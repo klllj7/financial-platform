@@ -73,12 +73,16 @@
   letter-spacing: 0.3px;
 }
 
-/* 왼쪽 큰 제목 */
+/* 왼쪽 큰 제목. white-space: nowrap으로 <br/>로 나눠둔 각 줄이 화면 폭과
+   무관하게 그 자체로는 절대 다시 줄바꿈되지 않게 한다 — keep-all만으로는
+   줄 하나가 폭보다 길어지면 여전히 어절 단위로 한 번 더 꺾일 수 있어서,
+   줄 구성 자체(몇 줄인지, 어디서 나뉘는지)를 완전히 고정하려면 이게 필요하다. */
 .login-left-title {
   margin: 0 0 20px;
   font-size: 40px;
   line-height: 1.28;
   letter-spacing: -1.2px;
+  white-space: nowrap;
 }
 
 /* 왼쪽 설명 문구 */
@@ -441,57 +445,6 @@
 .backend-check-button:hover {
   background: #f3f7ff;
   border-color: #2f6fed;
-}
-
-/* 개발/시연용 빠른 이동 영역 */
-.login-dev-access {
-  margin-top: 22px;
-  padding-top: 18px;
-
-  border-top: 1px dashed #cbd5e1;
-}
-
-.login-dev-access p {
-  margin: 0 0 10px;
-
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
-}
-
-/* 역할별 빠른 이동 버튼 목록 */
-.login-dev-access-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.login-dev-access-buttons button {
-  height: 40px;
-
-  color: #334155;
-  background: #f8fafc;
-
-  border: 1px solid #dbe3ef;
-  border-radius: 12px;
-
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 800;
-
-  cursor: pointer;
-
-  transition:
-    background-color 0.15s,
-    border-color 0.15s,
-    transform 0.15s;
-}
-
-.login-dev-access-buttons button:hover {
-  background: #eef4ff;
-  border-color: #2f6df6;
-  transform: translateY(-1px);
 }
 
 /* 비밀번호 입력창과 보기/숨기기 버튼을 감싸는 영역 */

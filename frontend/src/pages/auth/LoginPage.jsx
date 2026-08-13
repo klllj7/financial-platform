@@ -24,19 +24,6 @@ function LoginPage() {
   // 아이디 저장 체크박스 상태
   const [saveId, setSaveId] = useState(false);  
 
-  // backend server test
-  /*const handleBackendCheck = async () => {
-    try {
-      const result = await getHealthCheck();
-
-      console.log("백엔드 연결 성공: ", result);
-      alert("백엔드 연결 성공!");
-    } catch(error) {
-      console.error("백엔드 연결 실패: ", error);
-      alert("백엔드 연결 실패! backend 서버가 켜져 있는지 확인해주세요.");
-    }
-  };*/
-
   // input에 입력할 때마다 loginForm 값을 업데이트하는 함수
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -98,68 +85,6 @@ function LoginPage() {
     }
   };
 
-  // TODO: 개발/시연용 역할별 빠른 이동. 추후 삭제 필요
-  // 코치님 또는 팀원이 회원가입/로그인 과정을 거치지 않고
-  // 각 권한 화면을 바로 확인할 수 있도록 임시 사용자 정보를 저장한다.
-  const handleDevRoleAccess = async (roleCode) => {
-    const demoAccounts = {
-      EMPLOYEE: {
-        email: "hbb@gmail.com",
-        password: "1234",
-        redirectPath: "/my-dashboard",
-      },
-
-      COMPLIANCE_MANAGER: {
-        email: "security_test@gmail.com",
-        password: "1234",
-        redirectPath: "/compliance/dashboard",
-      },
-
-      ADMIN: {
-        email: "jang@gmail.com",
-        password: "1234",
-        redirectPath: "/admin/dashboard",
-      },
-    };
-
-    const demoAccount = demoAccounts[roleCode];
-
-    if (!demoAccount) {
-      alert("존재하지 않는 데모 권한입니다.");
-      return;
-    }
-
-    try {
-      /*
-        기존에는 임시 토큰(dev-demo-token)을 저장했지만,
-        관리자 API는 실제 JWT 토큰이 있어야 접근 가능하다.
-        그래서 데모 계정으로 실제 로그인 API를 호출한 뒤
-        백엔드에서 발급한 토큰을 localStorage에 저장한다.
-      */
-      const result = await login({
-        email: demoAccount.email,
-        password: demoAccount.password,
-      });
-
-      const token = result.data.token;
-      const user = result.data.user;
-
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
-      navigate(demoAccount.redirectPath, {
-        replace: true,
-      });
-    } catch (error) {
-      console.error("데모 로그인 실패:", error);
-
-      alert(
-        error.response?.data?.error?.message ||
-          "데모 로그인에 실패했습니다. 데모 계정이 DB에 있는지 확인해주세요."
-      );
-    }
-  };
-
   // 회원가입 버튼 클릭 시 실행
   const handleSignupClick = () => {
     navigate("/signup");
@@ -181,16 +106,18 @@ function LoginPage() {
         {/* 왼쪽 서비스 소개/이미지 영역 */}
         <section className="login-left">
           <div className="login-left-content">
-            <p className="service-badge">AI Financial Platform</p>
+            <p className="service-badge">ReguPilot</p>
 
             <h1 className="login-left-title">
-              금융권 생성형 AI 사용을
+              ReguPilot
               <br />
-              안전하게 관리하세요
+              금융권 생성형 AI 활용 모니터링 및 
+              <br/>
+              규제 증빙 자동화 플랫폼
             </h1>
 
             <p className="login-left-description">
-              AI 사용 로그, 위험 이벤트, 정책 판단, 조치 이력을 한곳에서
+              AI 사용 로그, 위험 이벤트, 정책 및 조치 이력을 한곳에서
               관리하고 규제 대응을 위한 증빙 자료를 체계적으로 정리합니다.
             </p>
 
@@ -322,35 +249,6 @@ function LoginPage() {
                 회원가입
               </button>
             </div>
-
-            {/* TODO: 개발/시연용 역할별 빠른 이동. 추후 삭제 필요 */}
-            <div className="login-dev-access">
-              <p>개발/시연용 빠른 화면 이동</p>
-
-              <div className="login-dev-access-buttons">
-                <button
-                  type="button"
-                  onClick={() => handleDevRoleAccess("EMPLOYEE")}
-                >
-                  임직원 화면
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleDevRoleAccess("COMPLIANCE_MANAGER")}
-                >
-                  보안/컴플라이언스 화면
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleDevRoleAccess("ADMIN")}
-                >
-                  관리자 화면
-                </button>
-              </div>
-            </div>
-            
           </div>
         </section>
       </section>
