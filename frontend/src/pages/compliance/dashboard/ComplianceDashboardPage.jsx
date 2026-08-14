@@ -1119,7 +1119,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
           <header className="compliance-request-status-header">
             <div>
               <span><Boxes size={17} /></span>
-              <h3>AI Tool 신청 현황</h3>
+              <h3>AI 모델 신청 현황</h3>
             </div>
             <button type="button" onClick={handleAiToolViewAll}>
               전체 보기
@@ -1157,7 +1157,7 @@ function ComplianceDashboardPage({ isAdminView = false }) {
               ))
             ) : (
               <p className="compliance-request-status-empty">
-                등록된 AI Tool 신청이 없습니다.
+                등록된 AI 모델 신청이 없습니다.
               </p>
             )}
           </div>

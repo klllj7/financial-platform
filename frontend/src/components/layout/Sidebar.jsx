@@ -43,7 +43,7 @@ const ROLE_MENUS = {
     },
     {
       to: "/ai-tools",
-      label: "AI Tool 신청",
+      label: "AI 모델 신청",
       icon: Boxes,
     },
   ],
@@ -66,7 +66,7 @@ const ROLE_MENUS = {
     },
     {
       to: "/ai-tools",
-      label: "AI Tool 신청",
+      label: "AI 모델 신청",
       icon: Boxes,
     },
     {

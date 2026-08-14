@@ -474,7 +474,7 @@ function MyDashboardPage() {
               {/* AI Tool 신청 현황 아이콘 */}
               <ClipboardList size={18} />
 
-              <h3>AI Tool 신청 현황</h3>
+              <h3>AI 모델 신청 현황</h3>
 
               {/*
                 검토 중인 신청이 있는 경우에만
@@ -553,7 +553,7 @@ function MyDashboardPage() {
                 </strong>
 
                 <p>
-                  AI Tool을 신청하면 이곳에서 처리 상태를
+                  AI 모델을 신청하면 이곳에서 처리 상태를
                   확인할 수 있습니다.
                 </p>
               </div>

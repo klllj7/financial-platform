@@ -236,7 +236,7 @@ function AiToolsPage() {
       }
       handleApplyModalClose();
     } catch (error) {
-      alert(error.response?.data?.error?.message || "AI Tool 신청에 실패했습니다.");
+      alert(error.response?.data?.error?.message || "AI 모델 신청에 실패했습니다.");
     }
   };
 
@@ -246,23 +246,23 @@ function AiToolsPage() {
       <header className="ai-tools-heading">
         <div>
           {/* 페이지 제목 */}
-          <h2>AI Tool 신청</h2>
+          <h2>AI 모델 신청</h2>
 
           {/* 페이지 기능 설명 */}
           <p>
-            신청한 AI Tool의 처리 상태를 확인하고,
+            신청한 AI 모델의 처리 상태를 확인하고,
             새로운 사용 권한을 신청할 수 있습니다.
           </p>
         </div>
 
-        {/* 새로운 AI Tool 신청 버튼 */}
+        {/* 새로운 AI 모델 신청 버튼 */}
         <button
           type="button"
           className="ai-tool-apply-button"
           onClick={handleApplyButtonClick}
         >
           <Plus size={17} />
-          AI Tool 신청하기
+          AI 모델 신청하기
         </button>
       </header>
 
@@ -276,18 +276,18 @@ function AiToolsPage() {
         {/* 안내 카드 내용 */}
         <div className="ai-tools-guide-content">
           <strong>
-            승인된 AI Tool만 업무에 사용할 수 있습니다.
+            승인된 AI 모델만 업무에 사용할 수 있습니다.
           </strong>
 
           <p>
-            신청한 AI Tool은 담당자의 검토 후 사용 권한이
+            신청한 AI 모델은 담당자의 검토 후 사용 권한이
             부여됩니다. 검토 결과는 이 페이지와 마이
             대시보드에서 확인할 수 있습니다.
           </p>
         </div>
       </section>
 
-      {/* 내 AI Tool 신청 현황 */}
+      {/* 내 AI 모델 신청 현황 */}
       <section className="ai-tools-section">
         {/* 신청 현황 제목 영역 */}
         <div className="ai-tools-section-header">
@@ -309,7 +309,7 @@ function AiToolsPage() {
             </div>
 
             <p>
-              내가 신청한 AI Tool의 처리 상태를 확인합니다.
+              내가 신청한 AI 모델의 처리 상태를 확인합니다.
             </p>
           </div>
 
@@ -404,7 +404,7 @@ function AiToolsPage() {
             </strong>
 
             <p>
-              AI Tool을 신청하면 검토 중, 승인 완료,
+              AI 모델을 신청하면 검토 중, 승인 완료,
               반려 상태가 이곳에 표시됩니다.
             </p>
           </div>
@@ -420,7 +420,7 @@ function AiToolsPage() {
                 <h3>전체 신청 목록</h3>
               </div>
               <p>
-                전사 임직원이 신청한 AI Tool과 현재 처리 상태를 확인합니다.
+                전사 임직원이 신청한 AI 모델과 현재 처리 상태를 확인합니다.
               </p>
             </div>
             <div className="ai-tools-all-controls">
@@ -433,7 +433,7 @@ function AiToolsPage() {
                     setAllApplicationsKeyword(event.target.value)
                   }
                   placeholder="모델, 공급사, 처리 상태 검색"
-                  aria-label="전체 AI Tool 신청 목록 검색"
+                  aria-label="전체 AI 모델 신청 목록 검색"
                 />
               </label>
               <select
@@ -463,7 +463,7 @@ function AiToolsPage() {
               <table className="ai-tools-all-table">
                 <thead>
                   <tr>
-                    <th>AI Tool</th>
+                    <th>AI 모델</th>
                     <th>공급사</th>
                     <th>신청일</th>
                     <th>처리 상태</th>
@@ -526,7 +526,7 @@ function AiToolsPage() {
                 </span>
                 <div>
                   <h3 id="ai-tool-rejection-modal-title">
-                    AI Tool 신청 반려 사유
+                    AI 모델 신청 반려 사유
                   </h3>
                   <p>{selectedRejectedApplication.toolName}</p>
                 </div>
@@ -544,7 +544,7 @@ function AiToolsPage() {
             <div className="ai-tool-rejection-detail">
               <dl>
                 <div>
-                  <dt>AI Tool</dt>
+                  <dt>AI 모델</dt>
                   <dd>{selectedRejectedApplication.toolName}</dd>
                 </div>
                 <div>
@@ -604,10 +604,10 @@ function AiToolsPage() {
 
                 <div>
                   <h3 id="ai-tool-apply-modal-title">
-                    AI Tool 신청하기
+                    AI 모델 신청하기
                   </h3>
                   <p>
-                    업무에 사용할 AI Tool 정보를 입력해 주세요.
+                    업무에 사용할 AI 모델 정보를 입력해 주세요.
                   </p>
                 </div>
               </div>

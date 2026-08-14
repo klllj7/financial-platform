@@ -18,7 +18,7 @@ const PAGE_TITLES = {
   "/usage-history": "AI 사용 이력",
   "/ai-chat": "AI 사용하기",
   "/notices": "공지사항",
-  "/ai-tools": "AI Tool 신청",
+  "/ai-tools": "AI 모델 신청",
 
   "/compliance/dashboard": "전사 대시보드",
   "/compliance/notices": "공지사항",

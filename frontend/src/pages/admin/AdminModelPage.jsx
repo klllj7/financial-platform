@@ -67,7 +67,7 @@ function AdminModelPage() {
         console.error("AI Tool 신청 목록 조회 실패", error);
         setErrorMessage(
           error.response?.data?.error?.message ||
-            "AI Tool 신청 목록을 불러오지 못했습니다.",
+            "AI 모델 신청 목록을 불러오지 못했습니다.",
         );
       } finally {
         setIsLoading(false);
@@ -172,7 +172,7 @@ function AdminModelPage() {
     } catch (error) {
       setErrorMessage(
         error.response?.data?.error?.message ||
-          "AI Tool 활성 상태를 변경하지 못했습니다.",
+          "AI 모델 활성 상태를 변경하지 못했습니다.",
       );
     } finally {
       setTogglingId(null);
@@ -232,7 +232,7 @@ function AdminModelPage() {
     } catch (error) {
       setErrorMessage(
         error.response?.data?.error?.message ||
-          "AI Tool을 삭제하지 못했습니다.",
+          "AI 모델을 삭제하지 못했습니다.",
       );
     } finally {
       setDeletingId(null);
@@ -246,7 +246,7 @@ function AdminModelPage() {
           <p className="admin-model-eyebrow">Admin Console</p>
           <h2>AI 모델 관리</h2>
           <p>
-            임직원이 신청한 AI Tool을 확인하고 사용 승인 또는 반려를
+            임직원이 신청한 AI 모델을 확인하고 사용 승인 또는 반려를
             처리합니다.
           </p>
         </div>
@@ -299,7 +299,7 @@ function AdminModelPage() {
 
       <div className="admin-model-table-card">
         <div className="admin-model-table-header">
-          <h3>AI Tool 신청 현황</h3>
+          <h3>AI 모델 신청 현황</h3>
           <span>승인된 Tool은 신청 임직원의 AI 사용하기에 표시됩니다.</span>
         </div>
 
@@ -343,7 +343,7 @@ function AdminModelPage() {
           <table className="admin-model-table">
             <thead>
               <tr>
-                <th>AI Tool</th>
+                <th>AI 모델</th>
                 <th>공급사</th>
                 <th>신청자</th>
                 <th>부서</th>
@@ -459,7 +459,7 @@ function AdminModelPage() {
               {!isLoading && filteredApplications.length === 0 && (
                 <tr>
                   <td colSpan="8" className="admin-model-empty-message">
-                    접수된 AI Tool 신청 내역이 없습니다.
+                    접수된 AI 모델 신청 내역이 없습니다.
                   </td>
                 </tr>
               )}
@@ -579,7 +579,7 @@ function AdminModelPage() {
           >
             <div className="admin-model-modal-header">
               <div>
-                <p>AI Tool 삭제</p>
+                <p>AI 모델 삭제</p>
                 <h3 id="admin-model-delete-title">
                   {deleteTarget.toolName}
                 </h3>
@@ -631,7 +631,7 @@ function AdminModelPage() {
           <div className="admin-model-modal">
             <div className="admin-model-modal-header">
               <div>
-                <p>AI Tool 신청 반려</p>
+                <p>AI 모델 신청 반려</p>
                 <h3>{rejectTarget.toolName}</h3>
               </div>
               <button
@@ -687,7 +687,7 @@ function AdminModelPage() {
           >
             <div className="admin-model-modal-header">
               <div>
-                <p>AI Tool 신청 승인</p>
+                <p>AI 모델 신청 승인</p>
                 <h3 id="admin-model-approve-title">
                   {approveTarget.toolName}
                 </h3>
