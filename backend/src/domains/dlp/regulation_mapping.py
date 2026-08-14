@@ -14,42 +14,42 @@
 REGULATION_MAPPING = {
     "resident_number": {
         "regulation_code": "REG-01",
-        "clause_id": 28,  # 개인정보 보호법 제23조 (민감정보의 처리 제한)
+        "clause_id": 44,  # 개인정보 보호법 제23조 (민감정보의 처리 제한)
         "severity": "HIGH",
         "legal_issue": "주민등록번호 등 민감정보가 별도 동의 없이 처리되었을 위험",
         "recommended_action": "해당 발화 차단 여부 확인 및 민감정보 처리 동의 절차 점검",
     },
     "account_number": {
         "regulation_code": "REG-02",
-        "clause_id": 31,  # 개인정보 보호법 제29조 (안전조치의무)
+        "clause_id": 45,  # 개인정보 보호법 제29조 (안전조치의무)
         "severity": "MEDIUM",
         "legal_issue": "계좌번호 등 금융정보 유출 시 안전조치의무 위반 소지",
         "recommended_action": "마스킹 처리 여부 확인 및 접속 로그 점검",
     },
     "card_number": {
         "regulation_code": "REG-03",
-        "clause_id": 31,  # 개인정보 보호법 제29조 (안전조치의무)
+        "clause_id": 45,  # 개인정보 보호법 제29조 (안전조치의무)
         "severity": "HIGH",
         "legal_issue": "카드번호 등 금융정보 유출 시 안전조치의무 위반 소지",
         "recommended_action": "마스킹 처리 여부 확인 및 접속 로그 점검",
     },
     "phone_number": {
         "regulation_code": "REG-04",
-        "clause_id": 27,  # 개인정보 보호법 제17조 (개인정보의 제공)
+        "clause_id": 43,  # 개인정보 보호법 제17조 (개인정보의 제공)
         "severity": "MEDIUM",
         "legal_issue": "휴대폰번호가 동의 없이 제3자에게 제공되었을 위험",
         "recommended_action": "제공 목적 및 동의 여부 확인",
     },
     "email": {
         "regulation_code": "REG-05",
-        "clause_id": 27,  # 개인정보 보호법 제17조 (개인정보의 제공)
+        "clause_id": 43,  # 개인정보 보호법 제17조 (개인정보의 제공)
         "severity": "LOW",
         "legal_issue": "이메일 주소가 동의 없이 제3자에게 제공되었을 위험",
         "recommended_action": "제공 목적 및 동의 여부 확인",
     },
     "confidential_similarity": {
         "regulation_code": "REG-06",
-        "clause_id": 37,  # 인공지능기본법 제34조 (고영향 인공지능과 관련한 사업자의 책무)
+        "clause_id": 48,  # 인공지능기본법 제34조 (고영향 인공지능과 관련한 사업자의 책무)
         "sub_locator": "제1항제1호",  # 제34조 중 위험관리방안의 수립·운영 부분
         "severity": "HIGH",
         "legal_issue": "사내 기밀·민감정보 유사 내용 처리에 대한 위험관리방안 미비 소지",
@@ -57,7 +57,7 @@ REGULATION_MAPPING = {
     },
     "prompt_injection": {
         "regulation_code": "REG-07",
-        "clause_id": 37,  # 인공지능기본법 제34조 (고영향 인공지능과 관련한 사업자의 책무)
+        "clause_id": 48,  # 인공지능기본법 제34조 (고영향 인공지능과 관련한 사업자의 책무)
         "sub_locator": "제1항",  # 제34조 중 위험관리방안 + 관리·감독을 포괄하는 부분
         "severity": "HIGH",
         "legal_issue": "프롬프트 인젝션 등 침해 시도에 대한 위험관리·관리감독 체계 미비 소지",
