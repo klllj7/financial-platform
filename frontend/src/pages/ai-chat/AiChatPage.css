@@ -58,7 +58,6 @@
 .ai-chat-tool-selector select:focus { border-color: #79a3ea; box-shadow: 0 0 0 3px rgba(47,111,237,.1); }
 .ai-chat-tool-selector select:disabled { color: #8492a7; background: #eef1f6; cursor: not-allowed; }
 .ai-chat-tool-selector > p { margin: 0; color: #a05d17; font-size: 9px; }
-.ai-chat-model-locked-notice { color: #a05d17; font-size: 8px; }
 .ai-chat-message-list { min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 22px; scrollbar-gutter: stable; }
 .ai-chat-empty-state { display: flex; align-items: center; justify-content: center; flex-direction: column; min-height: 390px; text-align: center; }
 .ai-chat-empty-state > span { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; color: #2f6fed; background: #edf3ff; border-radius: 20px; }
