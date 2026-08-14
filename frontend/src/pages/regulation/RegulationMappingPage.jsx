@@ -4,6 +4,8 @@ import {
   getClauses,
   createDocument,
   createClause,
+  updateClause,
+  deleteClause,
 } from "../../api/regulationApi";
 import "./RegulationMappingPage.css";
 
@@ -26,6 +28,15 @@ function RegulationMappingPage() {
   const [newClauseDescription, setNewClauseDescription] = useState("");
   const [newClauseFile, setNewClauseFile] = useState(null);
   const [selectedClause, setSelectedClause] = useState(null);
+
+  // "조항 편집" 모달이 열려있는지, 입력 중인 값들 (상세보기에서 편집을 누르면
+  // selectedClause 값으로 채워 넣는다).
+  const [isEditClauseModalOpen, setIsEditClauseModalOpen] = useState(false);
+  const [editingClauseId, setEditingClauseId] = useState(null);
+  const [editClauseNo, setEditClauseNo] = useState("");
+  const [editClauseTitle, setEditClauseTitle] = useState("");
+  const [editClauseDescription, setEditClauseDescription] = useState("");
+  const [editClauseFile, setEditClauseFile] = useState(null);
 
   // 카드에서 "더보기/접기"로 펼쳐놓은 조항 id 목록
   // { 7: true, 10: false } 형태로, 조항마다 펼침 여부를 따로 기억한다.
@@ -144,6 +155,67 @@ function RegulationMappingPage() {
     } catch (error) {
       console.error("조항 등록 실패:", error);
       alert("조항 등록에 실패했습니다.");
+    }
+  };
+
+  // 상세보기 모달의 "편집" 버튼 클릭 — 지금 보고 있는 조항 값으로 편집 폼을 채운다.
+  const openEditClause = (clause) => {
+    setEditingClauseId(clause.id);
+    setEditClauseNo(clause.clause_no);
+    setEditClauseTitle(clause.title);
+    setEditClauseDescription(clause.description || "");
+    setEditClauseFile(null);
+    setSelectedClause(null);
+    setIsEditClauseModalOpen(true);
+  };
+
+  // "조항 편집" 모달의 저장 버튼 클릭
+  const handleUpdateClause = async (event) => {
+    event.preventDefault();
+
+    if (
+      !editClauseNo.trim() ||
+      !editClauseTitle.trim() ||
+      !editClauseDescription.trim()
+    ) {
+      alert("조항 번호, 제목, 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    try {
+      await updateClause(
+        editingClauseId,
+        {
+          clause_no: editClauseNo,
+          title: editClauseTitle,
+          description: editClauseDescription,
+        },
+        editClauseFile
+      );
+
+      setIsEditClauseModalOpen(false);
+      setEditClauseFile(null);
+
+      await loadClauses(selectedDocId, searchKeyword);
+    } catch (error) {
+      console.error("조항 수정 실패:", error);
+      alert("조항 수정에 실패했습니다.");
+    }
+  };
+
+  // 상세보기 모달의 "삭제" 버튼 클릭
+  const handleDeleteClause = async (clause) => {
+    if (!window.confirm(`"${clause.clause_no} ${clause.title}" 조항을 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      await deleteClause(clause.id);
+      setSelectedClause(null);
+      await loadClauses(selectedDocId, searchKeyword);
+    } catch (error) {
+      console.error("조항 삭제 실패:", error);
+      alert("조항 삭제에 실패했습니다.");
     }
   };
 
@@ -371,6 +443,74 @@ function RegulationMappingPage() {
         </div>
       )}
 
+      {/* 조항 편집 모달 */}
+      {isEditClauseModalOpen && (
+        <div
+          className="regulation-modal-backdrop"
+          onClick={() => setIsEditClauseModalOpen(false)}
+        >
+          <div
+            className="regulation-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="regulation-modal-header">
+              <h3>조항 편집</h3>
+              <button
+                className="regulation-modal-close-button"
+                onClick={() => setIsEditClauseModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form
+              className="regulation-modal-body"
+              onSubmit={handleUpdateClause}
+            >
+              <label>조항 번호 *</label>
+              <input
+                type="text"
+                placeholder="예: 제23조"
+                value={editClauseNo}
+                onChange={(event) => setEditClauseNo(event.target.value)}
+                required
+              />
+
+              <label>조항 제목 *</label>
+              <input
+                type="text"
+                placeholder="예: 민감정보의 처리 제한"
+                value={editClauseTitle}
+                onChange={(event) => setEditClauseTitle(event.target.value)}
+                required
+              />
+
+              <label>내용 *</label>
+              <textarea
+                placeholder="조항 내용을 입력하세요"
+                value={editClauseDescription}
+                onChange={(event) =>
+                  setEditClauseDescription(event.target.value)
+                }
+                required
+              />
+
+              <label>원본 파일 교체 (선택, 안 고르면 기존 파일 유지)</label>
+              <input
+                type="file"
+                onChange={(event) =>
+                  setEditClauseFile(event.target.files[0] || null)
+                }
+              />
+
+              <button type="submit" className="regulation-modal-save-button">
+                저장
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* 조항 상세보기 모달 */}
       {selectedClause && (
         <div
@@ -385,12 +525,28 @@ function RegulationMappingPage() {
               <h3>
                 {selectedClause.clause_no} {selectedClause.title}
               </h3>
-              <button
-                className="regulation-modal-close-button"
-                onClick={() => setSelectedClause(null)}
-              >
-                ×
-              </button>
+              <div className="regulation-detail-header-actions">
+                <button
+                  type="button"
+                  className="regulation-detail-edit-button"
+                  onClick={() => openEditClause(selectedClause)}
+                >
+                  편집
+                </button>
+                <button
+                  type="button"
+                  className="regulation-detail-delete-button"
+                  onClick={() => handleDeleteClause(selectedClause)}
+                >
+                  삭제
+                </button>
+                <button
+                  className="regulation-modal-close-button"
+                  onClick={() => setSelectedClause(null)}
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
             <div className="regulation-detail-body">

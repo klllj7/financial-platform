@@ -223,6 +223,35 @@
   color: var(--color-text-muted);
 }
 
+/* 조항 상세보기 모달의 편집/삭제/닫기 버튼을 한 줄에 배치 */
+.regulation-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.regulation-detail-edit-button,
+.regulation-detail-delete-button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.regulation-detail-edit-button {
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+}
+
+.regulation-detail-delete-button {
+  color: #e14b4b;
+  background: transparent;
+  border: 1px solid #f0b7b7;
+}
+
 .regulation-modal-body {
   display: flex;
   flex-direction: column;

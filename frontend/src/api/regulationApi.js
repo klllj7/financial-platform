@@ -38,3 +38,28 @@ export const createClause = async (docId, clauseData, file) => {
     );
     return response.data;
 };
+
+// 조항 수정 (파일을 새로 선택했을 때만 첨부파일이 교체됨)
+export const updateClause = async (clauseId, clauseData, file) => {
+    const formData = new FormData();
+    formData.append("clause_no", clauseData.clause_no);
+    formData.append("title", clauseData.title);
+    formData.append("description", clauseData.description);
+
+    if (file) {
+        formData.append("file", file);
+    }
+
+    const response = await axiosInstance.put(
+        `/regulations/clauses/${clauseId}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data;
+};
+
+// 조항 삭제
+export const deleteClause = async (clauseId) => {
+    const response = await axiosInstance.delete(`/regulations/clauses/${clauseId}`);
+    return response.data;
+};
