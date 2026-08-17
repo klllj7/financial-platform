@@ -143,8 +143,9 @@ const buildReportSnapshot = ({ events, departmentNames, department, periodStart,
         eventType: event.eventType,
         actionType: action.action_type ?? "",
         actionLabel: ACTION_TYPE_LABEL[action.action_type] ?? action.action_type ?? "-",
-        // DLP /events 응답의 actions[]는 이름이 아니라 actor_user_id(숫자)만 내려준다.
-        actorName: action.actor_user_id ?? "-",
+        // DLP /events 응답의 actions[]는 actor_user_id(숫자)와 함께 actor_name(조회된 이름)도 내려준다.
+        // 시스템 자동 조치는 actor_user_id가 없어 actor_name도 없으므로 "-"로 표시한다.
+        actorName: action.actor_name ?? "-",
         reason: action.action_reason ?? "-",
         actedAt: formatDateTime(action.action_time),
         actedAtRaw: action.action_time ?? "",
