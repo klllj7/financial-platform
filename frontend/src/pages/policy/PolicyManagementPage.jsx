@@ -159,7 +159,7 @@ function PolicyManagementPage() {
 
   // "수정" 버튼 클릭 시: 현재 정책 값을 수정 폼에 채워넣고 수정 모드로 전환한다.
   const handleEditClick = () => {
-    setEditRuleContent(JSON.stringify(selectedPolicy.rule_content));
+    setEditRuleContent(selectedPolicy.rule_content);
     setEditActiveYn(selectedPolicy.active_yn);
     setIsEditing(true);
   };
@@ -168,7 +168,7 @@ function PolicyManagementPage() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     await updatePolicy(selectedPolicy.id, {
-      rule_content: JSON.parse(editRuleContent),
+      rule_content: editRuleContent,
       active_yn: editActiveYn,
     });
     setIsEditing(false);
