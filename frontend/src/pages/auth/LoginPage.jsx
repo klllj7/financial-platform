@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, User, ShieldCheck, Settings } from "lucide-react";
 import { login } from "../../api/authApi";
 // import { getHealthCheck } from "../../api/healthApi"; // backend server test
 import "./LoginPage.css";
+
+// 테스트/데모 목적의 역할별 간편 로그인 프리셋.
+// 실제 서비스 계정이 아니라, 데모용으로 미리 만들어둔 계정 정보다.
+const QUICK_LOGIN_PRESETS = [
+  { role: "EMPLOYEE", label: "임직원 로그인", email: "user@company.com", password: "Demo!2026", Icon: User },
+  { role: "COMPLIANCE_MANAGER", label: "보안/컴플라이언스 로그인", email: "security@company.com", password: "Demo!2026", Icon: ShieldCheck },
+  { role: "ADMIN", label: "관리자 로그인", email: "admin@company.com", password: "Demo!2026", Icon: Settings },
+];
 
 function LoginPage() {
 
@@ -34,22 +42,15 @@ function LoginPage() {
     }));
   };
 
-  // 로그인 버튼 클릭 시 실행되는 함수
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!loginForm.email || !loginForm.password) {
+  // 실제 로그인 처리 (일반 로그인 폼 제출, 간편 로그인 버튼이 공통으로 사용)
+  const submitLogin = async ({ email, password }) => {
+    if (!email || !password) {
       alert("이메일과 비밀번호를 입력해주세요.");
       return;
     }
 
     try {
-      const payload = {
-        email: loginForm.email,
-        password: loginForm.password,
-      };
-
-      const result = await login(payload);
+      const result = await login({ email, password });
 
       console.log("로그인 성공: ", result);
 
@@ -83,6 +84,18 @@ function LoginPage() {
       console.error("로그인 실패: ", error);
       alert(error.response?.data?.error?.message || "로그인에 실패했습니다.");
     }
+  };
+
+  // 로그인 버튼 클릭 시 실행되는 함수
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    await submitLogin(loginForm);
+  };
+
+  // 역할별 간편 로그인 버튼 클릭 시: 프리셋 계정으로 폼을 채우고 바로 로그인 처리
+  const handleQuickLogin = async (preset) => {
+    setLoginForm({ email: preset.email, password: preset.password });
+    await submitLogin({ email: preset.email, password: preset.password });
   };
 
   // 회원가입 버튼 클릭 시 실행
@@ -248,6 +261,29 @@ function LoginPage() {
               <button type="button" onClick={handleSignupClick}>
                 회원가입
               </button>
+            </div>
+
+            {/* 테스트/데모용 역할별 간편 로그인 */}
+            <div className="quick-login-area">
+              <div className="quick-login-divider">
+                <span />
+                <p>테스트용 계정으로 로그인</p>
+                <span />
+              </div>
+
+              <div className="quick-login-buttons">
+                {QUICK_LOGIN_PRESETS.map((preset) => (
+                  <button
+                    key={preset.role}
+                    type="button"
+                    className="quick-login-button"
+                    onClick={() => handleQuickLogin(preset)}
+                  >
+                    <preset.Icon size={16} />
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </section>

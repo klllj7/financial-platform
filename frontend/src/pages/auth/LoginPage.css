@@ -367,6 +367,77 @@
   text-decoration: underline;
 }
 
+/* 테스트/데모용 간편 로그인 영역 */
+.quick-login-area {
+  margin-top: 22px;
+}
+
+/* "테스트용 계정으로 로그인" 구분선 */
+.quick-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.quick-login-divider span {
+  flex: 1;
+  height: 1px;
+  background: #e6ebf3;
+}
+
+.quick-login-divider p {
+  margin: 0;
+  color: #a1aabc;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 역할별 간편 로그인 버튼 3개 (세로 배치) */
+.quick-login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 메인 CTA(로그인 버튼)와 구분되는 아웃라인 + 연한 배경 스타일 */
+.quick-login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  height: 44px;
+  border: 1px solid #d9e1ef;
+  border-radius: 12px;
+  background: #f6f8fc;
+  color: #556173;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.quick-login-button:hover {
+  border-color: #2f6fed;
+  background: #eef4ff;
+  color: #2f6fed;
+}
+
+/* 모바일 화면에서는 버튼을 가로로 나란히 배치 */
+@media (max-width: 520px) {
+  .quick-login-buttons {
+    flex-direction: row;
+  }
+
+  .quick-login-button {
+    flex: 1;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+}
+
 /* 태블릿 화면 대응 */
 @media (max-width: 900px) {
   .login-page {
