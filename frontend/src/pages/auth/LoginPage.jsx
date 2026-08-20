@@ -267,7 +267,7 @@ function LoginPage() {
             <div className="quick-login-area">
               <div className="quick-login-divider">
                 <span />
-                <p>테스트용 계정으로 로그인</p>
+                <p>자동로그인</p>
                 <span />
               </div>
 
