@@ -44,6 +44,12 @@ const formatOccurredAt = (isoString) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+const formatToday = () => {
+  const date = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
 // LoginPage에서 로그인 성공 시 localStorage에 저장해두는 사용자 정보에서 userId를 꺼낸다.
 const getLoggedInUserId = () => {
   try {
@@ -255,7 +261,7 @@ function ComplianceRiskEventsPage() {
           <h2>위험 이벤트 관리</h2>
           <p>전사 AI 사용 중 탐지된 위험 이벤트를 확인하고 조치 상태를 관리합니다.</p>
         </div>
-        <span>2026-07-24 기준</span>
+        <span>{formatToday()} 기준</span>
       </header>
 
       <section className="risk-events-summary-grid">
